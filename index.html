@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alabanza App - Músicos</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* PALETA DE LUJO (NEON DARK) */
+            --bg-deep: #050505;
+            --glass-surface: rgba(20, 20, 25, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --primary-glow: #6366f1; /* Indigo Neon */
+            --accent-glow: #f59e0b; /* Amber Neon */
+            --danger-glow: #ef4444;
+            --text-main: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+
+        body {
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.08), transparent 40%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; padding-bottom: 120px; }
+
+        /* --- HEADER --- */
+        .app-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; padding: 10px 0;
+        }
+        .logo-container img { height: 40px; width: auto; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+        .header-controls { display: flex; align-items: center; gap: 15px; }
+        
+        .user-badge {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            padding: 6px 14px; border-radius: 50px;
+            font-size: 13px; font-weight: 600; color: #e2e8f0;
+            backdrop-filter: blur(10px);
+        }
+        .user-badge i { color: var(--primary-glow); }
+
+        .icon-btn {
+            color: var(--text-muted); font-size: 18px; cursor: pointer; transition: 0.3s;
+            padding: 8px; border-radius: 50%;
+        }
+        .icon-btn:hover { color: white; background: rgba(255,255,255,0.1); }
+        .icon-btn.danger:hover { color: var(--danger-glow); }
+
+        /* --- TABS --- */
+        .tabs-wrapper {
+            background: #131316; border: 1px solid var(--glass-border);
+            padding: 5px; border-radius: 16px; display: flex;
+            margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .tab-btn {
+            flex: 1; padding: 12px; border: none; background: transparent;
+            color: #666; font-weight: 600; font-size: 14px; cursor: pointer;
+            border-radius: 12px; transition: 0.3s ease; position: relative; z-index: 2;
+        }
+        .tab-btn.active {
+            color: white; background: var(--glass-surface);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+        }
+
+        /* --- BUSCADOR --- */
+        .search-container { position: relative; margin-bottom: 25px; }
+        .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #555; }
+        #searchInput {
+            width: 100%; padding: 16px 20px 16px 50px;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            border-radius: 18px; color: white; font-family: 'Outfit', sans-serif; font-size: 16px;
+            transition: 0.3s;
+        }
+        #searchInput:focus {
+            background: rgba(0,0,0,0.6); border-color: var(--primary-glow);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        /* --- LISTA CANCIONES --- */
+        .song-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+        .song-item {
+            background: var(--glass-surface);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 16px 20px; border-radius: 18px;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .song-item:active { transform: scale(0.98); background: rgba(255,255,255,0.03); }
+        .song-info h3 { margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: white; }
+        .song-info div { display: flex; align-items: center; gap: 8px; }
+        .song-meta-badge {
+            font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+            background: rgba(245, 158, 11, 0.15); color: var(--accent-glow); border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        .song-artist { font-size: 13px; color: var(--text-muted); }
+        .action-btn {
+            width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.03); display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: 0.2s; font-size: 14px;
+        }
+        .btn-add.added { color: #10b981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); }
+        .btn-remove { color: var(--danger-glow); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
+
+        /* --- VISOR CANCIÓN --- */
+        #viewSong {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 50; flex-direction: column;
+            background-image: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.1), transparent 50%);
+        }
+        .sticky-player-header {
+            background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border); padding: 15px 20px; 
+            display: flex; justify-content: space-between; align-items: center; z-index: 60;
+        }
+        .song-title-large {
+            margin: 0; font-size: 18px; color: white; font-weight: 700;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;
+        }
+        .song-artist-small { color: #94a3b8; font-size: 12px; display: block; }
+        
+        .meta-chips { display: flex; gap: 8px; align-items: center; }
+        .meta-chip {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
+            padding: 6px 10px; border-radius: 8px; font-size: 12px; color: #ccc; font-weight: 600;
+        }
+        .meta-chip i { font-size: 10px; color: var(--primary-glow); }
+        .chip-tone { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: var(--accent-glow); }
+
+        .lyrics-container {
+            flex: 1; padding: 25px 20px; overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace; font-size: 17px; line-height: 1.6;
+            padding-bottom: 120px; color: #d1d5db;
+        }
+        .song-line { display: flex; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; min-height: auto; }
+        .chord-group { display: flex; flex-direction: column; margin-right: 6px; }
+        .chord { color: var(--accent-glow); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+        .lyric { color: #f1f5f9; font-size: 17px; }
+        
+        /* ETIQUETAS DE SECCIÓN (COLORES) */
+        .struct-btn {
+            display: block; width: fit-content; margin: 30px 0 10px 0;
+            padding: 5px 14px; border-radius: 20px;
+            font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid transparent;
+        }
+        .tag-intro { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
+        .tag-verso { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+        .tag-coro { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
+        .tag-precoro { background: rgba(139, 92, 246, 0.2); color: #a78bfa; border-color: rgba(139, 92, 246, 0.4); }
+        .tag-puente { background: rgba(139, 92, 246, 0.2); color: #c084fc; border-color: rgba(139, 92, 246, 0.4); }
+        .tag-final { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+
+        .personal-note {
+            background: #ffe100; color: #000; font-weight: 700; font-size: 13px;
+            padding: 4px 8px; border-radius: 4px; margin-bottom: 6px;
+            display: inline-block; transform: rotate(-1deg);
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.5); font-family: 'Outfit', sans-serif;
+        }
+        
+        body.hide-chords .chord { display: none !important; }
+        body.hide-chords .song-line { align-items: center; margin-bottom: 6px; }
+
+        /* FABs */
+        .fab-container { position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 100; }
+        .fab {
+            width: 55px; height: 55px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            color: white; font-size: 20px; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px); background: rgba(30, 30, 35, 0.8);
+        }
+        .fab:active { transform: scale(0.95); }
+        .fab-back { background: rgba(20, 20, 25, 0.9); width: 45px; height: 45px; font-size: 16px;}
+        .fab-highlight { color: var(--accent-glow); border-color: rgba(245, 158, 11, 0.3); }
+
+        /* Panel Transpositor */
+        .transposer-panel {
+            position: fixed; bottom: 110px; right: 25px; width: 160px;
+            background: rgba(20, 20, 25, 0.95); backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-radius: 20px;
+            padding: 15px; display: none; flex-direction: column; gap: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); z-index: 99;
+        }
+        .transposer-panel.active { display: flex; }
+        .btn-panel { padding: 12px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: white; font-weight: 600; cursor: pointer; }
+        .btn-panel.primary { background: var(--primary-glow); border: none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+
+        /* MODALES */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.9); backdrop-filter: blur(10px); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+        .login-card { background: #131316; border: 1px solid var(--glass-border); padding: 40px 30px; border-radius: 30px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .role-option { padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 2px solid transparent; cursor: pointer; color: #888; transition: 0.3s; }
+        .role-option.selected { background: rgba(99, 102, 241, 0.1); border-color: var(--primary-glow); color: white; box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
+
+        /* Modal Custom */
+        .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+        .custom-modal-overlay.open { display: flex; opacity: 1; }
+        .custom-modal-box { background: #131316; border: 1px solid var(--glass-border); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
+        .custom-modal-overlay.open .custom-modal-box { transform: scale(1); }
+        .modal-icon { font-size: 40px; margin-bottom: 15px; display: inline-block; }
+        .modal-title { font-size: 20px; font-weight: 700; color: white; margin-bottom: 10px; }
+        .modal-text { font-size: 15px; color: #94a3b8; margin-bottom: 25px; }
+        .modal-input-field { width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; margin-bottom: 20px; outline: none; }
+        .modal-input-field:focus { border-color: var(--primary-glow); }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .btn-modal { flex: 1; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; font-size: 14px; }
+        .btn-modal.cancel { background: rgba(255,255,255,0.05); color: #ccc; }
+        .btn-modal.confirm { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+    </style>
+</head>
+<body>
+
+    <div id="loginModal" class="modal-overlay">
+        <div class="login-card">
+            <h2 style="margin:0; font-size:26px; color:white;">Bienvenido</h2>
+            <p style="color:#666; font-size:14px; margin-top:5px;">Configura tu perfil</p>
+            <input type="text" id="userNameInput" placeholder="¿Cómo te llamas?" style="text-align:center; margin-top:20px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px;">
+            <p style="color:#444; font-size:12px; font-weight:700; text-transform:uppercase; margin-top:25px;">Selecciona tu Rol</p>
+            <div class="role-grid">
+                <div class="role-option" onclick="selectRolTemp('bateria', this)"><i class="fas fa-drum fa-2x"></i><br>Batería</div>
+                <div class="role-option" onclick="selectRolTemp('voz', this)"><i class="fas fa-microphone fa-2x"></i><br>Voz</div>
+                <div class="role-option" onclick="selectRolTemp('guitarra', this)"><i class="fas fa-guitar fa-2x"></i><br>Guitarra</div>
+                <div class="role-option" onclick="selectRolTemp('teclado', this)"><i class="fas fa-keyboard fa-2x"></i><br>Teclado</div>
+            </div>
+            <button onclick="iniciarSesion()" style="width:100%; padding:18px; margin-top:30px; border-radius:16px; border:none; background: linear-gradient(135deg, #6366f1, #4f46e5); color:white; font-weight:700; cursor:pointer;">INGRESAR</button>
+        </div>
+    </div>
+
+    <div id="customModal" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <div id="modalIcon" class="modal-icon">👋</div>
+            <div id="modalTitle" class="modal-title">Título</div>
+            <div id="modalText" class="modal-text">Mensaje aquí</div>
+            <input type="text" id="modalInput" class="modal-input-field" style="display:none;" autocomplete="off">
+            <div class="modal-actions">
+                <button id="btnModalCancel" class="btn-modal cancel">Cancelar</button>
+                <button id="btnModalConfirm" class="btn-modal confirm">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="viewList">
+            <header class="app-header">
+                <div class="logo-container"><img src="logo.png" alt="Logo"></div>
+                <div class="header-controls">
+                    <div class="icon-btn" onclick="location.href='admin.html'"><i class="fas fa-cog"></i></div>
+                    <div class="user-badge"><span id="displayUserBadge"><i class="fas fa-user"></i> ...</span></div>
+                    <div class="icon-btn danger" onclick="cerrarSesion()"><i class="fas fa-power-off"></i></div>
+                </div>
+            </header>
+
+            <div class="tabs-wrapper">
+                <button id="tabAll" class="tab-btn active" onclick="cambiarTab('all')">Repertorio</button>
+                <button id="tabPlaylist" class="tab-btn" onclick="cambiarTab('playlist')">Domingo</button>
+            </div>
+            
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Buscar canción..." onkeyup="renderizarLista()">
+            </div>
+
+            <ul id="songList" class="song-list">
+                <div style="text-align:center; padding:60px; color:#444;"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
+            </ul>
+        </div>
+
+        <div id="viewSong">
+            <div class="sticky-player-header">
+                <div>
+                    <h2 id="viewTitle" class="song-title-large">Título</h2>
+                    <span id="viewArtist" class="song-artist-small">Artista</span>
+                </div>
+                <div class="meta-chips">
+                    <div class="meta-chip" title="BPM"><i class="fas fa-heartbeat"></i><span id="viewBPM">-</span></div>
+                    <div class="meta-chip" title="Compás"><i class="fas fa-clock"></i><span id="viewCompas">-</span></div>
+                    <div class="meta-chip chip-tone" title="Tono Actual"><span id="currentToneDisplay">-</span></div>
+                </div>
+            </div>
+
+            <div id="songContent" class="lyrics-container"></div>
+
+            <div class="fab-container">
+                <div style="display:flex; align-items:center; gap:10px; justify-content:flex-end;">
+                     <button class="fab fab-back" onclick="volverALista()"><i class="fas fa-arrow-left"></i></button>
+                </div>
+                <div style="display:flex; flex-direction:column; gap:15px; align-items:flex-end;">
+                    <button id="btnToggleChords" class="fab" onclick="alternarAcordes()"><i class="fas fa-eye-slash"></i></button>
+                    <button class="fab fab-highlight" onclick="toggleTransposer()"><i class="fas fa-music"></i></button>
+                </div>
+            </div>
+
+            <div id="transposerPanel" class="transposer-panel">
+                <span style="text-align:center; color:#666; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Transponer</span>
+                <button class="btn-panel" onclick="transponer(1)">+1 Subir</button>
+                <button class="btn-panel" onclick="transponer(-1)">-1 Bajar</button>
+                <button class="btn-panel primary" onclick="resetTono()">Original</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // --- CONFIG FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyArwasq0DTEBk5qNGIU5dkC606wZJ0Rr2s",
+            authDomain: "alabanza-b1d52.firebaseapp.com",
+            projectId: "alabanza-b1d52",
+            storageBucket: "alabanza-b1d52.firebasestorage.app",
+            messagingSenderId: "96243829186",
+            appId: "1:96243829186:web:7807a842b2999cdb9cae5b"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- LÓGICA ---
+        let usuarioActual = localStorage.getItem('alabanza_user');
+        let rolActual = localStorage.getItem('alabanza_rol');
+        let rolTemp = null;
+        let todasLasCanciones = [];
+        let idsEnPlaylist = [];
+        let tabActual = 'all';
+        let cancionActual = null;
+        let semitonos = 0;
+        let notasDeLaCancion = {};
+        const NOTAS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        // SISTEMA MODALES
+        const Modal = {
+            element: document.getElementById('customModal'),
+            title: document.getElementById('modalTitle'),
+            text: document.getElementById('modalText'),
+            input: document.getElementById('modalInput'),
+            icon: document.getElementById('modalIcon'),
+            btnConfirm: document.getElementById('btnModalConfirm'),
+            btnCancel: document.getElementById('btnModalCancel'),
+            show: function(options) {
+                return new Promise((resolve) => {
+                    this.title.innerText = options.title || 'Atención';
+                    this.text.innerText = options.text || '';
+                    this.icon.innerHTML = options.icon || '✨';
+                    if (options.type === 'prompt') {
+                        this.input.style.display = 'block';
+                        this.input.value = options.value || '';
+                        setTimeout(() => this.input.focus(), 100);
+                    } else { this.input.style.display = 'none'; }
+                    this.btnCancel.style.display = options.type === 'alert' ? 'none' : 'block';
+                    this.btnConfirm.innerText = options.confirmText || 'Aceptar';
+                    this.element.classList.add('open');
+                    const close = (val) => { this.element.classList.remove('open'); resolve(val); };
+                    this.btnConfirm.onclick = () => { if (options.type === 'prompt') close(this.input.value); else close(true); };
+                    this.btnCancel.onclick = () => close(false);
+                    this.input.onkeyup = (e) => { if(e.key === 'Enter') this.btnConfirm.click(); };
+                });
+            },
+            alert: function(title, text, icon='⚠️') { return this.show({ type: 'alert', title, text, icon }); },
+            confirm: function(title, text, icon='🤔') { return this.show({ type: 'confirm', title, text, icon }); },
+            prompt: function(title, text, value='', icon='✏️') { return this.show({ type: 'prompt', title, text, value, icon }); }
+        };
+
+        window.onload = function() {
+            if (!usuarioActual || !rolActual) document.getElementById('loginModal').style.display = 'flex';
+            else { document.getElementById('loginModal').style.display = 'none'; iniciarApp(); }
+        };
+
+        function selectRolTemp(rol, div) {
+            rolTemp = rol;
+            document.querySelectorAll('.role-option').forEach(b => b.classList.remove('selected'));
+            div.classList.add('selected');
+        }
+
+        function iniciarSesion() {
+            const nombre = document.getElementById('userNameInput').value.trim();
+            if(!nombre) return Modal.alert("Falta información", "Escribe tu nombre.", "👤");
+            if(!rolTemp) return Modal.alert("Falta información", "Selecciona instrumento.", "🎸");
+            usuarioActual = nombre.toLowerCase().replace(/\s+/g, '_');
+            rolActual = rolTemp;
+            localStorage.setItem('alabanza_user', usuarioActual);
+            localStorage.setItem('alabanza_rol', rolActual);
+            localStorage.setItem('alabanza_user_display', nombre);
+            document.getElementById('loginModal').style.display = 'none';
+            iniciarApp();
+        }
+
+        function cerrarSesion() {
+            Modal.confirm("¿Cerrar sesión?", "¿Quieres cambiar de usuario?", "👋").then(res => { if(res) { localStorage.clear(); location.reload(); } });
+        }
+
+        function iniciarApp() {
+            const rolesIcons = { 'bateria': '<i class="fas fa-drum"></i>', 'voz': '<i class="fas fa-microphone"></i>', 'guitarra': '<i class="fas fa-guitar"></i>', 'teclado': '<i class="fas fa-keyboard"></i>' };
+            const icon = rolesIcons[rolActual] || '<i class="fas fa-user"></i>';
+            const nombre = localStorage.getItem('alabanza_user_display');
+            document.getElementById('displayUserBadge').innerHTML = `${icon} ${nombre}`;
+            aplicarRol();
+            cargarDatos();
+        }
+
+        function cargarDatos() {
+            db.collection('canciones').orderBy('titulo').onSnapshot(snap => {
+                todasLasCanciones = [];
+                snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
+                renderizarLista();
+            });
+            db.collection('configuracion').doc('playlist_semanal').onSnapshot(doc => {
+                idsEnPlaylist = doc.exists ? (doc.data().canciones || []) : [];
+                renderizarLista();
+            });
+        }
+
+        function cambiarTab(tab) {
+            tabActual = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if(tab === 'all') document.getElementById('tabAll').classList.add('active');
+            else document.getElementById('tabPlaylist').classList.add('active');
+            renderizarLista();
+        }
+
+        function renderizarLista() {
+            const lista = document.getElementById('songList');
+            const busqueda = document.getElementById('searchInput').value.toLowerCase();
+            let html = '';
+            let cancionesAMostrar = todasLasCanciones;
+            if (tabActual === 'playlist') cancionesAMostrar = todasLasCanciones.filter(c => idsEnPlaylist.includes(c.id));
+            cancionesAMostrar = cancionesAMostrar.filter(c => c.titulo.toLowerCase().includes(busqueda));
+
+            if (cancionesAMostrar.length === 0) { lista.innerHTML = '<div style="text-align:center; padding:40px; color:#555; font-size:14px;">No hay canciones</div>'; return; }
+
+            cancionesAMostrar.forEach(c => {
+                const enPlaylist = idsEnPlaylist.includes(c.id);
+                let btnAccion = '';
+                if (tabActual === 'all') {
+                    if (enPlaylist) btnAccion = `<div class="action-btn btn-add added" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-check"></i></div>`;
+                    else btnAccion = `<div class="action-btn btn-add" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-plus"></i></div>`;
+                } else {
+                    btnAccion = `<div class="action-btn btn-remove" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-minus"></i></div>`;
+                }
+                html += `
+                <li class="song-item" onclick="abrirCancion('${c.id}')">
+                    <div class="song-info">
+                        <h3>${c.titulo}</h3>
+                        <div><span class="song-meta-badge">${c.tonoOriginal||'?'}</span><span class="song-artist">${c.artista||''}</span></div>
+                    </div>
+                    ${btnAccion}
+                </li>`;
+            });
+            lista.innerHTML = html;
+        }
+
+        function togglePlaylist(id, event) {
+            event.stopPropagation();
+            let nuevaLista = [...idsEnPlaylist];
+            if (nuevaLista.includes(id)) nuevaLista = nuevaLista.filter(x => x !== id);
+            else nuevaLista.push(id);
+            db.collection('configuracion').doc('playlist_semanal').set({ canciones: nuevaLista }, { merge: true });
+        }
+
+        function abrirCancion(id) {
+            cancionActual = todasLasCanciones.find(c => c.id === id);
+            semitonos = 0;
+            document.getElementById('viewTitle').innerText = cancionActual.titulo;
+            document.getElementById('viewArtist').innerText = cancionActual.artista;
+            document.getElementById('currentToneDisplay').innerText = cancionActual.tonoOriginal;
+            document.getElementById('viewBPM').innerText = cancionActual.bpm || '-';
+            document.getElementById('viewCompas').innerText = cancionActual.compas || '-';
+            document.getElementById('viewList').style.display = 'none';
+            document.getElementById('viewSong').style.display = 'flex';
+            cargarNotasYRenderizar();
+        }
+
+        function cargarNotasYRenderizar() {
+            document.getElementById('songContent').innerHTML = '<div style="text-align:center; padding:100px; color:#555;"><i class="fas fa-circle-notch fa-spin"></i></div>';
+            const docId = usuarioActual + "_" + cancionActual.id;
+            db.collection('notas_personales').doc(docId).get().then(doc => {
+                notasDeLaCancion = doc.exists ? (doc.data().notas || {}) : {};
+                renderizarLetra();
+            }).catch(() => { notasDeLaCancion = {}; renderizarLetra(); });
+        }
+
+        function guardarNotaEnNube(index, texto) {
+            const docId = usuarioActual + "_" + cancionActual.id;
+            if(texto) notasDeLaCancion[index] = texto; else delete notasDeLaCancion[index];
+            db.collection('notas_personales').doc(docId).set({
+                usuario: usuarioActual, cancionId: cancionActual.id, notas: notasDeLaCancion
+            }, { merge: true });
+            renderizarLetra();
+        }
+
+        function agregarNota(index) {
+            const valorActual = notasDeLaCancion[index] || '';
+            Modal.prompt("Nota Personal", "Escribe un recordatorio:", valorActual, "📝").then(nuevoTexto => {
+                if (nuevoTexto !== false) guardarNotaEnNube(index, nuevoTexto.trim());
+            });
+        }
+        function editarNota(index, e) { e.stopPropagation(); agregarNota(index); }
+        
+        function aplicarRol() {
+            const btnIcon = document.querySelector('#btnToggleChords i');
+            if (rolActual === 'bateria' || rolActual === 'voz') { document.body.classList.add('hide-chords'); if(btnIcon) btnIcon.className = "fas fa-eye"; }
+            else { document.body.classList.remove('hide-chords'); if(btnIcon) btnIcon.className = "fas fa-eye-slash"; }
+        }
+
+        function alternarAcordes() {
+            document.body.classList.toggle('hide-chords');
+            const btnIcon = document.querySelector('#btnToggleChords i');
+            btnIcon.className = document.body.classList.contains('hide-chords') ? "fas fa-eye" : "fas fa-eye-slash";
+        }
+
+        // --- DETECTOR INTELIGENTE Y SEPARADOR ---
+        function detectarSeccionAutomatica(linea) {
+            const texto = linea.trim();
+            const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?/i;
+            const match = texto.match(regexInicio);
+
+            if (match) {
+                const etiquetaEncontrada = match[0]; 
+                const restoDelTexto = texto.substring(etiquetaEncontrada.length).trim();
+
+                // Colores
+                let clase = 'tag-verso'; // Verde por defecto
+                const t = etiquetaEncontrada.toLowerCase();
+                if (t.includes('intro')) clase = 'tag-intro'; // Azul
+                else if (t.includes('coro') && !t.includes('pre')) clase = 'tag-coro'; // Naranja
+                else if (t.includes('pre')) clase = 'tag-precoro'; // Morado
+                else if (t.includes('puente') || t.includes('intermedio')) clase = 'tag-puente'; // Indigo
+                else if (t.includes('final')) clase = 'tag-final'; // Rojo
+
+                let html = `<div class="struct-btn ${clase}">${etiquetaEncontrada.replace(/[:\.]/g, '').toUpperCase()}</div>`;
+
+                if (restoDelTexto.length > 0) {
+                    const regexAcordes = /(\[[^\]]+\])|([^\[]+)/g;
+                    let subHtml = '<div class="song-line">';
+                    let m;
+                    if (!restoDelTexto.includes('[')) { // Si no tiene corchetes, asumimos texto plano
+                         subHtml += `<div class="chord-group"><div class="chord" style="margin-bottom:5px;">${restoDelTexto}</div></div>`;
+                    } else {
+                        while ((m = regexAcordes.exec(restoDelTexto)) !== null) {
+                            if (m[1]) subHtml += bl(m[1].replace(/\[|\]/g, ''), '&nbsp;');
+                            else if (m[2]) subHtml += bl(null, m[2]);
+                        }
+                    }
+                    subHtml += '</div>';
+                    html += subHtml;
+                }
+                return html;
+            }
+            return null;
+        }
+
+        function renderizarLetra() {
+            let texto = cancionActual.letraChordPro;
+            if (semitonos !== 0) { texto = texto.replace(/\[(.*?)\]/g, (m, ac) => { const p = ac.split('/'); let r = cn(p[0], semitonos); if(p[1]) r += '/' + cn(p[1], semitonos); return `[${r}]`; }); }
+            const lineas = texto.split('\n'); let html = '';
+            lineas.forEach((linea, idx) => {
+                const np = notasDeLaCancion[idx]; let hN = ''; if(np) hN = `<div class="personal-note" onclick="editarNota(${idx}, event)">📝 ${np}</div>`;
+                
+                const seccionAuto = detectarSeccionAutomatica(linea);
+                if (seccionAuto) { html += seccionAuto; return; }
+
+                if (!linea.trim()) { html += `<div class="song-line" style="height:10px;" onclick="agregarNota(${idx})">${hN}</div>`; return; }
+                const rx = /(\[[^\]]+\])|([^\[]+)/g; let m, hL = `<div class="song-line" onclick="agregarNota(${idx})">${hN}`;
+                let buf = null;
+                while ((m = rx.exec(linea)) !== null) {
+                    if (m[1]) { if (buf) hL += bl(buf, '&nbsp;'); buf = m[1].replace(/\[|\]/g, ''); }
+                    else if (m[2]) { hL += bl(buf || '', m[2]); buf = null; }
+                }
+                if (buf) hL += bl(buf, ''); html += hL + '</div>';
+            });
+            document.getElementById('songContent').innerHTML = html;
+        }
+
+        function volverALista() { document.getElementById('viewSong').style.display = 'none'; document.getElementById('viewList').style.display = 'block'; document.getElementById('transposerPanel').classList.remove('active'); }
+        function toggleTransposer() { document.getElementById('transposerPanel').classList.toggle('active'); }
+        function transponer(d) { semitonos += d; renderizarLetra(); }
+        function resetTono() { semitonos=0; renderizarLetra(); }
+        function cn(n, d) { let no=n.trim(), r=no.substring(0,1), s=no.substring(1); if(no.length>1&&(no[1]=='#'||no[1]=='b')){r=no.substring(0,2);s=no.substring(2);} const b={'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#'}; if(b[r])r=b[r]; let i=NOTAS.indexOf(r); if(i===-1)return no; let ni=(i+d)%12; if(ni<0)ni+=12; return NOTAS[ni]+s; }
+        function bl(a, l) { return `<div class="chord-group"><div class="chord">${a||'&nbsp;'}</div><div class="lyric">${l}</div></div>`; }
+    </script>
+</body>
+</html>
