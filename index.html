@@ -7,240 +7,84 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     
     <style>
-        :root {
-            /* PALETA DE LUJO (NEON DARK) */
-            --bg-deep: #050505;
-            --glass-surface: rgba(20, 20, 25, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --primary-glow: #6366f1; /* Indigo Neon */
-            --accent-glow: #f59e0b; /* Amber Neon */
-            --danger-glow: #ef4444;
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-
-        body {
-            background-color: var(--bg-deep);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15), transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(245, 158, 11, 0.08), transparent 40%);
-            background-attachment: fixed;
-            color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
-            margin: 0; padding: 0;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        .container { max-width: 900px; margin: 0 auto; padding: 20px; padding-bottom: 120px; }
-
-        /* --- HEADER --- */
-        .app-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 25px; padding: 10px 0;
-        }
-        .logo-container img { height: 40px; width: auto; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
-        .header-controls { display: flex; align-items: center; gap: 15px; }
-        
-        .user-badge {
-            display: flex; align-items: center; gap: 8px;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
-            padding: 6px 14px; border-radius: 50px;
-            font-size: 13px; font-weight: 600; color: #e2e8f0;
-            backdrop-filter: blur(10px);
-        }
-        .user-badge i { color: var(--primary-glow); }
-
-        .icon-btn {
-            color: var(--text-muted); font-size: 18px; cursor: pointer; transition: 0.3s;
-            padding: 8px; border-radius: 50%;
-        }
-        .icon-btn:hover { color: white; background: rgba(255,255,255,0.1); }
-        .icon-btn.danger:hover { color: var(--danger-glow); }
-
-        /* --- TABS --- */
-        .tabs-wrapper {
-            background: #131316; border: 1px solid var(--glass-border);
-            padding: 5px; border-radius: 16px; display: flex;
-            margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        .tab-btn {
-            flex: 1; padding: 12px; border: none; background: transparent;
-            color: #666; font-weight: 600; font-size: 14px; cursor: pointer;
-            border-radius: 12px; transition: 0.3s ease; position: relative; z-index: 2;
-        }
-        .tab-btn.active {
-            color: white; background: var(--glass-surface);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
-        }
-
-        /* --- BUSCADOR --- */
+        /* Ajustes específicos para el móvil en index */
         .search-container { position: relative; margin-bottom: 25px; }
         .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #555; }
         #searchInput {
             width: 100%; padding: 16px 20px 16px 50px;
             background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
             border-radius: 18px; color: white; font-family: 'Outfit', sans-serif; font-size: 16px;
-            transition: 0.3s;
         }
-        #searchInput:focus {
-            background: rgba(0,0,0,0.6); border-color: var(--primary-glow);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-        }
-
-        /* --- LISTA CANCIONES --- */
-        .song-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-        .song-item {
-            background: var(--glass-surface);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            padding: 16px 20px; border-radius: 18px;
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .song-item:active { transform: scale(0.98); background: rgba(255,255,255,0.03); }
-        .song-info h3 { margin: 0 0 4px 0; font-size: 16px; font-weight: 600; color: white; }
-        .song-info div { display: flex; align-items: center; gap: 8px; }
-        .song-meta-badge {
-            font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
-            background: rgba(245, 158, 11, 0.15); color: var(--accent-glow); border: 1px solid rgba(245, 158, 11, 0.2);
-        }
-        .song-artist { font-size: 13px; color: var(--text-muted); }
-        .action-btn {
-            width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--glass-border);
-            background: rgba(255,255,255,0.03); display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.2s; font-size: 14px;
-        }
-        .btn-add.added { color: #10b981; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); }
-        .btn-remove { color: var(--danger-glow); background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
-
-        /* --- VISOR CANCIÓN --- */
-        #viewSong {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 50; flex-direction: column;
-            background-image: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.1), transparent 50%);
-        }
-        .sticky-player-header {
-            background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border); padding: 15px 20px; 
-            display: flex; justify-content: space-between; align-items: center; z-index: 60;
-        }
-        .song-title-large {
-            margin: 0; font-size: 18px; color: white; font-weight: 700;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;
-        }
-        .song-artist-small { color: #94a3b8; font-size: 12px; display: block; }
-        
-        .meta-chips { display: flex; gap: 8px; align-items: center; }
-        .meta-chip {
-            display: flex; align-items: center; gap: 6px;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);
-            padding: 6px 10px; border-radius: 8px; font-size: 12px; color: #ccc; font-weight: 600;
-        }
-        .meta-chip i { font-size: 10px; color: var(--primary-glow); }
-        .chip-tone { background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: var(--accent-glow); }
-
-        .lyrics-container {
-            flex: 1; padding: 25px 20px; overflow-y: auto;
-            font-family: 'JetBrains Mono', monospace; font-size: 17px; line-height: 1.6;
-            padding-bottom: 120px; color: #d1d5db;
-        }
-        .song-line { display: flex; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; min-height: auto; }
-        .chord-group { display: flex; flex-direction: column; margin-right: 6px; }
-        .chord { color: var(--accent-glow); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
-        .lyric { color: #f1f5f9; font-size: 17px; }
-        
-        /* ETIQUETAS DE SECCIÓN (COLORES) */
-        .struct-btn {
-            display: block; width: fit-content; margin: 30px 0 10px 0;
-            padding: 5px 14px; border-radius: 20px;
-            font-size: 11px; font-weight: 800; letter-spacing: 1.5px;
-            text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid transparent;
-        }
-        .tag-intro { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
-        .tag-verso { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
-        .tag-coro { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
-        .tag-precoro { background: rgba(139, 92, 246, 0.2); color: #a78bfa; border-color: rgba(139, 92, 246, 0.4); }
-        .tag-puente { background: rgba(139, 92, 246, 0.2); color: #c084fc; border-color: rgba(139, 92, 246, 0.4); }
-        .tag-final { background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
-
-        .personal-note {
-            background: #ffe100; color: #000; font-weight: 700; font-size: 13px;
-            padding: 4px 8px; border-radius: 4px; margin-bottom: 6px;
-            display: inline-block; transform: rotate(-1deg);
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.5); font-family: 'Outfit', sans-serif;
-        }
-        
-        body.hide-chords .chord { display: none !important; }
-        body.hide-chords .song-line { align-items: center; margin-bottom: 6px; }
-
-        /* FABs */
-        .fab-container { position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 100; }
-        .fab {
-            width: 55px; height: 55px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
-            color: white; font-size: 20px; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.2s; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px); background: rgba(30, 30, 35, 0.8);
-        }
-        .fab:active { transform: scale(0.95); }
-        .fab-back { background: rgba(20, 20, 25, 0.9); width: 45px; height: 45px; font-size: 16px;}
-        .fab-highlight { color: var(--accent-glow); border-color: rgba(245, 158, 11, 0.3); }
-
-        /* Panel Transpositor */
-        .transposer-panel {
-            position: fixed; bottom: 110px; right: 25px; width: 160px;
-            background: rgba(20, 20, 25, 0.95); backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 20px;
-            padding: 15px; display: none; flex-direction: column; gap: 8px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6); z-index: 99;
-        }
-        .transposer-panel.active { display: flex; }
-        .btn-panel { padding: 12px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: white; font-weight: 600; cursor: pointer; }
-        .btn-panel.primary { background: var(--primary-glow); border: none; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
-
-        /* MODALES */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,5,5,0.9); backdrop-filter: blur(10px); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+        /* Login Card */
         .login-card { background: #131316; border: 1px solid var(--glass-border); padding: 40px 30px; border-radius: 30px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
         .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .role-option { padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 2px solid transparent; cursor: pointer; color: #888; transition: 0.3s; }
-        .role-option.selected { background: rgba(99, 102, 241, 0.1); border-color: var(--primary-glow); color: white; box-shadow: 0 0 20px rgba(99, 102, 241, 0.2); }
+        .role-option.selected { background: rgba(99, 102, 241, 0.1); border-color: var(--primary-glow); color: white; }
+        .role-option:hover { background: rgba(255,255,255,0.08); }
 
-        /* Modal Custom */
-        .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
-        .custom-modal-overlay.open { display: flex; opacity: 1; }
-        .custom-modal-box { background: #131316; border: 1px solid var(--glass-border); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
-        .custom-modal-overlay.open .custom-modal-box { transform: scale(1); }
-        .modal-icon { font-size: 40px; margin-bottom: 15px; display: inline-block; }
-        .modal-title { font-size: 20px; font-weight: 700; color: white; margin-bottom: 10px; }
-        .modal-text { font-size: 15px; color: #94a3b8; margin-bottom: 25px; }
-        .modal-input-field { width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; margin-bottom: 20px; outline: none; }
-        .modal-input-field:focus { border-color: var(--primary-glow); }
-        .modal-actions { display: flex; gap: 10px; justify-content: center; }
-        .btn-modal { flex: 1; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; font-size: 14px; }
-        .btn-modal.cancel { background: rgba(255,255,255,0.05); color: #ccc; }
-        .btn-modal.confirm { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+        /* --- ESTILOS DE NOTAS --- */
+        .line-wrapper { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 4px; width: 100%; }
+        .song-line { margin-bottom: 2px !important; }
+        .note-card {
+            background: #f59e0b; color: #000000; padding: 6px 12px; border-radius: 6px;
+            font-weight: 800; font-size: 14px; margin-bottom: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: inline-block; cursor: pointer; border-left: 4px solid #fff; animation: popIn 0.2s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* --- BOTONES DE NAVEGACIÓN --- */
+        .nav-btn-group { display: flex; gap: 8px; margin-left: 10px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);
+            width: 40px; height: 40px; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .nav-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        @media (max-width: 380px) { .meta-group { display: none !important; } }
     </style>
 </head>
 <body>
 
-    <div id="loginModal" class="modal-overlay">
-        <div class="login-card">
-            <h2 style="margin:0; font-size:26px; color:white;">Bienvenido</h2>
-            <p style="color:#666; font-size:14px; margin-top:5px;">Configura tu perfil</p>
-            <input type="text" id="userNameInput" placeholder="¿Cómo te llamas?" style="text-align:center; margin-top:20px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px;">
-            <p style="color:#444; font-size:12px; font-weight:700; text-transform:uppercase; margin-top:25px;">Selecciona tu Rol</p>
+    <div id="modalCambioRol" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; display: none; justify-content: center; align-items: center;">
+        <div class="login-card" style="position: relative; border: 1px solid var(--primary-glow);">
+            <button onclick="document.getElementById('modalCambioRol').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #666; cursor: pointer; font-size: 18px;"><i class="fas fa-times"></i></button>
+            <h2 style="margin:0 0 10px 0; color:white; font-size: 20px;">Cambiar Instrumento</h2>
+            <p style="color:#666; font-size:13px; margin-bottom:20px;">Esto actualizará tu perfil permanentemente.</p>
             <div class="role-grid">
-                <div class="role-option" onclick="selectRolTemp('bateria', this)"><i class="fas fa-drum fa-2x"></i><br>Batería</div>
-                <div class="role-option" onclick="selectRolTemp('voz', this)"><i class="fas fa-microphone fa-2x"></i><br>Voz</div>
-                <div class="role-option" onclick="selectRolTemp('guitarra', this)"><i class="fas fa-guitar fa-2x"></i><br>Guitarra</div>
-                <div class="role-option" onclick="selectRolTemp('teclado', this)"><i class="fas fa-keyboard fa-2x"></i><br>Teclado</div>
+                <div class="role-option" onclick="guardarNuevoRol('bateria')"><i class="fas fa-drum fa-2x"></i><br>Batería</div>
+                <div class="role-option" onclick="guardarNuevoRol('voz')"><i class="fas fa-microphone fa-2x"></i><br>Voz</div>
+                <div class="role-option" onclick="guardarNuevoRol('guitarra')"><i class="fas fa-guitar fa-2x"></i><br>Guitarra</div>
+                <div class="role-option" onclick="guardarNuevoRol('teclado')"><i class="fas fa-keyboard fa-2x"></i><br>Teclado</div>
             </div>
-            <button onclick="iniciarSesion()" style="width:100%; padding:18px; margin-top:30px; border-radius:16px; border:none; background: linear-gradient(135deg, #6366f1, #4f46e5); color:white; font-weight:700; cursor:pointer;">INGRESAR</button>
+        </div>
+    </div>
+
+    <div id="loginModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 1 !important;">
+        <div class="login-card" style="opacity: 1 !important; transform: none !important;">
+            <h2 id="authTitle" style="margin:0; font-size:26px; color:white;">Studio Access</h2>
+            <p id="authSubtitle" style="color:#666; font-size:14px; margin-top:5px;">Ingresa tus credenciales</p>
+            
+            <input type="email" id="txtEmail" placeholder="Correo electrónico" style="margin-top:20px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
+            <input type="password" id="txtPassword" placeholder="Contraseña" style="margin-top:10px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
+            
+            <div id="roleSelectorContainer" style="display: none;">
+                <p style="color:#444; font-size:12px; font-weight:700; text-transform:uppercase; margin-top:25px;">Selecciona tu Rol</p>
+                <div class="role-grid">
+                    <div class="role-option" onclick="selectRolTemp('bateria', this)"><i class="fas fa-drum fa-2x"></i><br>Batería</div>
+                    <div class="role-option" onclick="selectRolTemp('voz', this)"><i class="fas fa-microphone fa-2x"></i><br>Voz</div>
+                    <div class="role-option" onclick="selectRolTemp('guitarra', this)"><i class="fas fa-guitar fa-2x"></i><br>Guitarra</div>
+                    <div class="role-option" onclick="selectRolTemp('teclado', this)"><i class="fas fa-keyboard fa-2x"></i><br>Teclado</div>
+                </div>
+            </div>
+            
+            <div id="loginError" style="color: #ef4444; margin-top: 15px; font-size: 13px; display: none;">Error aquí</div>
+            
+            <button id="btnMainAuth" onclick="procesarAutenticacion()" style="width:100%; padding:18px; margin-top:20px; border-radius:16px; border:none; background: linear-gradient(135deg, #6366f1, #4f46e5); color:white; font-weight:700; cursor:pointer; transition: 0.3s;">ENTRAR</button>
+            <button id="btnToggleAuth" onclick="alternarModo()" style="background:transparent; border:none; color:#666; margin-top:15px; cursor:pointer; font-size:13px; text-decoration: underline;">¿No tienes cuenta? Regístrate</button>
         </div>
     </div>
 
@@ -259,16 +103,25 @@
 
     <div class="container">
         <div id="viewList">
-            <header class="app-header">
-                <div class="logo-container"><img src="logo.png" alt="Logo"></div>
-                <div class="header-controls">
-                    <div class="icon-btn" onclick="location.href='admin.html'"><i class="fas fa-cog"></i></div>
-                    <div class="user-badge"><span id="displayUserBadge"><i class="fas fa-user"></i> ...</span></div>
-                    <div class="icon-btn danger" onclick="cerrarSesion()"><i class="fas fa-power-off"></i></div>
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; position: relative; min-height: 50px;">
+                <div class="logo-container" style="display: flex; align-items: center; z-index: 10;">
+                    <img src="logo.png" alt="Logo" style="height: 45px; width: auto; object-fit: contain;">
+                </div>
+                <div style="position: absolute; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 20px; color: white; letter-spacing: -0.5px; white-space: nowrap;">
+                    <!--Studio App-->
+                </div>
+                <div style="display: flex; align-items: center; gap: 15px; z-index: 10;">
+                    <div id="btnAdmin" class="icon-btn" onclick="location.href='admin.html'" style="display: none;">
+                        <i class="fas fa-list-ul"></i>
+                    </div>
+                    <div class="user-badge" onclick="mostrarSelectorRol()" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px 14px; border-radius: 50px; font-size: 13px; border: 1px solid var(--glass-border); cursor: pointer; transition: 0.2s;">
+                        <span id="displayUserBadge"><i class="fas fa-user"></i> ...</span>
+                    </div>
+                    <div class="icon-btn danger" onclick="cerrarSesion()" style="color:#ef4444;"><i class="fas fa-power-off"></i></div>
                 </div>
             </header>
 
-            <div class="tabs-wrapper">
+            <div class="tabs-wrapper" style="background: #131316; border: 1px solid var(--glass-border); padding: 5px; border-radius: 16px; display: flex; margin-bottom: 25px;">
                 <button id="tabAll" class="tab-btn active" onclick="cambiarTab('all')">Repertorio</button>
                 <button id="tabPlaylist" class="tab-btn" onclick="cambiarTab('playlist')">Domingo</button>
             </div>
@@ -278,64 +131,74 @@
                 <input type="text" id="searchInput" placeholder="Buscar canción..." onkeyup="renderizarLista()">
             </div>
 
-            <ul id="songList" class="song-list">
+            <ul id="songList" class="song-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
                 <div style="text-align:center; padding:60px; color:#444;"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
             </ul>
         </div>
 
-        <div id="viewSong">
-            <div class="sticky-player-header">
-                <div>
-                    <h2 id="viewTitle" class="song-title-large">Título</h2>
-                    <span id="viewArtist" class="song-artist-small">Artista</span>
+        <div id="viewSong" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 50; flex-direction: column;">
+            
+            <div class="sticky-player-header" style="background: rgba(10, 10, 12, 0.95); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border);">
+                
+                <div style="flex: 1; margin-right: 10px; min-width: 0;">
+                    <h2 id="viewTitle" style="margin: 0; font-size: 16px; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Título</h2>
+                    <span id="viewArtist" style="color: #94a3b8; font-size: 11px;">Artista</span>
                 </div>
-                <div class="meta-chips">
-                    <div class="meta-chip" title="BPM"><i class="fas fa-heartbeat"></i><span id="viewBPM">-</span></div>
-                    <div class="meta-chip" title="Compás"><i class="fas fa-clock"></i><span id="viewCompas">-</span></div>
-                    <div class="meta-chip chip-tone" title="Tono Actual"><span id="currentToneDisplay">-</span></div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="meta-group" style="display: flex; gap: 4px;">
+                         <div class="meta-chip" style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; font-size: 11px; color: #ccc;">
+                             <span id="viewBPM">-</span>
+                         </div>
+                         <div class="meta-chip" style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; font-size: 11px; color: #ccc;">
+                             <span id="viewCompas">-</span>
+                         </div>
+                         <div class="meta-chip" style="background: rgba(245, 158, 11, 0.15); padding: 4px 8px; border-radius: 6px; font-size: 11px; color: #f59e0b;">
+                             <span id="currentToneDisplay">-</span>
+                         </div>
+                    </div>
+
+                    <div class="nav-btn-group">
+                        <button id="btnPrevSong" class="nav-btn" onclick="navegarCancion(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button id="btnNextSong" class="nav-btn" onclick="navegarCancion(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+
+                    <button onclick="volverALista()" class="nav-btn" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
 
             <div id="songContent" class="lyrics-container"></div>
 
-            <div class="fab-container">
-                <div style="display:flex; align-items:center; gap:10px; justify-content:flex-end;">
-                     <button class="fab fab-back" onclick="volverALista()"><i class="fas fa-arrow-left"></i></button>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:15px; align-items:flex-end;">
-                    <button id="btnToggleChords" class="fab" onclick="alternarAcordes()"><i class="fas fa-eye-slash"></i></button>
-                    <button class="fab fab-highlight" onclick="toggleTransposer()"><i class="fas fa-music"></i></button>
-                </div>
+            <div class="fab-container" style="position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 15px;">
+                <button id="btnToggleChords" class="fab" onclick="alternarAcordes()" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #333; color: white; font-size: 18px;"><i class="fas fa-eye-slash"></i></button>
+                <button class="fab" onclick="toggleTransposer()" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #f59e0b; color: #f59e0b; font-size: 18px;"><i class="fas fa-music"></i></button>
             </div>
 
-            <div id="transposerPanel" class="transposer-panel">
-                <span style="text-align:center; color:#666; font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Transponer</span>
-                <button class="btn-panel" onclick="transponer(1)">+1 Subir</button>
-                <button class="btn-panel" onclick="transponer(-1)">-1 Bajar</button>
-                <button class="btn-panel primary" onclick="resetTono()">Original</button>
+            <div id="transposerPanel" class="transposer-panel" style="position: fixed; bottom: 110px; right: 25px; width: 160px; background: #141419; border: 1px solid #333; padding: 15px; border-radius: 20px; display: none; flex-direction: column; gap: 10px;">
+                <button onclick="transponer(1)" style="padding:10px; background:#222; border:1px solid #444; color:white; border-radius:8px;">+1 Subir</button>
+                <button onclick="transponer(-1)" style="padding:10px; background:#222; border:1px solid #444; color:white; border-radius:8px;">-1 Bajar</button>
+                <button onclick="resetTono()" style="padding:10px; background:#6366f1; border:none; color:white; border-radius:8px;">Original</button>
             </div>
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="config.js"></script>
     
     <script>
-        // --- CONFIG FIREBASE ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyArwasq0DTEBk5qNGIU5dkC606wZJ0Rr2s",
-            authDomain: "alabanza-b1d52.firebaseapp.com",
-            projectId: "alabanza-b1d52",
-            storageBucket: "alabanza-b1d52.firebasestorage.app",
-            messagingSenderId: "96243829186",
-            appId: "1:96243829186:web:7807a842b2999cdb9cae5b"
-        };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        const ADMIN_EMAIL = "admin@genesaret.com"; 
 
-        // --- LÓGICA ---
-        let usuarioActual = localStorage.getItem('alabanza_user');
-        let rolActual = localStorage.getItem('alabanza_rol');
+        // Variables Globales
+        let usuarioActual = null;
+        let rolActual = localStorage.getItem('alabanza_rol') || 'voz';
         let rolTemp = null;
         let todasLasCanciones = [];
         let idsEnPlaylist = [];
@@ -345,7 +208,9 @@
         let notasDeLaCancion = {};
         const NOTAS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
-        // SISTEMA MODALES
+        let listaNavegacionActual = []; 
+        let indiceNavegacion = -1;
+
         const Modal = {
             element: document.getElementById('customModal'),
             title: document.getElementById('modalTitle'),
@@ -378,44 +243,132 @@
             prompt: function(title, text, value='', icon='✏️') { return this.show({ type: 'prompt', title, text, value, icon }); }
         };
 
-        window.onload = function() {
-            if (!usuarioActual || !rolActual) document.getElementById('loginModal').style.display = 'flex';
-            else { document.getElementById('loginModal').style.display = 'none'; iniciarApp(); }
-        };
-
         function selectRolTemp(rol, div) {
             rolTemp = rol;
             document.querySelectorAll('.role-option').forEach(b => b.classList.remove('selected'));
             div.classList.add('selected');
         }
 
-        function iniciarSesion() {
-            const nombre = document.getElementById('userNameInput').value.trim();
-            if(!nombre) return Modal.alert("Falta información", "Escribe tu nombre.", "👤");
-            if(!rolTemp) return Modal.alert("Falta información", "Selecciona instrumento.", "🎸");
-            usuarioActual = nombre.toLowerCase().replace(/\s+/g, '_');
-            rolActual = rolTemp;
-            localStorage.setItem('alabanza_user', usuarioActual);
-            localStorage.setItem('alabanza_rol', rolActual);
-            localStorage.setItem('alabanza_user_display', nombre);
-            document.getElementById('loginModal').style.display = 'none';
-            iniciarApp();
+        let modoRegistro = false; 
+
+        function alternarModo() {
+            modoRegistro = !modoRegistro;
+            const titulo = document.getElementById('authTitle');
+            const subtitulo = document.getElementById('authSubtitle');
+            const btnMain = document.getElementById('btnMainAuth');
+            const btnToggle = document.getElementById('btnToggleAuth');
+            const errorDiv = document.getElementById('loginError');
+            const roleContainer = document.getElementById('roleSelectorContainer');
+
+            errorDiv.style.display = 'none';
+
+            if (modoRegistro) {
+                titulo.innerText = "Crear Cuenta";
+                subtitulo.innerText = "Registra tus datos para empezar";
+                btnMain.innerText = "REGISTRARSE";
+                btnMain.style.background = "linear-gradient(135deg, #10b981, #059669)";
+                btnToggle.innerText = "¿Ya tienes cuenta? Inicia sesión";
+                roleContainer.style.display = 'block'; 
+            } else {
+                titulo.innerText = "Studio Access";
+                subtitulo.innerText = "Ingresa tus credenciales";
+                btnMain.innerText = "ENTRAR";
+                btnMain.style.background = "linear-gradient(135deg, #6366f1, #4f46e5)";
+                btnToggle.innerText = "¿No tienes cuenta? Regístrate";
+                roleContainer.style.display = 'none';
+            }
+        }
+
+        function procesarAutenticacion() {
+            if (modoRegistro) registroMejorado(); else loginFirebase();
+        }
+
+        function loginFirebase() {
+            const email = document.getElementById('txtEmail').value;
+            const pass = document.getElementById('txtPassword').value;
+            const errDiv = document.getElementById('loginError');
+            if(!email || !pass) { errDiv.style.display='block'; errDiv.innerText="Faltan datos"; return; }
+            firebase.auth().signInWithEmailAndPassword(email, pass).catch((e) => { errDiv.style.display = 'block'; errDiv.innerText = "Error: " + e.message; });
+        }
+
+        function registroMejorado() {
+            const email = document.getElementById('txtEmail').value;
+            const pass = document.getElementById('txtPassword').value;
+            const errDiv = document.getElementById('loginError');
+            if(!email || !pass) { errDiv.style.display='block'; errDiv.innerText="Ingresa un correo y contraseña."; return; }
+            if(!rolTemp) { errDiv.style.display='block'; errDiv.innerText="Selecciona qué instrumento tocas."; return; }
+
+            firebase.auth().createUserWithEmailAndPassword(email, pass)
+                .then((cred) => {
+                    return db.collection('usuarios').doc(cred.user.uid).set({ rol: rolTemp, email: email });
+                })
+                .then(() => { localStorage.setItem('alabanza_rol', rolTemp); })
+                .catch((e) => { errDiv.style.display = 'block'; errDiv.innerText = "Error al registrar: " + e.message; });
         }
 
         function cerrarSesion() {
-            Modal.confirm("¿Cerrar sesión?", "¿Quieres cambiar de usuario?", "👋").then(res => { if(res) { localStorage.clear(); location.reload(); } });
+            Modal.confirm("¿Salir?", "¿Cerrar sesión actual?", "👋").then(res => { 
+                if(res) firebase.auth().signOut().then(() => location.reload()); 
+            });
         }
 
-        function iniciarApp() {
-            const rolesIcons = { 'bateria': '<i class="fas fa-drum"></i>', 'voz': '<i class="fas fa-microphone"></i>', 'guitarra': '<i class="fas fa-guitar"></i>', 'teclado': '<i class="fas fa-keyboard"></i>' };
-            const icon = rolesIcons[rolActual] || '<i class="fas fa-user"></i>';
-            const nombre = localStorage.getItem('alabanza_user_display');
-            document.getElementById('displayUserBadge').innerHTML = `${icon} ${nombre}`;
+        function mostrarSelectorRol() {
+            document.getElementById('modalCambioRol').style.display = 'flex';
+        }
+
+        function guardarNuevoRol(nuevoRol) {
+            if(!usuarioActual) return;
+            rolActual = nuevoRol;
+            localStorage.setItem('alabanza_rol', nuevoRol);
+            actualizarBadgeUsuario(usuarioActual, nuevoRol);
             aplicarRol();
-            cargarDatos();
+            document.getElementById('modalCambioRol').style.display = 'none';
+            db.collection('usuarios').doc(usuarioActual.uid).set({
+                rol: nuevoRol,
+                email: usuarioActual.email
+            }, { merge: true });
         }
 
-        function cargarDatos() {
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                usuarioActual = user;
+                document.getElementById('loginModal').style.display = 'none';
+                
+                db.collection('usuarios').doc(user.uid).get().then(doc => {
+                    if (doc.exists && doc.data().rol) {
+                        rolActual = doc.data().rol;
+                        localStorage.setItem('alabanza_rol', rolActual);
+                    } else {
+                        rolActual = localStorage.getItem('alabanza_rol') || 'voz';
+                    }
+                    actualizarBadgeUsuario(user, rolActual);
+                    aplicarRol();
+                }).catch(() => {
+                    rolActual = localStorage.getItem('alabanza_rol') || 'voz';
+                    actualizarBadgeUsuario(user, rolActual);
+                    aplicarRol();
+                });
+
+                if (user.email === ADMIN_EMAIL) {
+                    const btnAdmin = document.getElementById('btnAdmin');
+                    if(btnAdmin) btnAdmin.style.display = 'flex';
+                }
+                cargarDatosApp();
+            } else {
+                document.getElementById('loginModal').style.display = 'flex';
+                modoRegistro = true; alternarModo();
+            }
+        });
+
+        // CAMBIO: NOMBRE EN MAYÚSCULAS Y SEPARADO
+        function actualizarBadgeUsuario(user, rol) {
+            const rolesIcons = { 'bateria': '<i class=\"fas fa-drum\"></i>', 'voz': '<i class=\"fas fa-microphone\"></i>', 'guitarra': '<i class=\"fas fa-guitar\"></i>', 'teclado': '<i class=\"fas fa-keyboard\"></i>' };
+            const icon = rolesIcons[rol] || '<i class=\"fas fa-user\"></i>';
+            const nombreDisplay = user.email.split('@')[0].toUpperCase();
+            document.getElementById('displayUserBadge').innerHTML = `${icon} <span style=\"margin-left: 8px;\">${nombreDisplay}</span>`;
+        }
+
+        function cargarDatosApp() {
             db.collection('canciones').orderBy('titulo').onSnapshot(snap => {
                 todasLasCanciones = [];
                 snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
@@ -475,6 +428,18 @@
         }
 
         function abrirCancion(id) {
+            const busqueda = document.getElementById('searchInput').value.toLowerCase();
+            let contextoCanciones = [];
+            if (tabActual === 'playlist') { contextoCanciones = todasLasCanciones.filter(c => idsEnPlaylist.includes(c.id)); } 
+            else { contextoCanciones = todasLasCanciones; }
+            if(busqueda) { contextoCanciones = contextoCanciones.filter(c => c.titulo.toLowerCase().includes(busqueda)); }
+
+            listaNavegacionActual = contextoCanciones.map(c => c.id);
+            indiceNavegacion = listaNavegacionActual.indexOf(id);
+            actualizarVistaCancion(id);
+        }
+
+        function actualizarVistaCancion(id) {
             cancionActual = todasLasCanciones.find(c => c.id === id);
             semitonos = 0;
             document.getElementById('viewTitle').innerText = cancionActual.titulo;
@@ -482,14 +447,30 @@
             document.getElementById('currentToneDisplay').innerText = cancionActual.tonoOriginal;
             document.getElementById('viewBPM').innerText = cancionActual.bpm || '-';
             document.getElementById('viewCompas').innerText = cancionActual.compas || '-';
+            document.getElementById('btnPrevSong').disabled = (indiceNavegacion <= 0);
+            document.getElementById('btnNextSong').disabled = (indiceNavegacion >= listaNavegacionActual.length - 1);
             document.getElementById('viewList').style.display = 'none';
             document.getElementById('viewSong').style.display = 'flex';
             cargarNotasYRenderizar();
         }
 
+        function navegarCancion(direccion) {
+            const nuevoIndice = indiceNavegacion + direccion;
+            if (nuevoIndice >= 0 && nuevoIndice < listaNavegacionActual.length) {
+                indiceNavegacion = nuevoIndice;
+                const nuevoId = listaNavegacionActual[nuevoIndice];
+                document.getElementById('songContent').style.opacity = 0.5;
+                setTimeout(() => {
+                    actualizarVistaCancion(nuevoId);
+                    document.getElementById('songContent').style.opacity = 1;
+                }, 150);
+            }
+        }
+
         function cargarNotasYRenderizar() {
-            document.getElementById('songContent').innerHTML = '<div style="text-align:center; padding:100px; color:#555;"><i class="fas fa-circle-notch fa-spin"></i></div>';
-            const docId = usuarioActual + "_" + cancionActual.id;
+            document.getElementById('songContent').innerHTML = '<div style="text-align:center; padding:100px; color:#555;">Cargando...</div>';
+            if(!usuarioActual) return;
+            const docId = usuarioActual.uid + "_" + cancionActual.id;
             db.collection('notas_personales').doc(docId).get().then(doc => {
                 notasDeLaCancion = doc.exists ? (doc.data().notas || {}) : {};
                 renderizarLetra();
@@ -497,10 +478,13 @@
         }
 
         function guardarNotaEnNube(index, texto) {
-            const docId = usuarioActual + "_" + cancionActual.id;
+            if(!usuarioActual) return;
+            const docId = usuarioActual.uid + "_" + cancionActual.id;
             if(texto) notasDeLaCancion[index] = texto; else delete notasDeLaCancion[index];
             db.collection('notas_personales').doc(docId).set({
-                usuario: usuarioActual, cancionId: cancionActual.id, notas: notasDeLaCancion
+                usuarioEmail: usuarioActual.email,
+                cancionId: cancionActual.id, 
+                notas: notasDeLaCancion
             }, { merge: true });
             renderizarLetra();
         }
@@ -525,75 +509,70 @@
             btnIcon.className = document.body.classList.contains('hide-chords') ? "fas fa-eye" : "fas fa-eye-slash";
         }
 
-        // --- DETECTOR INTELIGENTE Y SEPARADOR ---
         function detectarSeccionAutomatica(linea) {
             const texto = linea.trim();
-            const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?/i;
+            const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?$/i;
             const match = texto.match(regexInicio);
-
             if (match) {
-                const etiquetaEncontrada = match[0]; 
-                const restoDelTexto = texto.substring(etiquetaEncontrada.length).trim();
-
-                // Colores
-                let clase = 'tag-verso'; // Verde por defecto
-                const t = etiquetaEncontrada.toLowerCase();
-                if (t.includes('intro')) clase = 'tag-intro'; // Azul
-                else if (t.includes('coro') && !t.includes('pre')) clase = 'tag-coro'; // Naranja
-                else if (t.includes('pre')) clase = 'tag-precoro'; // Morado
-                else if (t.includes('puente') || t.includes('intermedio')) clase = 'tag-puente'; // Indigo
-                else if (t.includes('final')) clase = 'tag-final'; // Rojo
-
-                let html = `<div class="struct-btn ${clase}">${etiquetaEncontrada.replace(/[:\.]/g, '').toUpperCase()}</div>`;
-
-                if (restoDelTexto.length > 0) {
-                    const regexAcordes = /(\[[^\]]+\])|([^\[]+)/g;
-                    let subHtml = '<div class="song-line">';
-                    let m;
-                    if (!restoDelTexto.includes('[')) { // Si no tiene corchetes, asumimos texto plano
-                         subHtml += `<div class="chord-group"><div class="chord" style="margin-bottom:5px;">${restoDelTexto}</div></div>`;
-                    } else {
-                        while ((m = regexAcordes.exec(restoDelTexto)) !== null) {
-                            if (m[1]) subHtml += bl(m[1].replace(/\[|\]/g, ''), '&nbsp;');
-                            else if (m[2]) subHtml += bl(null, m[2]);
-                        }
-                    }
-                    subHtml += '</div>';
-                    html += subHtml;
-                }
-                return html;
+                let clase = 'tag-verso'; 
+                const t = match[0].toLowerCase();
+                if (t.includes('intro')) clase = 'tag-intro';
+                else if (t.includes('coro') && !t.includes('pre')) clase = 'tag-coro';
+                else if (t.includes('pre')) clase = 'tag-precoro';
+                else if (t.includes('puente')) clase = 'tag-puente';
+                else if (t.includes('final')) clase = 'tag-final';
+                return `<div class=\"struct-btn ${clase}\">${match[0].replace(/[:\.]/g, '').toUpperCase()}</div><div class=\"song-line\">${parsearAcordes(texto.substring(match[0].length))}</div>`;
             }
             return null;
         }
 
+        function parsearAcordes(txt) {
+            if(!txt.trim()) return '';
+            const regex = /(\[[^\]]+\])|([^\[]+)/g;
+            let m, html = '';
+            while ((m = regex.exec(txt)) !== null) {
+                if(m[1]) html += `<div class=\"chord-group\"><div class=\"chord\">${m[1].replace(/\[|\]/g,'')}</div><div class=\"lyric\">&nbsp;</div></div>`;
+                else html += `<div class=\"chord-group\"><div class=\"chord\">&nbsp;</div><div class=\"lyric\">${m[2]}</div></div>`;
+            }
+            return html;
+        }
+
         function renderizarLetra() {
             let texto = cancionActual.letraChordPro;
-            if (semitonos !== 0) { texto = texto.replace(/\[(.*?)\]/g, (m, ac) => { const p = ac.split('/'); let r = cn(p[0], semitonos); if(p[1]) r += '/' + cn(p[1], semitonos); return `[${r}]`; }); }
+            if (semitonos !== 0) { 
+                texto = texto.replace(/\[(.*?)\]/g, (m, ac) => { 
+                    const p = ac.split('/'); let r = cn(p[0], semitonos); if(p[1]) r += '/' + cn(p[1], semitonos); return `[${r}]`; 
+                }); 
+            }
             const lineas = texto.split('\n'); let html = '';
             lineas.forEach((linea, idx) => {
-                const np = notasDeLaCancion[idx]; let hN = ''; if(np) hN = `<div class="personal-note" onclick="editarNota(${idx}, event)">📝 ${np}</div>`;
-                
+                const notaTexto = notasDeLaCancion[idx]; 
+                let htmlNota = ''; 
+                if(notaTexto) { htmlNota = `<div class=\"note-card\" onclick=\"editarNota(${idx}, event)\">${notaTexto}</div>`; }
+                let htmlLinea = '';
                 const seccionAuto = detectarSeccionAutomatica(linea);
-                if (seccionAuto) { html += seccionAuto; return; }
-
-                if (!linea.trim()) { html += `<div class="song-line" style="height:10px;" onclick="agregarNota(${idx})">${hN}</div>`; return; }
-                const rx = /(\[[^\]]+\])|([^\[]+)/g; let m, hL = `<div class="song-line" onclick="agregarNota(${idx})">${hN}`;
-                let buf = null;
-                while ((m = rx.exec(linea)) !== null) {
-                    if (m[1]) { if (buf) hL += bl(buf, '&nbsp;'); buf = m[1].replace(/\[|\]/g, ''); }
-                    else if (m[2]) { hL += bl(buf || '', m[2]); buf = null; }
+                if (seccionAuto) { htmlLinea = seccionAuto; } 
+                else if (!linea.trim()) { htmlLinea = `<div class=\"song-line\" style=\"height:8px;\"></div>`; } 
+                else {
+                    const rx = /(\[[^\]]+\])|([^\[]+)/g; let contenidoLinea = ''; let buf = null;
+                    while ((m = rx.exec(linea)) !== null) {
+                        if (m[1]) { if (buf) contenidoLinea += bl(buf, '&nbsp;'); buf = m[1].replace(/\[|\]/g, ''); } 
+                        else if (m[2]) { contenidoLinea += bl(buf || '', m[2]); buf = null; }
+                    }
+                    if (buf) contenidoLinea += bl(buf, '');
+                    htmlLinea = `<div class=\"song-line\">${contenidoLinea}</div>`;
                 }
-                if (buf) hL += bl(buf, ''); html += hL + '</div>';
+                html += `<div class=\"line-wrapper\" onclick=\"agregarNota(${idx})\">${htmlNota}${htmlLinea}</div>`;
             });
             document.getElementById('songContent').innerHTML = html;
         }
 
-        function volverALista() { document.getElementById('viewSong').style.display = 'none'; document.getElementById('viewList').style.display = 'block'; document.getElementById('transposerPanel').classList.remove('active'); }
-        function toggleTransposer() { document.getElementById('transposerPanel').classList.toggle('active'); }
+        function volverALista() { document.getElementById('viewSong').style.display = 'none'; document.getElementById('viewList').style.display = 'block'; document.getElementById('transposerPanel').style.display='none'; }
+        function toggleTransposer() { const p = document.getElementById('transposerPanel'); p.style.display = p.style.display==='flex'?'none':'flex'; }
         function transponer(d) { semitonos += d; renderizarLetra(); }
         function resetTono() { semitonos=0; renderizarLetra(); }
         function cn(n, d) { let no=n.trim(), r=no.substring(0,1), s=no.substring(1); if(no.length>1&&(no[1]=='#'||no[1]=='b')){r=no.substring(0,2);s=no.substring(2);} const b={'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#'}; if(b[r])r=b[r]; let i=NOTAS.indexOf(r); if(i===-1)return no; let ni=(i+d)%12; if(ni<0)ni+=12; return NOTAS[ni]+s; }
-        function bl(a, l) { return `<div class="chord-group"><div class="chord">${a||'&nbsp;'}</div><div class="lyric">${l}</div></div>`; }
+        function bl(a, l) { return `<div class=\"chord-group\"><div class=\"chord\">${a||'&nbsp;'}</div><div class=\"lyric\">${l}</div></div>`; }
     </script>
 </body>
 </html>
