@@ -10,7 +10,12 @@
     <link rel="stylesheet" href="style.css">
     
     <style>
-        /* Ajustes específicos para el móvil en index */
+        /* FONDO TECH MEJORADO: Diagonal de esquina a esquina con centro negro */
+        body {
+            background: linear-gradient(135deg, #0f051a 0%, #000000 50%, #0f051a 100%) !important;
+            min-height: 100vh;
+        }
+
         .search-container { position: relative; margin-bottom: 25px; }
         .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #555; }
         #searchInput {
@@ -18,14 +23,33 @@
             background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
             border-radius: 18px; color: white; font-family: 'Outfit', sans-serif; font-size: 16px;
         }
-        /* Login Card */
-        .login-card { background: #131316; border: 1px solid var(--glass-border); padding: 40px 30px; border-radius: 30px; text-align: center; width: 90%; max-width: 380px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+
+        /* LOGIN CARD */
+        .login-card { 
+            background: rgba(13, 13, 18, 0.9); 
+            border: 1px solid rgba(99, 102, 241, 0.2); 
+            padding: 40px 30px; 
+            border-radius: 30px; 
+            text-align: center; 
+            width: 90%; 
+            max-width: 380px; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .pass-wrapper { position: relative; width: 100%; margin-top: 10px; }
+        .toggle-pass {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            color: #444; cursor: pointer; transition: 0.2s;
+        }
+        .toggle-pass:hover { color: #6366f1; }
+
         .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .role-option { padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 2px solid transparent; cursor: pointer; color: #888; transition: 0.3s; }
         .role-option.selected { background: rgba(99, 102, 241, 0.1); border-color: var(--primary-glow); color: white; }
         .role-option:hover { background: rgba(255,255,255,0.08); }
 
-        /* --- ESTILOS DE NOTAS --- */
+        /* NOTAS */
         .line-wrapper { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 4px; width: 100%; }
         .song-line { margin-bottom: 2px !important; }
         .note-card {
@@ -35,7 +59,7 @@
         }
         @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* --- BOTONES DE NAVEGACIÓN --- */
+        /* NAVEGACIÓN */
         .nav-btn-group { display: flex; gap: 8px; margin-left: 10px; }
         .nav-btn {
             background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);
@@ -63,13 +87,18 @@
         </div>
     </div>
 
-    <div id="loginModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 1 !important;">
+    <div id="loginModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f051a 0%, #000000 50%, #0f051a 100%); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 1 !important;">
         <div class="login-card" style="opacity: 1 !important; transform: none !important;">
-            <h2 id="authTitle" style="margin:0; font-size:26px; color:white;">Studio Access</h2>
-            <p id="authSubtitle" style="color:#666; font-size:14px; margin-top:5px;">Ingresa tus credenciales</p>
             
-            <input type="email" id="txtEmail" placeholder="Correo electrónico" style="margin-top:20px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
-            <input type="password" id="txtPassword" placeholder="Contraseña" style="margin-top:10px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
+            <img src="logo.png" alt="Logo" style="height: 70px; margin-bottom: 15px;">
+            <h2 id="authTitle" style="margin:0; font-size:28px; color:white; font-weight: 700;">Playlist Music</h2>
+            
+            <input type="email" id="txtEmail" placeholder="Correo electrónico" style="margin-top:25px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
+            
+            <div class="pass-wrapper">
+                <input type="password" id="txtPassword" placeholder="Contraseña" style="background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
+                <i class="fas fa-eye toggle-pass" onclick="togglePasswordVisibility()"></i>
+            </div>
             
             <div id="roleSelectorContainer" style="display: none;">
                 <p style="color:#444; font-size:12px; font-weight:700; text-transform:uppercase; margin-top:25px;">Selecciona tu Rol</p>
@@ -81,10 +110,10 @@
                 </div>
             </div>
             
-            <div id="loginError" style="color: #ef4444; margin-top: 15px; font-size: 13px; display: none;">Error aquí</div>
+            <div id="loginError" style="color: #ef4444; margin-top: 15px; font-size: 13px; display: none;"></div>
             
-            <button id="btnMainAuth" onclick="procesarAutenticacion()" style="width:100%; padding:18px; margin-top:20px; border-radius:16px; border:none; background: linear-gradient(135deg, #6366f1, #4f46e5); color:white; font-weight:700; cursor:pointer; transition: 0.3s;">ENTRAR</button>
-            <button id="btnToggleAuth" onclick="alternarModo()" style="background:transparent; border:none; color:#666; margin-top:15px; cursor:pointer; font-size:13px; text-decoration: underline;">¿No tienes cuenta? Regístrate</button>
+            <button id="btnMainAuth" onclick="procesarAutenticacion()" style="width:100%; padding:18px; margin-top:25px; border-radius:16px; border:none; background: linear-gradient(135deg, #6366f1, #4f46e5); color:white; font-weight:700; cursor:pointer; transition: 0.3s; letter-spacing: 1px;">ENTRAR</button>
+            <button id="btnToggleAuth" onclick="alternarModo()" style="background:transparent; border:none; color:#666; margin-top:20px; cursor:pointer; font-size:13px; text-decoration: underline;">¿No tienes cuenta? Regístrate</button>
         </div>
     </div>
 
@@ -108,7 +137,7 @@
                     <img src="logo.png" alt="Logo" style="height: 45px; width: auto; object-fit: contain;">
                 </div>
                 <div style="position: absolute; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 20px; color: white; letter-spacing: -0.5px; white-space: nowrap;">
-                    <!--Studio App-->
+                    Studio App
                 </div>
                 <div style="display: flex; align-items: center; gap: 15px; z-index: 10;">
                     <div id="btnAdmin" class="icon-btn" onclick="location.href='admin.html'" style="display: none;">
@@ -137,14 +166,11 @@
         </div>
 
         <div id="viewSong" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 50; flex-direction: column;">
-            
             <div class="sticky-player-header" style="background: rgba(10, 10, 12, 0.95); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--glass-border);">
-                
                 <div style="flex: 1; margin-right: 10px; min-width: 0;">
                     <h2 id="viewTitle" style="margin: 0; font-size: 16px; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Título</h2>
                     <span id="viewArtist" style="color: #94a3b8; font-size: 11px;">Artista</span>
                 </div>
-
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <div class="meta-group" style="display: flex; gap: 4px;">
                          <div class="meta-chip" style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px; font-size: 11px; color: #ccc;">
@@ -157,29 +183,18 @@
                              <span id="currentToneDisplay">-</span>
                          </div>
                     </div>
-
                     <div class="nav-btn-group">
-                        <button id="btnPrevSong" class="nav-btn" onclick="navegarCancion(-1)">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button id="btnNextSong" class="nav-btn" onclick="navegarCancion(1)">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+                        <button id="btnPrevSong" class="nav-btn" onclick="navegarCancion(-1)"><i class="fas fa-chevron-left"></i></button>
+                        <button id="btnNextSong" class="nav-btn" onclick="navegarCancion(1)"><i class="fas fa-chevron-right"></i></button>
                     </div>
-
-                    <button onclick="volverALista()" class="nav-btn" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <button onclick="volverALista()" class="nav-btn" style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5;"><i class="fas fa-times"></i></button>
                 </div>
             </div>
-
             <div id="songContent" class="lyrics-container"></div>
-
             <div class="fab-container" style="position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 15px;">
                 <button id="btnToggleChords" class="fab" onclick="alternarAcordes()" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #333; color: white; font-size: 18px;"><i class="fas fa-eye-slash"></i></button>
                 <button class="fab" onclick="toggleTransposer()" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #f59e0b; color: #f59e0b; font-size: 18px;"><i class="fas fa-music"></i></button>
             </div>
-
             <div id="transposerPanel" class="transposer-panel" style="position: fixed; bottom: 110px; right: 25px; width: 160px; background: #141419; border: 1px solid #333; padding: 15px; border-radius: 20px; display: none; flex-direction: column; gap: 10px;">
                 <button onclick="transponer(1)" style="padding:10px; background:#222; border:1px solid #444; color:white; border-radius:8px;">+1 Subir</button>
                 <button onclick="transponer(-1)" style="padding:10px; background:#222; border:1px solid #444; color:white; border-radius:8px;">-1 Bajar</button>
@@ -195,8 +210,6 @@
     
     <script>
         const ADMIN_EMAIL = "admin@genesaret.com"; 
-
-        // Variables Globales
         let usuarioActual = null;
         let rolActual = localStorage.getItem('alabanza_rol') || 'voz';
         let rolTemp = null;
@@ -207,9 +220,20 @@
         let semitonos = 0;
         let notasDeLaCancion = {};
         const NOTAS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-
         let listaNavegacionActual = []; 
         let indiceNavegacion = -1;
+
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('txtPassword');
+            const icon = document.querySelector('.toggle-pass');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passInput.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
 
         const Modal = {
             element: document.getElementById('customModal'),
@@ -250,28 +274,22 @@
         }
 
         let modoRegistro = false; 
-
         function alternarModo() {
             modoRegistro = !modoRegistro;
             const titulo = document.getElementById('authTitle');
-            const subtitulo = document.getElementById('authSubtitle');
             const btnMain = document.getElementById('btnMainAuth');
             const btnToggle = document.getElementById('btnToggleAuth');
             const errorDiv = document.getElementById('loginError');
             const roleContainer = document.getElementById('roleSelectorContainer');
-
             errorDiv.style.display = 'none';
-
             if (modoRegistro) {
                 titulo.innerText = "Crear Cuenta";
-                subtitulo.innerText = "Registra tus datos para empezar";
                 btnMain.innerText = "REGISTRARSE";
                 btnMain.style.background = "linear-gradient(135deg, #10b981, #059669)";
                 btnToggle.innerText = "¿Ya tienes cuenta? Inicia sesión";
                 roleContainer.style.display = 'block'; 
             } else {
-                titulo.innerText = "Studio Access";
-                subtitulo.innerText = "Ingresa tus credenciales";
+                titulo.innerText = "Playlist Music";
                 btnMain.innerText = "ENTRAR";
                 btnMain.style.background = "linear-gradient(135deg, #6366f1, #4f46e5)";
                 btnToggle.innerText = "¿No tienes cuenta? Regístrate";
@@ -279,9 +297,7 @@
             }
         }
 
-        function procesarAutenticacion() {
-            if (modoRegistro) registroMejorado(); else loginFirebase();
-        }
+        function procesarAutenticacion() { if (modoRegistro) registroMejorado(); else loginFirebase(); }
 
         function loginFirebase() {
             const email = document.getElementById('txtEmail').value;
@@ -297,25 +313,15 @@
             const errDiv = document.getElementById('loginError');
             if(!email || !pass) { errDiv.style.display='block'; errDiv.innerText="Ingresa un correo y contraseña."; return; }
             if(!rolTemp) { errDiv.style.display='block'; errDiv.innerText="Selecciona qué instrumento tocas."; return; }
-
             firebase.auth().createUserWithEmailAndPassword(email, pass)
-                .then((cred) => {
-                    return db.collection('usuarios').doc(cred.user.uid).set({ rol: rolTemp, email: email });
-                })
+                .then((cred) => { return db.collection('usuarios').doc(cred.user.uid).set({ rol: rolTemp, email: email }); })
                 .then(() => { localStorage.setItem('alabanza_rol', rolTemp); })
                 .catch((e) => { errDiv.style.display = 'block'; errDiv.innerText = "Error al registrar: " + e.message; });
         }
 
-        function cerrarSesion() {
-            Modal.confirm("¿Salir?", "¿Cerrar sesión actual?", "👋").then(res => { 
-                if(res) firebase.auth().signOut().then(() => location.reload()); 
-            });
-        }
+        function cerrarSesion() { Modal.confirm("¿Salir?", "¿Cerrar sesión actual?", "👋").then(res => { if(res) firebase.auth().signOut().then(() => location.reload()); }); }
 
-        function mostrarSelectorRol() {
-            document.getElementById('modalCambioRol').style.display = 'flex';
-        }
-
+        function mostrarSelectorRol() { document.getElementById('modalCambioRol').style.display = 'flex'; }
         function guardarNuevoRol(nuevoRol) {
             if(!usuarioActual) return;
             rolActual = nuevoRol;
@@ -323,24 +329,16 @@
             actualizarBadgeUsuario(usuarioActual, nuevoRol);
             aplicarRol();
             document.getElementById('modalCambioRol').style.display = 'none';
-            db.collection('usuarios').doc(usuarioActual.uid).set({
-                rol: nuevoRol,
-                email: usuarioActual.email
-            }, { merge: true });
+            db.collection('usuarios').doc(usuarioActual.uid).set({ rol: nuevoRol, email: usuarioActual.email }, { merge: true });
         }
 
         firebase.auth().onAuthStateChanged(user => {
             if (user) {
                 usuarioActual = user;
                 document.getElementById('loginModal').style.display = 'none';
-                
                 db.collection('usuarios').doc(user.uid).get().then(doc => {
-                    if (doc.exists && doc.data().rol) {
-                        rolActual = doc.data().rol;
-                        localStorage.setItem('alabanza_rol', rolActual);
-                    } else {
-                        rolActual = localStorage.getItem('alabanza_rol') || 'voz';
-                    }
+                    if (doc.exists && doc.data().rol) { rolActual = doc.data().rol; localStorage.setItem('alabanza_rol', rolActual); }
+                    else { rolActual = localStorage.getItem('alabanza_rol') || 'voz'; }
                     actualizarBadgeUsuario(user, rolActual);
                     aplicarRol();
                 }).catch(() => {
@@ -348,45 +346,24 @@
                     actualizarBadgeUsuario(user, rolActual);
                     aplicarRol();
                 });
-
-                if (user.email === ADMIN_EMAIL) {
-                    const btnAdmin = document.getElementById('btnAdmin');
-                    if(btnAdmin) btnAdmin.style.display = 'flex';
-                }
+                if (user.email === ADMIN_EMAIL) { document.getElementById('btnAdmin').style.display = 'flex'; }
                 cargarDatosApp();
-            } else {
-                document.getElementById('loginModal').style.display = 'flex';
-                modoRegistro = true; alternarModo();
-            }
+            } else { document.getElementById('loginModal').style.display = 'flex'; }
         });
 
-        // CAMBIO: NOMBRE EN MAYÚSCULAS Y SEPARADO
         function actualizarBadgeUsuario(user, rol) {
-            const rolesIcons = { 'bateria': '<i class=\"fas fa-drum\"></i>', 'voz': '<i class=\"fas fa-microphone\"></i>', 'guitarra': '<i class=\"fas fa-guitar\"></i>', 'teclado': '<i class=\"fas fa-keyboard\"></i>' };
-            const icon = rolesIcons[rol] || '<i class=\"fas fa-user\"></i>';
+            const rolesIcons = { 'bateria': '<i class="fas fa-drum"></i>', 'voz': '<i class="fas fa-microphone"></i>', 'guitarra': '<i class="fas fa-guitar"></i>', 'teclado': '<i class="fas fa-keyboard"></i>' };
+            const icon = rolesIcons[rol] || '<i class="fas fa-user"></i>';
             const nombreDisplay = user.email.split('@')[0].toUpperCase();
-            document.getElementById('displayUserBadge').innerHTML = `${icon} <span style=\"margin-left: 8px;\">${nombreDisplay}</span>`;
+            document.getElementById('displayUserBadge').innerHTML = `${icon} <span style="margin-left: 8px;">${nombreDisplay}</span>`;
         }
 
         function cargarDatosApp() {
-            db.collection('canciones').orderBy('titulo').onSnapshot(snap => {
-                todasLasCanciones = [];
-                snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
-                renderizarLista();
-            });
-            db.collection('configuracion').doc('playlist_semanal').onSnapshot(doc => {
-                idsEnPlaylist = doc.exists ? (doc.data().canciones || []) : [];
-                renderizarLista();
-            });
+            db.collection('canciones').orderBy('titulo').onSnapshot(snap => { todasLasCanciones = []; snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); }); renderizarLista(); });
+            db.collection('configuracion').doc('playlist_semanal').onSnapshot(doc => { idsEnPlaylist = doc.exists ? (doc.data().canciones || []) : []; renderizarLista(); });
         }
 
-        function cambiarTab(tab) {
-            tabActual = tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            if(tab === 'all') document.getElementById('tabAll').classList.add('active');
-            else document.getElementById('tabPlaylist').classList.add('active');
-            renderizarLista();
-        }
+        function cambiarTab(tab) { tabActual = tab; document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); if(tab === 'all') document.getElementById('tabAll').classList.add('active'); else document.getElementById('tabPlaylist').classList.add('active'); renderizarLista(); }
 
         function renderizarLista() {
             const lista = document.getElementById('songList');
@@ -395,46 +372,22 @@
             let cancionesAMostrar = todasLasCanciones;
             if (tabActual === 'playlist') cancionesAMostrar = todasLasCanciones.filter(c => idsEnPlaylist.includes(c.id));
             cancionesAMostrar = cancionesAMostrar.filter(c => c.titulo.toLowerCase().includes(busqueda));
-
             if (cancionesAMostrar.length === 0) { lista.innerHTML = '<div style="text-align:center; padding:40px; color:#555; font-size:14px;">No hay canciones</div>'; return; }
-
             cancionesAMostrar.forEach(c => {
                 const enPlaylist = idsEnPlaylist.includes(c.id);
-                let btnAccion = '';
-                if (tabActual === 'all') {
-                    if (enPlaylist) btnAccion = `<div class="action-btn btn-add added" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-check"></i></div>`;
-                    else btnAccion = `<div class="action-btn btn-add" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-plus"></i></div>`;
-                } else {
-                    btnAccion = `<div class="action-btn btn-remove" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-minus"></i></div>`;
-                }
-                html += `
-                <li class="song-item" onclick="abrirCancion('${c.id}')">
-                    <div class="song-info">
-                        <h3>${c.titulo}</h3>
-                        <div><span class="song-meta-badge">${c.tonoOriginal||'?'}</span><span class="song-artist">${c.artista||''}</span></div>
-                    </div>
-                    ${btnAccion}
-                </li>`;
+                let btnAccion = tabActual === 'all' ? `<div class="action-btn btn-add ${enPlaylist?'added':''}" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-${enPlaylist?'check':'plus'}"></i></div>` : `<div class="action-btn btn-remove" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-minus"></i></div>`;
+                html += `<li class="song-item" onclick="abrirCancion('${c.id}')"><div class="song-info"><h3>${c.titulo}</h3><div><span class="song-meta-badge">${c.tonoOriginal||'?'}</span><span class="song-artist">${c.artista||''}</span></div></div>${btnAccion}</li>`;
             });
             lista.innerHTML = html;
         }
 
-        function togglePlaylist(id, event) {
-            event.stopPropagation();
-            let nuevaLista = [...idsEnPlaylist];
-            if (nuevaLista.includes(id)) nuevaLista = nuevaLista.filter(x => x !== id);
-            else nuevaLista.push(id);
-            db.collection('configuracion').doc('playlist_semanal').set({ canciones: nuevaLista }, { merge: true });
-        }
+        function togglePlaylist(id, event) { event.stopPropagation(); let nuevaLista = [...idsEnPlaylist]; if (nuevaLista.includes(id)) nuevaLista = nuevaLista.filter(x => x !== id); else nuevaLista.push(id); db.collection('configuracion').doc('playlist_semanal').set({ canciones: nuevaLista }, { merge: true }); }
 
         function abrirCancion(id) {
             const busqueda = document.getElementById('searchInput').value.toLowerCase();
-            let contextoCanciones = [];
-            if (tabActual === 'playlist') { contextoCanciones = todasLasCanciones.filter(c => idsEnPlaylist.includes(c.id)); } 
-            else { contextoCanciones = todasLasCanciones; }
-            if(busqueda) { contextoCanciones = contextoCanciones.filter(c => c.titulo.toLowerCase().includes(busqueda)); }
-
-            listaNavegacionActual = contextoCanciones.map(c => c.id);
+            let ctx = tabActual === 'playlist' ? todasLasCanciones.filter(c => idsEnPlaylist.includes(c.id)) : todasLasCanciones;
+            if(busqueda) ctx = ctx.filter(c => c.titulo.toLowerCase().includes(busqueda));
+            listaNavegacionActual = ctx.map(c => c.id);
             indiceNavegacion = listaNavegacionActual.indexOf(id);
             actualizarVistaCancion(id);
         }
@@ -454,74 +407,35 @@
             cargarNotasYRenderizar();
         }
 
-        function navegarCancion(direccion) {
-            const nuevoIndice = indiceNavegacion + direccion;
-            if (nuevoIndice >= 0 && nuevoIndice < listaNavegacionActual.length) {
-                indiceNavegacion = nuevoIndice;
-                const nuevoId = listaNavegacionActual[nuevoIndice];
-                document.getElementById('songContent').style.opacity = 0.5;
-                setTimeout(() => {
-                    actualizarVistaCancion(nuevoId);
-                    document.getElementById('songContent').style.opacity = 1;
-                }, 150);
-            }
-        }
+        function navegarCancion(dir) { const ni = indiceNavegacion + dir; if (ni >= 0 && ni < listaNavegacionActual.length) { indiceNavegacion = ni; actualizarVistaCancion(listaNavegacionActual[ni]); } }
 
         function cargarNotasYRenderizar() {
-            document.getElementById('songContent').innerHTML = '<div style="text-align:center; padding:100px; color:#555;">Cargando...</div>';
             if(!usuarioActual) return;
             const docId = usuarioActual.uid + "_" + cancionActual.id;
-            db.collection('notas_personales').doc(docId).get().then(doc => {
-                notasDeLaCancion = doc.exists ? (doc.data().notas || {}) : {};
-                renderizarLetra();
-            }).catch(() => { notasDeLaCancion = {}; renderizarLetra(); });
+            db.collection('notas_personales').doc(docId).get().then(doc => { notasDeLaCancion = doc.exists ? (doc.data().notas || {}) : {}; renderizarLetra(); }).catch(() => { notasDeLaCancion = {}; renderizarLetra(); });
         }
 
         function guardarNotaEnNube(index, texto) {
             if(!usuarioActual) return;
             const docId = usuarioActual.uid + "_" + cancionActual.id;
             if(texto) notasDeLaCancion[index] = texto; else delete notasDeLaCancion[index];
-            db.collection('notas_personales').doc(docId).set({
-                usuarioEmail: usuarioActual.email,
-                cancionId: cancionActual.id, 
-                notas: notasDeLaCancion
-            }, { merge: true });
+            db.collection('notas_personales').doc(docId).set({ usuarioEmail: usuarioActual.email, cancionId: cancionActual.id, notas: notasDeLaCancion }, { merge: true });
             renderizarLetra();
         }
 
-        function agregarNota(index) {
-            const valorActual = notasDeLaCancion[index] || '';
-            Modal.prompt("Nota Personal", "Escribe un recordatorio:", valorActual, "📝").then(nuevoTexto => {
-                if (nuevoTexto !== false) guardarNotaEnNube(index, nuevoTexto.trim());
-            });
-        }
+        function agregarNota(index) { Modal.prompt("Nota Personal", "Escribe un recordatorio:", notasDeLaCancion[index] || '', "📝").then(txt => { if (txt !== false) guardarNotaEnNube(index, txt.trim()); }); }
         function editarNota(index, e) { e.stopPropagation(); agregarNota(index); }
-        
-        function aplicarRol() {
-            const btnIcon = document.querySelector('#btnToggleChords i');
-            if (rolActual === 'bateria' || rolActual === 'voz') { document.body.classList.add('hide-chords'); if(btnIcon) btnIcon.className = "fas fa-eye"; }
-            else { document.body.classList.remove('hide-chords'); if(btnIcon) btnIcon.className = "fas fa-eye-slash"; }
-        }
-
-        function alternarAcordes() {
-            document.body.classList.toggle('hide-chords');
-            const btnIcon = document.querySelector('#btnToggleChords i');
-            btnIcon.className = document.body.classList.contains('hide-chords') ? "fas fa-eye" : "fas fa-eye-slash";
-        }
+        function aplicarRol() { const btnIcon = document.querySelector('#btnToggleChords i'); if (rolActual === 'bateria' || rolActual === 'voz') { document.body.classList.add('hide-chords'); if(btnIcon) btnIcon.className = "fas fa-eye"; } else { document.body.classList.remove('hide-chords'); if(btnIcon) btnIcon.className = "fas fa-eye-slash"; } }
+        function alternarAcordes() { document.body.classList.toggle('hide-chords'); const btnIcon = document.querySelector('#btnToggleChords i'); btnIcon.className = document.body.classList.contains('hide-chords') ? "fas fa-eye" : "fas fa-eye-slash"; }
 
         function detectarSeccionAutomatica(linea) {
             const texto = linea.trim();
             const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?$/i;
             const match = texto.match(regexInicio);
             if (match) {
-                let clase = 'tag-verso'; 
-                const t = match[0].toLowerCase();
-                if (t.includes('intro')) clase = 'tag-intro';
-                else if (t.includes('coro') && !t.includes('pre')) clase = 'tag-coro';
-                else if (t.includes('pre')) clase = 'tag-precoro';
-                else if (t.includes('puente')) clase = 'tag-puente';
-                else if (t.includes('final')) clase = 'tag-final';
-                return `<div class=\"struct-btn ${clase}\">${match[0].replace(/[:\.]/g, '').toUpperCase()}</div><div class=\"song-line\">${parsearAcordes(texto.substring(match[0].length))}</div>`;
+                let clase = 'tag-verso'; const t = match[0].toLowerCase();
+                if (t.includes('intro')) clase = 'tag-intro'; else if (t.includes('coro') && !t.includes('pre')) clase = 'tag-coro'; else if (t.includes('pre')) clase = 'tag-precoro'; else if (t.includes('puente')) clase = 'tag-puente'; else if (t.includes('final')) clase = 'tag-final';
+                return `<div class="struct-btn ${clase}">${match[0].replace(/[:\.]/g, '').toUpperCase()}</div><div class="song-line">${parsearAcordes(texto.substring(match[0].length))}</div>`;
             }
             return null;
         }
@@ -531,48 +445,42 @@
             const regex = /(\[[^\]]+\])|([^\[]+)/g;
             let m, html = '';
             while ((m = regex.exec(txt)) !== null) {
-                if(m[1]) html += `<div class=\"chord-group\"><div class=\"chord\">${m[1].replace(/\[|\]/g,'')}</div><div class=\"lyric\">&nbsp;</div></div>`;
-                else html += `<div class=\"chord-group\"><div class=\"chord\">&nbsp;</div><div class=\"lyric\">${m[2]}</div></div>`;
+                if(m[1]) html += `<div class="chord-group"><div class="chord">${m[1].replace(/\[|\]/g,'')}</div><div class="lyric">&nbsp;</div></div>`;
+                else html += `<div class="chord-group"><div class="chord">&nbsp;</div><div class="lyric">${m[2]}</div></div>`;
             }
             return html;
         }
 
         function renderizarLetra() {
             let texto = cancionActual.letraChordPro;
-            if (semitonos !== 0) { 
-                texto = texto.replace(/\[(.*?)\]/g, (m, ac) => { 
-                    const p = ac.split('/'); let r = cn(p[0], semitonos); if(p[1]) r += '/' + cn(p[1], semitonos); return `[${r}]`; 
-                }); 
-            }
+            if (semitonos !== 0) { texto = texto.replace(/\[(.*?)\]/g, (m, ac) => { const p = ac.split('/'); let r = cn(p[0], semitonos); if(p[1]) r += '/' + cn(p[1], semitonos); return `[${r}]`; }); }
             const lineas = texto.split('\n'); let html = '';
             lineas.forEach((linea, idx) => {
-                const notaTexto = notasDeLaCancion[idx]; 
-                let htmlNota = ''; 
-                if(notaTexto) { htmlNota = `<div class=\"note-card\" onclick=\"editarNota(${idx}, event)\">${notaTexto}</div>`; }
-                let htmlLinea = '';
-                const seccionAuto = detectarSeccionAutomatica(linea);
-                if (seccionAuto) { htmlLinea = seccionAuto; } 
-                else if (!linea.trim()) { htmlLinea = `<div class=\"song-line\" style=\"height:8px;\"></div>`; } 
+                const nt = notasDeLaCancion[idx];
+                let hN = nt ? `<div class="note-card" onclick="editarNota(${idx}, event)">${nt}</div>` : '';
+                let hL = '';
+                const sa = detectarSeccionAutomatica(linea);
+                if (sa) hL = sa; 
+                else if (!linea.trim()) hL = `<div class="song-line" style="height:8px;"></div>`; 
                 else {
-                    const rx = /(\[[^\]]+\])|([^\[]+)/g; let contenidoLinea = ''; let buf = null;
+                    const rx = /(\[[^\]]+\])|([^\[]+)/g; let cl = ''; let buf = null;
                     while ((m = rx.exec(linea)) !== null) {
-                        if (m[1]) { if (buf) contenidoLinea += bl(buf, '&nbsp;'); buf = m[1].replace(/\[|\]/g, ''); } 
-                        else if (m[2]) { contenidoLinea += bl(buf || '', m[2]); buf = null; }
+                        if (m[1]) { if (buf) cl += bl(buf, '&nbsp;'); buf = m[1].replace(/\[|\]/g, ''); } 
+                        else if (m[2]) { cl += bl(buf || '', m[2]); buf = null; }
                     }
-                    if (buf) contenidoLinea += bl(buf, '');
-                    htmlLinea = `<div class=\"song-line\">${contenidoLinea}</div>`;
+                    if (buf) cl += bl(buf, ''); hL = `<div class="song-line">${cl}</div>`;
                 }
-                html += `<div class=\"line-wrapper\" onclick=\"agregarNota(${idx})\">${htmlNota}${htmlLinea}</div>`;
+                html += `<div class="line-wrapper" onclick="agregarNota(${idx})">${hN}${hL}</div>`;
             });
             document.getElementById('songContent').innerHTML = html;
         }
 
-        function volverALista() { document.getElementById('viewSong').style.display = 'none'; document.getElementById('viewList').style.display = 'block'; document.getElementById('transposerPanel').style.display='none'; }
+        function volverALista() { document.getElementById('viewSong').style.display = 'none'; document.getElementById('viewList').style.display = 'block'; }
         function toggleTransposer() { const p = document.getElementById('transposerPanel'); p.style.display = p.style.display==='flex'?'none':'flex'; }
         function transponer(d) { semitonos += d; renderizarLetra(); }
         function resetTono() { semitonos=0; renderizarLetra(); }
         function cn(n, d) { let no=n.trim(), r=no.substring(0,1), s=no.substring(1); if(no.length>1&&(no[1]=='#'||no[1]=='b')){r=no.substring(0,2);s=no.substring(2);} const b={'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#'}; if(b[r])r=b[r]; let i=NOTAS.indexOf(r); if(i===-1)return no; let ni=(i+d)%12; if(ni<0)ni+=12; return NOTAS[ni]+s; }
-        function bl(a, l) { return `<div class=\"chord-group\"><div class=\"chord\">${a||'&nbsp;'}</div><div class=\"lyric\">${l}</div></div>`; }
+        function bl(a, l) { return `<div class="chord-group"><div class="chord">${a||'&nbsp;'}</div><div class="lyric">${l}</div></div>`; }
     </script>
 </body>
 </html>
