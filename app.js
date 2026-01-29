@@ -1,9 +1,24 @@
-// app.js - ADMIN: LÓGICA COMPLETA CON MODALES PREMIUM
+// app.js - ADMIN: LÓGICA SEGURA Y CORREGIDA
 
 let idCancionEditando = null; 
-let todasLasCancionesAdmin = []; 
+// Hacemos esta variable global para que el buscador la vea siempre
+window.todasLasCancionesAdmin = []; 
 
-// --- DEFINICIÓN DEL SISTEMA DE MODALES ---
+// Función de inicio que será llamada por admin.html SOLO si hay permisos
+window.iniciarAdmin = function() {
+    if(!window.db) { console.error("DB no lista"); return; }
+    
+    // Carga en tiempo real
+    window.db.collection('canciones').orderBy('titulo').onSnapshot(snap => {
+        window.todasLasCancionesAdmin = [];
+        snap.forEach(doc => {
+            window.todasLasCancionesAdmin.push({ id: doc.id, ...doc.data() });
+        });
+        console.log(`📚 ${window.todasLasCancionesAdmin.length} canciones cargadas.`);
+    });
+};
+
+// --- MODALES ---
 const Modal = {
     element: document.getElementById('customModal'),
     title: document.getElementById('modalTitle'),
@@ -14,53 +29,23 @@ const Modal = {
     
     show: function(options) {
         return new Promise((resolve) => {
-            // Configurar contenido
             this.title.innerText = options.title || 'Atención';
             this.text.innerText = options.text || '';
             this.icon.innerHTML = options.icon || '✨';
-            
-            // Configurar botones (ocultar cancelar si es solo alerta)
             this.btnCancel.style.display = options.type === 'alert' ? 'none' : 'block';
             this.btnConfirm.innerText = options.confirmText || 'Aceptar';
-
-            // Mostrar
             this.element.classList.add('open');
-
-            // Manejadores de cierre
-            const close = (val) => {
-                this.element.classList.remove('open');
-                resolve(val);
-            };
-
-            // Limpiar eventos anteriores para no duplicar clics
+            const close = (val) => { this.element.classList.remove('open'); resolve(val); };
             this.btnConfirm.onclick = () => close(true);
             this.btnCancel.onclick = () => close(false);
         });
     },
-    
-    // Atajos rápidos
-    alert: function(title, text, icon='⚠️') {
-        return this.show({ type: 'alert', title, text, icon });
-    },
-    confirm: function(title, text, icon='🤔') {
-        return this.show({ type: 'confirm', title, text, icon });
-    }
-};
-
-// Cargar datos al iniciar
-window.onload = function() {
-    if(window.db) {
-        window.db.collection('canciones').orderBy('titulo').onSnapshot(snap => {
-            todasLasCancionesAdmin = [];
-            snap.forEach(doc => {
-                todasLasCancionesAdmin.push({ id: doc.id, ...doc.data() });
-            });
-        });
-    }
+    alert: function(title, text, icon='⚠️') { return this.show({ type: 'alert', title, text, icon }); },
+    confirm: function(title, text, icon='🤔') { return this.show({ type: 'confirm', title, text, icon }); }
 };
 
 // ==========================================
-// 1. GESTIÓN DE CANCIONES (GUARDAR/EDITAR/ELIMINAR)
+// 1. GESTIÓN DE CANCIONES
 // ==========================================
 
 function guardarCancion() {
@@ -74,19 +59,12 @@ function guardarCancion() {
     const compas = document.getElementById('compas').value;
     const letra = document.getElementById('letraInput').value;
 
-    // Validación con Modal
-    if(!titulo || !letra) return Modal.alert('Faltan datos', 'Por favor, ingresa al menos el Título y la Letra.', '📝');
+    if(!titulo || !letra) return Modal.alert('Faltan datos', 'Ingresa Título y Letra.', '📝');
 
     const btn = document.getElementById('btnSave');
     const txtOriginal = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Procesando...';
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> ...';
     btn.disabled = true;
-
-    if (!window.db) {
-        Modal.alert("Error crítico", "No hay conexión con la base de datos.", "❌");
-        btn.innerHTML = txtOriginal; btn.disabled = false;
-        return;
-    }
 
     const datos = {
         titulo: titulo,
@@ -95,72 +73,70 @@ function guardarCancion() {
         bpm: bpm,
         compas: compas,
         letraChordPro: letra,
-        busqueda: titulo.toLowerCase()
+        busqueda: titulo.toLowerCase() // Ayuda para búsquedas simples
     };
 
     let promesa;
-
     if (idCancionEditando) {
-        // ACTUALIZAR
         promesa = window.db.collection('canciones').doc(idCancionEditando).update(datos);
     } else {
-        // CREAR NUEVA
         datos.fechaCreacion = new Date();
         promesa = window.db.collection('canciones').add(datos);
     }
 
     promesa.then(() => {
-        const mensaje = idCancionEditando ? '¡Canción actualizada correctamente!' : '¡Canción creada con éxito!';
-        Modal.alert('Completado', mensaje, '✅');
+        Modal.alert('Éxito', 'Canción guardada correctamente.', '✅');
         limpiarFormulario();
     }).catch(e => {
-        console.error(e);
-        Modal.alert('Error', 'No se pudo guardar: ' + e.message, '❌');
+        Modal.alert('Error', e.message, '❌');
     }).finally(() => {
-        btn.innerHTML = txtOriginal;
-        btn.disabled = false;
+        btn.innerHTML = txtOriginal; btn.disabled = false;
     });
 }
 
 function eliminarCancion() {
     if (!idCancionEditando) return;
-
-    // Usamos el Modal.confirm (Promesa)
-    Modal.confirm("¿Estás seguro?", "Esta acción eliminará la canción permanentemente. No se puede deshacer.", "🗑️").then(confirmado => {
+    Modal.confirm("¿Eliminar?", "Esta acción es irreversible.", "🗑️").then(confirmado => {
         if (confirmado) {
-            const btn = document.getElementById('btnDelete');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...';
-            btn.disabled = true;
-
             window.db.collection('canciones').doc(idCancionEditando).delete().then(() => {
-                Modal.alert('Eliminado', 'La canción ha sido eliminada.', '🗑️');
+                Modal.alert('Eliminado', 'La canción ha sido borrada.', '🗑️');
                 limpiarFormulario();
-            }).catch(e => {
-                Modal.alert("Error", "No se pudo eliminar: " + e.message, "⚠️");
-                btn.innerHTML = '<i class="fas fa-trash"></i> Eliminar';
-                btn.disabled = false;
-            });
+            }).catch(e => Modal.alert("Error", e.message, "⚠️"));
         }
     });
 }
 
 // ==========================================
-// 2. BUSCADOR Y CARGA DE DATOS
+// 2. BUSCADOR CORREGIDO
 // ==========================================
 
 function buscarParaEditar() {
     const texto = document.getElementById('searchEdit').value.toLowerCase();
     const contenedor = document.getElementById('searchResults');
     
+    // Verificamos que ya existan datos cargados
+    if (!window.todasLasCancionesAdmin || window.todasLasCancionesAdmin.length === 0) {
+        if(texto.length > 2) contenedor.innerHTML = '<div style="padding:10px; color:#666;">Cargando base de datos...</div>';
+        return;
+    }
+    
     if (texto.length < 2) { contenedor.style.display = 'none'; return; }
 
-    const resultados = todasLasCancionesAdmin.filter(c => c.titulo.toLowerCase().includes(texto));
+    const resultados = window.todasLasCancionesAdmin.filter(c => 
+        (c.titulo && c.titulo.toLowerCase().includes(texto)) || 
+        (c.artista && c.artista.toLowerCase().includes(texto))
+    );
     
     if (resultados.length > 0) {
         let html = '';
         resultados.forEach(c => {
-            html += `<div class="search-result-item" onclick="cargarParaEditar('${c.id}')">
-                        <strong>${c.titulo}</strong> <span style="font-size:11px; color:#94a3b8;">- ${c.artista}</span>
+            // Escapamos comillas simples para evitar errores en el string del onclick
+            const idSeguro = c.id; 
+            html += `<div class="search-result-item" onclick="cargarParaEditar('${idSeguro}')">
+                        <div style="display:flex; justify-content:space-between; width:100%;">
+                            <span><strong>${c.titulo}</strong></span>
+                            <span style="font-size:11px; opacity:0.7;">${c.artista}</span>
+                        </div>
                      </div>`;
         });
         contenedor.innerHTML = html;
@@ -171,22 +147,27 @@ function buscarParaEditar() {
 }
 
 function cargarParaEditar(id) {
-    const cancion = todasLasCancionesAdmin.find(c => c.id === id);
+    const cancion = window.todasLasCancionesAdmin.find(c => c.id === id);
     if (!cancion) return;
 
-    document.getElementById('titulo').value = cancion.titulo;
-    document.getElementById('artista').value = cancion.artista;
-    document.getElementById('tono').value = cancion.tonoOriginal;
-    document.getElementById('bpm').value = cancion.bpm;
-    document.getElementById('compas').value = cancion.compas;
-    document.getElementById('letraInput').value = cancion.letraChordPro;
+    document.getElementById('titulo').value = cancion.titulo || '';
+    document.getElementById('artista').value = cancion.artista || '';
+    document.getElementById('tono').value = cancion.tonoOriginal || '';
+    document.getElementById('bpm').value = cancion.bpm || '';
+    document.getElementById('compas').value = cancion.compas || '';
+    document.getElementById('letraInput').value = cancion.letraChordPro || '';
 
     idCancionEditando = id;
+    
+    // Cambiar UI a modo edición
     document.getElementById('formTitle').innerHTML = `<i class="fas fa-edit"></i> Editando: ${cancion.titulo}`;
     document.getElementById('btnSave').innerHTML = `<i class="fas fa-sync"></i> Actualizar`;
     
+    // Mostrar botones de cancelar y eliminar
     document.getElementById('btnCancelEdit').style.display = 'block';
     document.getElementById('btnDelete').style.display = 'block';
+    
+    // Ocultar buscador
     document.getElementById('searchResults').style.display = 'none';
     document.getElementById('searchEdit').value = '';
 
@@ -203,6 +184,7 @@ function limpiarFormulario() {
     document.getElementById('bpm').value = '';
     document.getElementById('compas').value = '';
     document.getElementById('letraInput').value = '';
+    
     document.getElementById('previewArea').innerHTML = '<div style="text-align: center; color: #64748b; margin-top: 100px; opacity: 0.5;"><i class="fas fa-music fa-3x"></i><br><br>Vista previa...</div>';
     
     document.getElementById('formTitle').innerHTML = `<i class="fas fa-pen-fancy"></i> Nueva Canción`;
@@ -210,12 +192,10 @@ function limpiarFormulario() {
     
     document.getElementById('btnCancelEdit').style.display = 'none';
     document.getElementById('btnDelete').style.display = 'none';
-    document.getElementById('btnDelete').innerHTML = '<i class="fas fa-trash"></i> Eliminar';
-    document.getElementById('btnDelete').disabled = false;
 }
 
 // ==========================================
-// 3. HERRAMIENTAS (PDF, LACUERDA)
+// 3. UTILIDADES (PDF, ETC)
 // ==========================================
 
 function insertarSeccion(nombreSeccion) {
@@ -231,7 +211,7 @@ function insertarSeccion(nombreSeccion) {
 function convertirLaCuerda() {
     const textarea = document.getElementById('letraInput');
     const textoOriginal = textarea.value;
-    if(!textoOriginal.trim()) return Modal.alert("Campo vacío", "Primero pega la letra de la canción.", "✏️");
+    if(!textoOriginal.trim()) return Modal.alert("Campo vacío", "Primero pega la letra.", "✏️");
 
     const lineas = textoOriginal.split('\n');
     let textoNuevo = [];
@@ -265,7 +245,7 @@ function convertirLaCuerda() {
     }
     textarea.value = textoNuevo.join("\n");
     actualizarPrevisualizacion();
-    Modal.alert("Listo", "Formato convertido correctamente.", "✨");
+    Modal.alert("Listo", "Formato convertido.", "✨");
 }
 
 async function procesarPDF() {
@@ -273,7 +253,7 @@ async function procesarPDF() {
     if (!fileInput.files[0]) return; 
     const label = document.querySelector('label[for="pdfUpload"]');
     let txtOriginal = "";
-    if(label) { txtOriginal = label.innerHTML; label.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ...'; }
+    if(label) { txtOriginal = label.innerHTML; label.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
     try {
         const file = fileInput.files[0];
         const buff = await file.arrayBuffer();
@@ -317,7 +297,7 @@ function fusionarSimple(lines) {
 }
 
 // ==========================================
-// 4. RENDERIZADO INTELIGENTE (COLORES)
+// 4. RENDERIZADO VISUAL
 // ==========================================
 
 function actualizarPrevisualizacion() {
@@ -328,20 +308,15 @@ function actualizarPrevisualizacion() {
 function detectarSeccionAutomatica(linea) {
     const texto = linea.trim();
     const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?$/i;
-    
     const match = texto.match(regexInicio);
 
     if (match) {
         const etiquetaEncontrada = match[0]; 
         const restoDelTexto = texto.substring(etiquetaEncontrada.length).trim();
-
-        if (restoDelTexto.length > 20 && !/intro|intermedio|puente/i.test(etiquetaEncontrada)) {
-             return null; 
-        }
+        if (restoDelTexto.length > 20 && !/intro|intermedio|puente/i.test(etiquetaEncontrada)) return null; 
 
         let clase = 'tag-verso'; 
         const t = etiquetaEncontrada.toLowerCase();
-
         if (t.includes('intro')) clase = 'tag-intro';
         else if (t.includes('coro') && !t.includes('pre')) clase = 'tag-coro';
         else if (t.includes('pre')) clase = 'tag-precoro';
@@ -349,7 +324,6 @@ function detectarSeccionAutomatica(linea) {
         else if (t.includes('final') || t.includes('salida')) clase = 'tag-final';
 
         let html = `<div class="struct-btn ${clase}">${etiquetaEncontrada.replace(/[:\.]/g, '').toUpperCase()}</div>`;
-
         if (restoDelTexto.length > 0) {
             const regexAcordes = /(\[[^\]]+\])|([^\[]+)/g;
             let subHtml = '<div class="song-line">';
@@ -379,12 +353,8 @@ function renderizarChordPro(texto) {
 
     lineas.forEach(linea => {
         if (!linea.trim()) { html += '<div class="song-line" style="height:5px;"></div>'; return; }
-        
         const seccionAuto = detectarSeccionAutomatica(linea);
-        if (seccionAuto) {
-            html += seccionAuto;
-            return; 
-        }
+        if (seccionAuto) { html += seccionAuto; return; }
 
         const regex = /(\[[^\]]+\])|([^\[]+)/g;
         let match;
