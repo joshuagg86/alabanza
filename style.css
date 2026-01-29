@@ -254,3 +254,127 @@ select option { background: #131316; color: white; padding: 10px; }
     .mobile-tabs { display: flex; }
     .mobile-hidden { display: none !important; }
 }
+
+/* =========================================
+   ESTILOS DE LA LISTA DE CANCIONES (RECUPERADOS)
+   ========================================= */
+
+.song-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.song-item {
+    background: rgba(255, 255, 255, 0.03); /* Fondo sutil */
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between; /* Separa info del botón */
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.song-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.song-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.song-info h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: -0.3px;
+}
+
+.song-meta-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.15); /* Color Indigo suave */
+    color: #a5b4fc;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 10px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    min-width: 25px;
+}
+
+.song-artist {
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+/* Botones de acción (+ o check) */
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: 0.2s;
+    backdrop-filter: blur(5px);
+}
+
+.btn-add {
+    background: rgba(255, 255, 255, 0.05);
+    color: #666;
+    border: 1px solid transparent;
+}
+
+.btn-add:hover {
+    background: white;
+    color: black;
+    transform: scale(1.1);
+}
+
+.btn-add.added {
+    background: #10b981; /* Verde éxito */
+    color: white;
+    border: 1px solid #059669;
+}
+
+.btn-remove {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.btn-remove:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* =========================================
+   VISIBILIDAD DE ACORDES (SISTEMA DE ROLES)
+   ========================================= */
+
+/* Cuando el cuerpo tiene la clase 'hide-chords', ocultamos la clase .chord */
+body.hide-chords .chord {
+    display: none !important;
+}
+
+/* Ajuste visual para que la letra no "brinque" tanto */
+body.hide-chords .song-line {
+    align-items: center; /* Centra la letra verticalmente */
+    min-height: 30px;    /* Altura mínima para que sea fácil de leer */
+}
