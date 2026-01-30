@@ -59,19 +59,24 @@ h1 {
 
 /* GRID LAYOUT */
 .editor-grid {
-    display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px;
-    height: 82vh;
+    display: grid; 
+    grid-template-columns: 1.2fr 0.8fr; 
+    gap: 30px;
+    min-height: 0;
 }
 
 /* CARDS */
 .card {
     background: var(--glass-surface);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
-    border-radius: 24px; padding: 30px;
-    display: flex; flex-direction: column;
+    border-radius: 24px; 
+    padding: 30px;
+    display: block;
     box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-    position: relative; overflow: hidden;
+    position: relative; 
+    overflow: visible;
 }
 
 .card h2 { 
@@ -94,14 +99,20 @@ input:focus, select:focus {
 
 /* --- TEXTAREA MÁS GRANDE (CAMBIO AQUÍ) --- */
 textarea {
-    flex: 1; 
-    min-height: 400px; /* Altura mínima forzada para que sea más grande */
-    resize: none; padding: 20px;
-    background: #0a0a0c; border: 1px solid var(--glass-border);
-    border-radius: 16px; color: #e2e8f0;
-    font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.6;
+    width: 100%; 
+    min-height: 500px; /* Altura generosa para escribir cómodo */
+    resize: vertical;  /* Te permite estirarlo tú mismo si lo necesitas */
+    padding: 20px;
+    background: #0a0a0c; 
+    border: 1px solid var(--glass-border);
+    border-radius: 16px; 
+    color: #e2e8f0;
+    font-family: 'JetBrains Mono', monospace; 
+    font-size: 14px; 
+    line-height: 1.6;
     margin-top: 10px;
 }
+
 textarea:focus { border-color: #555; }
 
 select option { background: #131316; color: white; padding: 10px; }
@@ -160,52 +171,59 @@ select option { background: #131316; color: white; padding: 10px; }
 /* 2. El cuadro negro ahora ocupa todo el espacio */
 .lyrics-container {
     background: #000; 
-    border-radius: 12px; /* Bordes menos redondeados para aprovechar esquinas */
-    padding: 15px;       /* Relleno interno mínimo */
+    border-radius: 12px;
+    padding: 15px;
     
-    font-family: 'JetBrains Mono', monospace; 
-    font-size: 13px;     /* Letra compacta */
-    line-height: 1.4;    /* Líneas más juntas */
+    /* Cambiado a Arial y tamaño 11pt */
+    font-family: Arial, sans-serif !important; 
+    font-size: 14.5px; 
+    line-height: 1.3;
     
-    overflow-y: auto;    /* Scroll vertical: SÍ */
-    overflow-x: hidden;  /* Scroll horizontal: NO (Prohibido) */
-    
+    overflow-y: auto;
+    overflow-x: hidden;
     flex: 1; 
     border: 1px solid #222; 
     color: #e2e8f0;
     height: 100%;
-    
-    /* Esto es clave: si la línea es larguísima, la baja al siguiente renglón 
-       en lugar de esconderla o forzar scroll horizontal */
     white-space: pre-wrap; 
     word-break: break-word;
 }
 
 /* Ajustes de líneas y acordes */
 .song-line { 
-    display: flex; 
-    flex-wrap: wrap; 
-    align-items: flex-end; 
-    margin-bottom: 8px; 
+    display: block; 
+    margin-bottom: 12px; 
     width: 100%;
+    white-space: pre-wrap !important; /* Mantiene espacios y permite saltos */
+    word-break: break-all;
 }
 
+/* Contenedor de Acorde sobre Letra */
 .chord-group { 
-    display: flex; 
+    display: inline-flex; 
     flex-direction: column; 
-    margin-right: 4px; /* Espacio mínimo entre sílabas */
+    vertical-align: bottom;
+    text-align: left;
+    /* Eliminamos el min-width para que el espacio lo de el contenido */
 }
 
 .chord { 
     color: var(--accent-glow); 
     font-weight: 700; 
-    font-size: 12px; 
-    margin-bottom: 2px; 
+    font-size: 14.5px; /* Tamaño 11 coincidente */
+    height: 16px; 
+    line-height: 16px;
+    display: block;
+    white-space: nowrap; 
 }
 
 .lyric { 
     color: #f1f5f9; 
-    font-size: 13px; 
+    font-size: 14.5px; 
+    height: 18px; 
+    line-height: 18px;
+    display: block; 
+    white-space: pre !important; /* Forzamos el respeto a cada espacio */
 }
 
 /* Mensaje de estado vacío */
@@ -377,4 +395,237 @@ body.hide-chords .chord {
 body.hide-chords .song-line {
     align-items: center; /* Centra la letra verticalmente */
     min-height: 30px;    /* Altura mínima para que sea fácil de leer */
+}
+
+@media (min-width: 901px) {
+    #previewPanel {
+        position: sticky;
+        top: 30px;
+        height: calc(100vh - 150px); /* Ajusta la altura a la pantalla */
+    }
+}
+
+/* MODO MULTI-COLUMNA PARA BATERISTAS Y CANTANTES (Versión Equilibrada) */
+.lyrics-cols-bate {
+    display: block !important;
+    column-count: 2;
+    column-gap: 25px;
+    column-rule: 1px solid rgba(255, 255, 255, 0.05);
+    width: 100% !important;
+    height: 92vh !important; /* Aprovecha un poco más el fondo de la pantalla */
+    max-height: 92vh !important;
+    
+    /* INTERLINEADO EQUILIBRADO */
+    line-height: 1.0 !important; 
+    font-size: 14px !important; /* Regresamos a 14px para mejor lectura */
+}
+
+/* Espacio entre cada renglón completo */
+.lyrics-cols-bate .line-wrapper {
+    margin-bottom: 0px !important;
+    padding-top: 0px !important; /* Eliminamos el respiro superior */
+}
+.empty-line {
+    margin-bottom: 0px !important;
+    padding: 0 !important;
+}
+
+/* Alturas de renglón para ocupar más espacio vertical */
+.lyrics-cols-bate .chord {
+    height: 16px !important; 
+    line-height: 16px !important;
+    margin-bottom: 0px !important;
+}
+
+.lyrics-cols-bate .lyric {
+    height: 17px !important; 
+    line-height: 17px !important;
+    display: block;
+}
+
+/* INDICADORES DE SECCIÓN (Verso, Coro, etc.) - MÁS GRANDES */
+.lyrics-cols-bate .struct-btn {
+    margin-top: 10px !important;    /* Más aire antes de la sección para separar visualmente */
+    margin-bottom: 4px !important;  /* Espacio antes de que empiece la letra */
+    padding: 4px 12px !important;   /* Botones más robustos */
+    font-size: 11px !important;     /* Letra de etiqueta más grande y legible */
+    font-weight: 800 !important;
+}
+
+/* Media Queries para columnas en Mac */
+@media (min-width: 1000px) { .lyrics-cols-bate { column-count: 3; } }
+@media (min-width: 1250px) { .lyrics-cols-bate { column-count: 4; column-gap: 20px; } }
+
+/* Guía visual para saber dónde anotar (Solo Escritorio) */
+@media (min-width: 901px) {
+    .line-wrapper {
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s;
+        border-radius: 4px;
+    }
+
+    /* Al pasar el mouse, mostramos una guía sutil */
+    .line-wrapper:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .line-wrapper:hover::before {
+        content: "ADD NOTE";
+        position: absolute;
+        left: -60px; /* Se muestra fuera del margen izquierdo */
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 9px;
+        font-weight: 800;
+        color: var(--accent-glow);
+        opacity: 0.6;
+    }
+}
+
+/* En modo batería/voz, hacemos la guía más compacta */
+.lyrics-cols-bate .line-wrapper:hover::before {
+    left: -15px;
+    content: "+";
+    font-size: 14px;
+}
+
+/* MODO MULTI-COLUMNA (Solo se activa en pantallas mayores a 900px) */
+@media (min-width: 901px) {
+    .lyrics-cols-bate {
+        display: block !important;
+        column-count: 2;
+        column-gap: 25px;
+        column-rule: 1px solid rgba(255, 255, 255, 0.05);
+        width: 100% !important;
+        height: 92vh !important;
+        max-height: 92vh !important;
+        line-height: 1.0 !important; 
+        font-size: 14px !important;
+    }
+
+    /* 3 Columnas */
+    @media (min-width: 1100px) { .lyrics-cols-bate { column-count: 3; } }
+    
+    /* 4 Columnas (Para tu MacBook Air M1) */
+    @media (min-width: 1250px) { .lyrics-cols-bate { column-count: 4; column-gap: 20px; } }
+}
+
+/* En celulares (menor a 900px), ignoramos las columnas */
+@media (max-width: 900px) {
+    .lyrics-cols-bate {
+        column-count: 1 !important;
+        height: auto !important;
+        max-height: none !important;
+        display: block !important;
+    }
+}
+
+/* Toolbar del Administrador */
+.admin-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 15px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    margin-bottom: 25px;
+}
+
+/* Grupo de Visibilidad (Botones de Ocultar) */
+.visibility-group .group-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #666;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    font-weight: 800;
+}
+
+.btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.action-btn {
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: none;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+/* Colores específicos para visibilidad */
+.g-t-start { background: #4f46e5; color: white; }
+.g-t-end { background: #312e81; color: white; opacity: 0.8; }
+.b-v-start { background: #f59e0b; color: black; }
+.b-v-end { background: #b45309; color: white; opacity: 0.8; }
+
+/* Botones de Estructura (Pills) */
+.structure-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.struct-pill {
+    padding: 6px 14px;
+    border-radius: 50px;
+    border: 1px solid transparent;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+/* Lógica de Desplegables */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #1a1a20;
+    min-width: 120px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+    z-index: 1000;
+    border-radius: 12px;
+    border: 1px solid #333;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.dropdown-content button {
+    color: white;
+    padding: 10px 16px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.dropdown-content button:hover { background: #2a2a35; }
+.dropdown:hover .dropdown-content { display: block; }
+
+/* Ajuste móvil */
+@media (max-width: 600px) {
+    .btn-row, .structure-group {
+        justify-content: center;
+    }
+    .dropdown-content {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 80px;
+    }
 }
