@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Alabanza ICEGH</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1b355b">
+    <link rel="apple-touch-icon" href="icono.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <style>
+        /* FONDO TECH */
+        body {
+            background: linear-gradient(135deg, #0f051a 0%, #000000 50%, #0f051a 100%) !important;
+            min-height: 100vh;
+        }
+        .search-container { position: relative; margin-bottom: 25px; }
+        .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #555; }
+        #searchInput {
+            width: 100%; padding: 16px 20px 16px 50px;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+            border-radius: 18px; color: white; font-family: 'Outfit', sans-serif; font-size: 16px;
+        }
+
+        /* LOGIN CARD & UI BASE */
+        .login-card { 
+            background: rgba(13, 13, 18, 0.9); border: 1px solid rgba(99, 102, 241, 0.2); 
+            padding: 40px 30px; border-radius: 30px; text-align: center; 
+            width: 90%; max-width: 380px; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+        }
+        .pass-wrapper { position: relative; width: 100%; margin-top: 10px; }
+        .toggle-pass {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            color: #444; cursor: pointer; transition: 0.2s;
+        }
+        .toggle-pass:hover { color: #6366f1; }
+        .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .role-option { padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 2px solid transparent; cursor: pointer; color: #888; transition: 0.3s; }
+        .role-option.selected { background: rgba(99, 102, 241, 0.1); border-color: var(--primary-glow); color: white; }
+        .role-option:hover { background: rgba(255,255,255,0.08); }
+
+        /* NOTAS */
+        .line-wrapper { display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 4px; width: 100%; }
+        .song-line { margin-bottom: 2px !important; }
+        .note-card {
+            background: #f59e0b; color: #000000; padding: 6px 12px; border-radius: 6px;
+            font-weight: 800; font-size: 14px; margin-bottom: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: inline-block; cursor: pointer; border-left: 4px solid #fff; animation: popIn 0.2s ease-out;
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* NAVEGACIÓN */
+        .nav-btn-group { display: flex; gap: 8px; margin-left: 10px; }
+        .nav-btn {
+            background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border);
+            width: 40px; height: 40px; border-radius: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .nav-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+        .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        @media (max-width: 380px) { .meta-group { display: none !important; } }
+
+        /* =========================================
+           AUDIO BAR SÓLIDA V3.0 (CSS INTEGRADO)
+           ========================================= */
+        .audio-bar-solid {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            /* DEGRADADO MORADO A NEGRO */
+            background: linear-gradient(to top, #000000 10%, #2c0b38 100%);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            z-index: 500;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.7);
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+        }
+        .audio-bar-solid.visible { transform: translateY(0); }
+
+        .bar-section { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .bar-section.right { justify-content: flex-end; }
+
+        /* Botón Play Redondo */
+        .bar-btn-play {
+            width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05); color: white; font-size: 18px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; flex-shrink: 0;
+        }
+        .bar-btn-play.active { background: #ef4444; border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+
+        /* Inputs Compactos */
+        .bar-inputs {
+            display: flex; align-items: center; background: rgba(0,0,0,0.3);
+            padding: 5px 10px; border-radius: 8px; gap: 5px; position: relative;
+        }
+        .input-compact, .select-compact {
+            background: transparent; border: none; color: white;
+            font-weight: 700; font-size: 16px; text-align: center; padding: 0;
+            font-family: inherit; width: 40px;
+        }
+        .select-compact { width: auto; appearance: none; cursor: pointer; }
+        .select-compact option { background: #000; color: white; }
+        .separator { color: #666; font-size: 18px; font-weight: 300; }
+
+        .tempo-led-bar {
+            position: absolute; top: -4px; right: -4px;
+            width: 8px; height: 8px; background: #333; border-radius: 50%; transition: 0.1s;
+        }
+        .tempo-led-bar.flash { background: #0f0; box-shadow: 0 0 8px #0f0; }
+
+        /* Sistema de Volumen Vertical */
+        .vol-toggle-container { position: relative; }
+        .bar-btn-icon {
+            width: 40px; height: 40px; border-radius: 8px; border: none;
+            background: transparent; color: #aaa; font-size: 20px; cursor: pointer;
+            transition: color 0.2s;
+        }
+        .bar-btn-icon:hover { color: white; }
+        .bar-btn-icon.active { color: #a855f7; }
+
+        .vol-popup {
+            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+            width: 50px; height: 140px; background: rgba(20, 20, 25, 0.95);
+            border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px;
+            padding: 15px 0; display: flex; justify-content: center;
+            opacity: 0; pointer-events: none; visibility: hidden; transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .vol-popup.right-aligned { left: auto; right: 0; transform: none; }
+        .vol-popup.show { opacity: 1; pointer-events: auto; visibility: visible; bottom: 75px; }
+
+        .vertical-slider {
+            transform: rotate(-90deg); width: 110px; height: 20px; margin-top: 45px;
+            -webkit-appearance: none; background: transparent; cursor: pointer;
+        }
+        .vertical-slider::-webkit-slider-runnable-track { background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; }
+        .vertical-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 18px; height: 18px; background: #a855f7;
+            border-radius: 50%; margin-top: -6px; box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+        }
+
+        /* Pad Controls */
+        .key-select-wrapper { position: relative; margin: 0 5px; }
+        .pad-key-select {
+            appearance: none; background: transparent; border: none;
+            font-weight: 800; color: #a855f7; font-size: 20px; padding-right: 15px;
+            cursor: pointer; text-align: center; width: auto; font-family: 'Outfit', sans-serif;
+        }
+        .pad-key-select option { background: #131316; color: white; }
+        .tiny-arrow { position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 10px; color: #666; pointer-events: none; }
+
+        .bar-btn-pad {
+            padding: 10px 15px; border-radius: 8px; border: 2px solid #a855f7;
+            background: rgba(44, 11, 56, 0.5); color: white; font-weight: 700;
+            cursor: pointer; transition: 0.3s; white-space: nowrap; font-size: 13px;
+        }
+        .bar-btn-pad.active { background: #a855f7; color: black; box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
+
+        /* Ajuste para que la barra no tape la letra */
+        .audio-dock-open .lyrics-container { padding-bottom: 90px !important; }
+        /* Ajuste para los botones flotantes */
+        .audio-dock-open .fab-container { bottom: 85px !important; transition: bottom 0.3s ease; }
+    </style>
+</head>
+<body>
+    <div id="splashScreen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 10000; display: none; flex-direction: column; justify-content: center; align-items: center; overflow: hidden;">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <img src="logo.png" id="splashLogo" alt="Logo" style="height: 100px; width: auto; opacity: 0; transform: scale(0.8); margin-bottom: 30px;">
+            <div style="height: 50px; display: flex; align-items: center; justify-content: center;">
+                <div id="splashLoader" style="width: 40px; height: 40px; border: 3px solid rgba(99, 102, 241, 0.2); border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite; opacity: 0;"></div>
+            </div>
+        </div>
+    </div>
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .animate-splash { animation: fadeInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    </style>
+
+    <div id="modalCambioRol" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 5000; display: none; justify-content: center; align-items: center;">
+        <div class="login-card" style="position: relative; border: 1px solid var(--primary-glow);">
+            <button onclick="document.getElementById('modalCambioRol').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: #666; cursor: pointer; font-size: 18px;"><i class="fas fa-times"></i></button>
+            <h2 style="margin:0 0 10px 0; color:white; font-size: 20px;">Cambiar Instrumento</h2>
+            <div class="role-grid">
+                <div class="role-option" onclick="guardarNuevoRol('bateria')"><i class="fas fa-drum fa-2x"></i><br>Batería</div>
+                <div class="role-option" onclick="guardarNuevoRol('voz')"><i class="fas fa-microphone fa-2x"></i><br>Voz</div>
+                <div class="role-option" onclick="guardarNuevoRol('guitarra')"><i class="fas fa-guitar fa-2x"></i><br>Guitarra</div>
+                <div class="role-option" onclick="guardarNuevoRol('teclado')"><i class="fas fa-keyboard fa-2x"></i><br>Teclado</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f051a 0%, #000000 50%, #0f051a 100%); z-index: 9999; display: flex; justify-content: center; align-items: center; opacity: 1 !important;">
+        <div class="login-card" style="opacity: 1 !important; transform: none !important;">
+            <img src="logo.png" alt="Logo" style="height: 70px; margin-bottom: 15px;">
+            <h2 id="authTitle" style="margin:0; font-size:28px; color:white; font-weight: 700;">Playlist Music</h2>
+            <input type="email" id="txtEmail" placeholder="Correo electrónico" style="margin-top:25px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
+            <div class="pass-wrapper">
+                <input type="password" id="txtPassword" placeholder="Contraseña" style="background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
+                <i class="fas fa-eye toggle-pass" onclick="togglePasswordVisibility()"></i>
+            </div>
+            <div id="roleSelectorContainer" style="display: none;">
+                <p style="color:#444; font-size:12px; font-weight:700; text-transform:uppercase; margin-top:25px;">Selecciona tu Rol</p>
+                <div class="role-grid">
+                    <div class="role-option" onclick="selectRolTemp('bateria', this)"><i class="fas fa-drum fa-2x"></i><br>Batería</div>
+                    <div class="role-option" onclick="selectRolTemp('voz', this)"><i class="fas fa-microphone fa-2x"></i><br>Voz</div>
+                    <div class="role-option" onclick="selectRolTemp('guitarra', this)"><i class="fas fa-guitar fa-2x"></i><br>Guitarra</div>
+                    <div class="role-option" onclick="selectRolTemp('teclado', this)"><i class="fas fa-keyboard fa-2x"></i><br>Teclado</div>
+                </div>
+            </div>
+            <div id="loginError" style="color: #ef4444; margin-top: 15px; font-size: 13px; display: none;"></div>
+            <button id="btnMainAuth" onclick="procesarAutenticacion()" style="width:100%; padding:18px; margin-top:25px; border-radius:16px; border:none; background: linear-gradient(135deg, #6366f1, #4f46e5); color:white; font-weight:700; cursor:pointer; transition: 0.3s; letter-spacing: 1px;">ENTRAR</button>
+            <button id="btnToggleAuth" onclick="alternarModo()" style="background:transparent; border:none; color:#666; margin-top:20px; cursor:pointer; font-size:13px; text-decoration: underline;">¿No tienes cuenta? Regístrate</button>
+        </div>
+    </div>
+
+    <div id="customModal" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <div id="modalIcon" class="modal-icon">👋</div>
+            <div id="modalTitle" class="modal-title">Título</div>
+            <div id="modalText" class="modal-text">Mensaje aquí</div>
+            <input type="text" id="modalInput" class="modal-input-field" style="display:none;" autocomplete="off">
+            <div id="modalOptions" style="display:none; text-align:left; margin-bottom:20px; padding:0 10px;">
+                <label style="color:#ccc; font-size:14px; display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox" id="chkNoteBottom" style="width:18px; height:18px; accent-color:#6366f1;">
+                    Mostrar nota debajo del texto
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button id="btnModalCancel" class="btn-modal cancel">Cancelar</button>
+                <button id="btnModalConfirm" class="btn-modal confirm">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="viewList">
+            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; position: relative; min-height: 50px;">
+                <div class="logo-container" style="display: flex; align-items: center; z-index: 10;">
+                    <img src="logo.png" alt="Logo" style="height: 45px; width: auto; object-fit: contain;">
+                </div>
+                <div style="position: absolute; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 20px; color: white; letter-spacing: -0.5px; white-space: nowrap;"></div>
+                <div style="display: flex; align-items: center; gap: 15px; z-index: 10;">
+                    <button id="btnAdmin" onclick="location.href='admin.html'" class="btn-studio-glow" style="display: none;">
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                        <span>Studio</span>
+                    </button>
+                    <div class="user-badge" onclick="mostrarSelectorRol()" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px 14px; border-radius: 50px; font-size: 13px; border: 1px solid var(--glass-border); cursor: pointer; transition: 0.2s;">
+                        <span id="displayUserBadge"><i class="fas fa-user"></i> ...</span>
+                    </div>
+                    <div class="icon-btn danger" onclick="cerrarSesion()" style="color:#ef4444;"><i class="fas fa-power-off"></i></div>
+                </div>
+            </header>
+
+            <div class="tabs-wrapper" style="background: #131316; border: 1px solid var(--glass-border); padding: 5px; border-radius: 16px; display: flex; margin-bottom: 25px;">
+                <button id="tabAll" class="tab-btn active" onclick="cambiarTab('all')">Repertorio</button>
+                <button id="tabPlaylist" class="tab-btn" onclick="cambiarTab('playlist')">Domingo</button>
+            </div>
+            
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Buscar canción..." onkeyup="renderizarLista()">
+            </div>
+
+            <ul id="songList" class="song-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
+                <div style="text-align:center; padding:60px; color:#444;"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
+            </ul>
+        </div>
+
+        <div id="viewSong" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 50; flex-direction: column; overflow: hidden;">
+            
+            <div class="sticky-player-header">    
+                <div class="header-row-top">
+                    <h2 id="viewTitle">Título de la Canción</h2>
+                    <button onclick="volverALista()" class="btn-close-viewer">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="header-row-bottom">
+                    <div class="info-group">
+                        <span id="viewArtist">Artista</span>
+                        <div class="meta-mini">
+                            <i class="fas fa-clock"></i> <span id="viewBPM">-</span>
+                            <span class="sep">•</span>
+                            <span id="viewCompas">-</span>
+                        </div>
+                    </div>
+
+                    <div class="controls-group">
+                        <div class="tone-badge-display">
+                            <span id="currentToneDisplay">C</span>
+                        </div>
+                        <div class="nav-mini-group">
+                            <button id="btnPrevSong" onclick="navegarCancion(-1)"><i class="fas fa-chevron-left"></i></button>
+                            <button id="btnNextSong" onclick="navegarCancion(1)"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <button id="btnDirectEdit" onclick="editarCancionActual()" class="btn-edit-mini" style="display:none;">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="songContent" class="lyrics-container"></div>
+
+            <div class="fab-container" style="position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 200;">
+                <button id="btnToggleChords" class="fab" onclick="alternarAcordes()" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #333; color: white; font-size: 18px; backdrop-filter: blur(10px);">
+                    <i class="fas fa-eye-slash"></i>
+                </button>
+                <button id="btnTransposerToggle" class="fab" onclick="toggleTransposer(event)" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #f59e0b; color: #f59e0b; font-size: 18px; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);">
+                    <i class="fas fa-music"></i>
+                </button>
+            </div>
+
+            <div id="transposerPanel" class="transposer-popup" style="display: none;">
+                <div class="transposer-header">Cambiar Tono</div>
+                <div class="transposer-controls">
+                    <button onclick="transponer(-1)" class="btn-tone"><i class="fas fa-minus"></i></button>
+                    <button onclick="resetTono()" class="btn-tone-reset">Original</button>
+                    <button onclick="transponer(1)" class="btn-tone"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+
+            <div id="audioDock" class="audio-bar-solid">
+                <div class="bar-section left">
+                    <button id="btnMetronomeDock" class="bar-btn-play" onclick="toggleMetronome()">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <div class="bar-inputs">
+                        <input type="number" id="bpmInput" class="input-compact" value="120" onchange="updateBpm(this.value)">
+                        <span class="separator">/</span>
+                        <select id="timeSigInput" class="select-compact" onchange="updateTimeSig(this.value)">
+                            <option value="4">4</option>
+                            <option value="3">3</option>
+                            <option value="2">2</option>
+                            <option value="6">6</option>
+                        </select>
+                        <div id="tempoLed" class="tempo-led-bar"></div>
+                    </div>
+                    <div class="vol-toggle-container">
+                        <button class="bar-btn-icon" onclick="toggleVolPopup('metroVolPopup')">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                        <div id="metroVolPopup" class="vol-popup">
+                            <input type="range" id="metroVolumeSlider" class="vertical-slider" min="0" max="1" step="0.1" value="1" orient="vertical">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bar-section right">
+                    <div class="vol-toggle-container">
+                        <button class="bar-btn-icon" onclick="toggleVolPopup('padVolPopup')">
+                            <i class="fas fa-music"></i>
+                        </button>
+                        <div id="padVolPopup" class="vol-popup right-aligned">
+                            <input type="range" id="padVolumeSlider" class="vertical-slider" min="0" max="1" step="0.01" value="0.5" orient="vertical">
+                        </div>
+                    </div>
+
+                    <div id="padCapsule" class="pad-split-capsule">
+                        
+                        <button id="padTriggerBtn" class="pad-text-btn" onclick="togglePad()">C</button>
+                        
+                        <div class="capsule-sep"></div>
+
+                        <div class="pad-select-zone">
+                            <select id="padKeySelect" onchange="manualPadChange(this.value)">
+                                <option value="A">A</option>
+                                <option value="Bb">A#</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="Db">C#</option>
+                                <option value="D">D</option>
+                                <option value="Eb">D#</option>
+                                <option value="E">E</option>
+                                <option value="F">F</option>
+                                <option value="Gb">F#</option>
+                                <option value="G">G</option>
+                                <option value="Ab">G#</option>
+                            </select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="config.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('txtPassword');
+            if (passwordInput) {
+                passwordInput.addEventListener('keyup', (event) => {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        procesarAutenticacion();
+                    }
+                });
+            }
+        });
+        const ADMIN_EMAIL = "admin@genesaret.com"; 
+
+        // Variables Globales
+        let usuarioActual = null;
+        let rolActual = localStorage.getItem('alabanza_rol') || 'voz';
+        let rolTemp = null;
+        let todasLasCanciones = [];
+        let idsEnPlaylist = [];
+        let tabActual = 'all';
+        let cancionActual = null;
+        let semitonos = 0;
+        let notasDeLaCancion = {};
+        const NOTAS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+        let listaNavegacionActual = []; 
+        let indiceNavegacion = -1;
+
+        // --- SISTEMA NO-SLEEP (Pantalla Encendida) ---
+        let wakeLock = null;
+
+        async function activarPantalla() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('💡 Pantalla mantenida encendida');
+                } catch (err) {
+                    console.log('Error WakeLock:', err);
+                }
+            }
+        }
+
+        function desactivarPantalla() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { wakeLock = null; });
+                console.log('🌑 Pantalla liberada');
+            }
+        }
+
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('txtPassword');
+            const icon = document.querySelector('.toggle-pass');
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passInput.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+       const Modal = {
+            element: document.getElementById('customModal'),
+            title: document.getElementById('modalTitle'),
+            text: document.getElementById('modalText'),
+            input: document.getElementById('modalInput'),
+            icon: document.getElementById('modalIcon'),
+            btnConfirm: document.getElementById('btnModalConfirm'),
+            btnCancel: document.getElementById('btnModalCancel'),
+            btnDelete: null, 
+            chkBottom: document.getElementById('chkNoteBottom'),
+            optionsDiv: document.getElementById('modalOptions'),
+
+            show: function(options) {
+                if (!this.btnDelete) {
+                    this.btnDelete = document.createElement('button');
+                    this.btnDelete.className = 'btn-modal danger';
+                    this.btnDelete.style.background = '#ef4444';
+                    this.btnDelete.style.color = 'white';
+                    this.btnDelete.innerText = 'Eliminar';
+                    this.btnConfirm.parentNode.insertBefore(this.btnDelete, this.btnConfirm);
+                }
+
+                return new Promise((resolve) => {
+                    this.title.innerText = options.title || 'Atención';
+                    this.text.innerText = options.text || '';
+                    this.icon.innerHTML = options.icon || '✨';
+                    
+                    if (options.type === 'prompt') {
+                        this.input.style.display = 'block';
+                        this.optionsDiv.style.display = 'block'; 
+                        
+                        let rawValue = options.value || '';
+                        if (rawValue.startsWith('_')) {
+                            this.input.value = rawValue.substring(1); 
+                            this.chkBottom.checked = true;
+                        } else {
+                            this.input.value = rawValue;
+                            this.chkBottom.checked = false;
+                        }
+                        setTimeout(() => this.input.focus(), 100);
+                    } else { 
+                        this.input.style.display = 'none'; 
+                        this.optionsDiv.style.display = 'none';
+                    }
+
+                    this.btnCancel.style.display = options.type === 'alert' ? 'none' : 'block';
+                    this.btnDelete.style.display = options.showDelete ? 'block' : 'none'; 
+                    
+                    this.btnConfirm.innerText = options.confirmText || 'Aceptar';
+                    this.element.classList.add('open');
+
+                    const close = (val) => { this.element.classList.remove('open'); resolve(val); };
+
+                    this.btnConfirm.onclick = () => { 
+                        if (options.type === 'prompt') {
+                            const prefix = this.chkBottom.checked ? '_' : '';
+                            close(prefix + this.input.value); 
+                        } else { 
+                            close(true); 
+                        }
+                    };
+                    this.btnCancel.onclick = () => close(false);
+                    this.btnDelete.onclick = () => close("__DELETE__"); 
+                    
+                    this.input.onkeyup = (e) => { if(e.key === 'Enter') this.btnConfirm.click(); };
+                });
+            },
+            alert: function(title, text, icon='⚠️') { return this.show({ type: 'alert', title, text, icon }); },
+            confirm: function(title, text, icon='🤔') { return this.show({ type: 'confirm', title, text, icon }); },
+            prompt: function(title, text, value='', icon='✏️') { return this.show({ type: 'prompt', title, text, value, icon }); }
+        };
+
+        function selectRolTemp(rol, div) {
+            rolTemp = rol;
+            document.querySelectorAll('.role-option').forEach(b => b.classList.remove('selected'));
+            div.classList.add('selected');
+        }
+
+        let modoRegistro = false; 
+
+        function alternarModo() {
+            modoRegistro = !modoRegistro;
+            const titulo = document.getElementById('authTitle');
+            const btnMain = document.getElementById('btnMainAuth');
+            const btnToggle = document.getElementById('btnToggleAuth');
+            const errorDiv = document.getElementById('loginError');
+            const roleContainer = document.getElementById('roleSelectorContainer');
+
+            errorDiv.style.display = 'none';
+
+            if (modoRegistro) {
+                titulo.innerText = "Crear Cuenta";
+                btnMain.innerText = "REGISTRARSE";
+                btnMain.style.background = "linear-gradient(135deg, #10b981, #059669)";
+                btnToggle.innerText = "¿Ya tienes cuenta? Inicia sesión";
+                roleContainer.style.display = 'block'; 
+            } else {
+                titulo.innerText = "Playlist Music";
+                btnMain.innerText = "ENTRAR";
+                btnMain.style.background = "linear-gradient(135deg, #6366f1, #4f46e5)";
+                btnToggle.innerText = "¿No tienes cuenta? Regístrate";
+                roleContainer.style.display = 'none';
+            }
+        }
+
+        function procesarAutenticacion() {
+            if (modoRegistro) registroMejorado(); else loginFirebase();
+        }
+
+        function loginFirebase() {
+            const email = document.getElementById('txtEmail').value;
+            const pass = document.getElementById('txtPassword').value;
+            const errDiv = document.getElementById('loginError');
+            if(!email || !pass) { errDiv.style.display='block'; errDiv.innerText="Faltan datos"; return; }
+            firebase.auth().signInWithEmailAndPassword(email, pass).catch((e) => { errDiv.style.display = 'block'; errDiv.innerText = "Error: " + e.message; });
+        }
+
+        function registroMejorado() {
+            const email = document.getElementById('txtEmail').value;
+            const pass = document.getElementById('txtPassword').value;
+            const errDiv = document.getElementById('loginError');
+            if(!email || !pass) { errDiv.style.display='block'; errDiv.innerText="Ingresa un correo y contraseña."; return; }
+            if(!rolTemp) { errDiv.style.display='block'; errDiv.innerText="Selecciona qué instrumento tocas."; return; }
+
+            firebase.auth().createUserWithEmailAndPassword(email, pass)
+                .then((cred) => {
+                    return db.collection('usuarios').doc(cred.user.uid).set({ rol: rolTemp, email: email });
+                })
+                .then(() => { localStorage.setItem('alabanza_rol', rolTemp); })
+                .catch((e) => { errDiv.style.display = 'block'; errDiv.innerText = "Error al registrar: " + e.message; });
+        }
+
+        function cerrarSesion() {
+            Modal.confirm("¿Salir?", "¿Cerrar sesión actual?", "👋").then(res => { 
+                if(res) {
+                    const splash = document.getElementById('splashScreen');
+                    if(splash) { splash.style.display = 'flex'; splash.style.opacity = '1'; }
+                    firebase.auth().signOut().then(() => location.reload()); 
+                }
+            });
+        }
+
+        function mostrarSelectorRol() {
+            document.getElementById('modalCambioRol').style.display = 'flex';
+        }
+
+        function guardarNuevoRol(nuevoRol) {
+            if(!usuarioActual) return;
+            rolActual = nuevoRol;
+            localStorage.setItem('alabanza_rol', nuevoRol);
+            actualizarBadgeUsuario(usuarioActual, nuevoRol);
+            aplicarRol();
+            document.getElementById('modalCambioRol').style.display = 'none';
+
+            db.collection('usuarios').doc(usuarioActual.uid).set({
+                rol: nuevoRol,
+                email: usuarioActual.email
+            }, { merge: true }).then(() => {
+                console.log("Rol guardado exitosamente");
+            });
+        }
+
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                usuarioActual = user;
+                document.getElementById('loginModal').style.display = 'none';
+                
+                const splash = document.getElementById('splashScreen');
+                const logo = document.getElementById('splashLogo');
+                const loader = document.getElementById('splashLoader');
+                
+                splash.style.display = 'flex';
+                setTimeout(() => {
+                    logo.classList.add('animate-splash');
+                    loader.style.opacity = "1";
+                }, 100);
+
+                db.collection('usuarios').doc(user.uid).get().then(doc => {
+                    if (doc.exists && doc.data().rol) {
+                        rolActual = doc.data().rol;
+                        localStorage.setItem('alabanza_rol', rolActual);
+                    }
+                    actualizarBadgeUsuario(user, rolActual);
+                    aplicarRol();
+                    cargarDatosApp();
+
+                    setTimeout(() => {
+                        splash.style.opacity = "0";
+                        splash.style.transition = "opacity 0.5s ease";
+                        setTimeout(() => { splash.style.display = 'none'; }, 500);
+                    }, 2000); 
+                });
+
+                if (user.email === ADMIN_EMAIL) {
+                    const btnAdmin = document.getElementById('btnAdmin');
+                    if(btnAdmin) btnAdmin.style.display = 'flex';
+                }
+            } else {
+                document.getElementById('loginModal').style.display = 'flex';
+                document.getElementById('splashScreen').style.display = 'none';
+            }
+        });
+
+        function actualizarBadgeUsuario(user, rol) {
+            const rolesIcons = { 'bateria': '<i class="fas fa-drum"></i>', 'voz': '<i class="fas fa-microphone"></i>', 'guitarra': '<i class="fas fa-guitar"></i>', 'teclado': '<i class="fas fa-keyboard"></i>' };
+            const icon = rolesIcons[rol] || '<i class="fas fa-user"></i>';
+            const nombreDisplay = user.email.split('@')[0].toUpperCase();
+            document.getElementById('displayUserBadge').innerHTML = `${icon} <span style="margin-left: 8px;">${nombreDisplay}</span>`;
+        }
+
+        function cargarDatosApp() {
+            db.collection('canciones').orderBy('titulo').onSnapshot(snap => {
+                todasLasCanciones = [];
+                snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
+                renderizarLista();
+            });
+            db.collection('configuracion').doc('playlist_semanal').onSnapshot(doc => {
+                idsEnPlaylist = doc.exists ? (doc.data().canciones || []) : [];
+                renderizarLista();
+            });
+        }
+
+        function cambiarTab(tab) {
+            tabActual = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if(tab === 'all') document.getElementById('tabAll').classList.add('active');
+            else document.getElementById('tabPlaylist').classList.add('active');
+            renderizarLista();
+        }
+
+        function renderizarLista() {
+            const lista = document.getElementById('songList');
+            const busqueda = document.getElementById('searchInput').value.toLowerCase();
+            let html = '';
+            
+            let cancionesAMostrar = todasLasCanciones;
+            if (tabActual === 'playlist') {
+                cancionesAMostrar = idsEnPlaylist.map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c);
+            }
+            
+            cancionesAMostrar = cancionesAMostrar.filter(c => c.titulo.toLowerCase().includes(busqueda));
+
+            if (cancionesAMostrar.length === 0) { 
+                lista.innerHTML = '<div style="text-align:center; padding:40px; color:#555;">No hay canciones</div>'; 
+                return; 
+            }
+
+            cancionesAMostrar.forEach(c => {
+                const enPlaylist = idsEnPlaylist.includes(c.id);
+                let btnAccion = tabActual === 'all' ? 
+                    (enPlaylist ? `<div class="action-btn btn-add added" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-check"></i></div>` : `<div class="action-btn btn-add" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-plus"></i></div>`) :
+                    `<div class="action-btn btn-remove" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-minus"></i></div>`;
+
+                const dragHandle = tabActual === 'playlist' 
+                    ? `<div class="drag-handle"><i class="fas fa-grip-lines"></i></div>` 
+                    : ''; 
+
+                html += `
+                <li class="song-item" data-id="${c.id}" onclick="abrirCancion('${c.id}')">
+                    ${dragHandle} 
+                    <div class="song-info">
+                        <h3>${c.titulo}</h3>
+                        <div><span class="song-meta-badge">${c.tonoOriginal||'?'}</span><span class="song-artist">${c.artista||''}</span></div>
+                    </div>
+                    ${btnAccion}
+                </li>`;
+            });
+            lista.innerHTML = html;
+            if (tabActual === 'playlist') inicializarArrastre();
+        }
+
+        function togglePlaylist(id, event) {
+            event.stopPropagation();
+            let nuevaLista = [...idsEnPlaylist];
+            if (nuevaLista.includes(id)) nuevaLista = nuevaLista.filter(x => x !== id);
+            else nuevaLista.push(id);
+            db.collection('configuracion').doc('playlist_semanal').set({ canciones: nuevaLista }, { merge: true });
+        }
+
+        function abrirCancion(id) {
+            const busqueda = document.getElementById('searchInput').value.toLowerCase();
+            let contextoCanciones = [];
+
+            if (tabActual === 'playlist') {
+                contextoCanciones = idsEnPlaylist
+                    .map(playlistId => todasLasCanciones.find(c => c.id === playlistId))
+                    .filter(c => c !== undefined); 
+            } else {
+                contextoCanciones = todasLasCanciones;
+            }
+
+            if(busqueda) {
+                contextoCanciones = contextoCanciones.filter(c => c.titulo.toLowerCase().includes(busqueda));
+            }
+
+            listaNavegacionActual = contextoCanciones.map(c => c.id);
+            indiceNavegacion = listaNavegacionActual.indexOf(id);
+
+            actualizarVistaCancion(id);
+        }
+
+        function navegarCancion(direccion) {
+            const nuevoIndice = indiceNavegacion + direccion;
+            if (nuevoIndice >= 0 && nuevoIndice < listaNavegacionActual.length) {
+                indiceNavegacion = nuevoIndice;
+                const nuevoId = listaNavegacionActual[nuevoIndice];
+                document.getElementById('songContent').style.opacity = 0.5;
+                setTimeout(() => {
+                    actualizarVistaCancion(nuevoId);
+                    document.getElementById('songContent').style.opacity = 1;
+                }, 150);
+            }
+            activarPantalla();
+        }
+
+        function cargarNotasYRenderizar() {
+            document.getElementById('songContent').innerHTML = '<div style="text-align:center; padding:100px; color:#555;">Cargando...</div>';
+            if(!usuarioActual) return;
+            const docId = usuarioActual.uid + "_" + cancionActual.id;
+            db.collection('notas_personales').doc(docId).get().then(doc => {
+                notasDeLaCancion = doc.exists ? (doc.data().notas || {}) : {};
+                renderizarLetra();
+            }).catch(() => { notasDeLaCancion = {}; renderizarLetra(); });
+        }
+
+        function guardarNotaEnNube(index, texto) {
+            if (!usuarioActual || !cancionActual) return;
+            const docId = usuarioActual.uid + "_" + cancionActual.id;
+            const ref = db.collection('notas_personales').doc(docId);
+            if (texto === null || texto === "") {
+                delete notasDeLaCancion[index];
+                ref.set({
+                    notas: { [index]: firebase.firestore.FieldValue.delete() }
+                }, { merge: true }).then(() => {
+                    renderizarLetra();
+                });
+            } else {
+                notasDeLaCancion[index] = texto;
+                ref.set({
+                    usuarioEmail: usuarioActual.email,
+                    cancionId: cancionActual.id, 
+                    notas: notasDeLaCancion
+                }, { merge: true }).then(() => {
+                    renderizarLetra();
+                });
+            }
+        }
+
+        function agregarNota(index) {
+            const valorActual = notasDeLaCancion[index] || '';
+            const esNueva = !valorActual;
+            Modal.show({
+                type: 'prompt',
+                title: esNueva ? "Nueva Nota" : "Editar Nota",
+                text: "Escribe un recordatorio para esta línea:",
+                value: valorActual,
+                icon: "📝",
+                showDelete: !esNueva 
+            }).then(resultado => {
+                if (resultado === "__DELETE__") {
+                    guardarNotaEnNube(index, null); 
+                } else if (resultado !== false) {
+                    guardarNotaEnNube(index, resultado.trim());
+                }
+            });
+        }
+        function editarNota(index, e) { e.stopPropagation(); agregarNota(index); }
+        
+        function aplicarRol() {
+            const btnIcon = document.querySelector('#btnToggleChords i');
+            const fabContainer = document.querySelector('.fab-container');
+            if (rolActual === 'bateria' || rolActual === 'voz') {
+                document.body.classList.add('hide-chords');
+                if(btnIcon) btnIcon.className = "fas fa-eye";
+                if(fabContainer) fabContainer.style.display = 'none';
+            } else {
+                document.body.classList.remove('hide-chords');
+                if(btnIcon) btnIcon.className = "fas fa-eye-slash";
+                if(fabContainer) fabContainer.style.display = 'flex';
+            }
+        }
+
+        function alternarAcordes() {
+            document.body.classList.toggle('hide-chords');
+            const btnIcon = document.querySelector('#btnToggleChords i');
+            btnIcon.className = document.body.classList.contains('hide-chords') ? "fas fa-eye" : "fas fa-eye-slash";
+        }
+
+        function detectarSeccionAutomatica(linea) {
+            const texto = linea.trim();
+            const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?$/i;
+            const match = texto.match(regexInicio);
+            if (match) {
+                let clase = 'tag-verso'; 
+                const t = match[0].toLowerCase();
+                if (t.includes('intro')) clase = 'tag-intro';
+                else if (t.includes('coro') && !t.includes('pre')) clase = 'tag-coro';
+                else if (t.includes('pre')) clase = 'tag-precoro';
+                else if (t.includes('puente')) clase = 'tag-puente';
+                else if (t.includes('final')) clase = 'tag-final';
+                return `<div class="struct-btn ${clase}">${match[0].replace(/[:\.]/g, '').toUpperCase()}</div><div class="song-line">${parsearAcordes(texto.substring(match[0].length))}</div>`;
+            }
+            return null;
+        }
+
+        function parsearAcordes(txt) {
+            if(!txt.trim()) return '';
+            const regex = /(\[[^\]]+\])|([^\[]+)/g;
+            let m, html = '';
+            while ((m = regex.exec(txt)) !== null) {
+                if(m[1]) html += `<div class="chord-group"><div class="chord">${m[1].replace(/\[|\]/g,'')}</div><div class="lyric">&nbsp;</div></div>`;
+                else html += `<div class="chord-group"><div class="chord">&nbsp;</div><div class="lyric">${m[2]}</div></div>`;
+            }
+            return html;
+        }
+
+        function renderizarLetra() {
+            if (!cancionActual) return;
+            let texto = cancionActual.letraChordPro;
+            if (semitonos !== 0) { 
+                texto = texto.replace(/\[(.*?)\]/g, (m, ac) => { 
+                    const p = ac.split('/'); 
+                    let r = cn(p[0], semitonos); 
+                    if(p[1]) r += '/' + cn(p[1], semitonos); 
+                    return `[${r}]`; 
+                }); 
+            }
+            const lineas = texto.split('\n'); 
+            let htmlFinal = '';
+            let bloqueActual = ''; 
+            let bloqueOcultoParaBateriaVoz = false;
+            let bloqueOcultoParaGuitarraTeclado = false;
+
+            lineas.forEach((linea, idx) => {
+                let contenidoParaRenderizar = linea.trim(); 
+                if (contenidoParaRenderizar.includes('[INICIO-SOLO-GT]')) { bloqueOcultoParaBateriaVoz = true; return; }
+                if (contenidoParaRenderizar.includes('[FIN-SOLO-GT]')) { bloqueOcultoParaBateriaVoz = false; return; }
+                if (contenidoParaRenderizar.includes('[INICIO-REPETICION]')) { bloqueOcultoParaGuitarraTeclado = true; return; }
+                if (contenidoParaRenderizar.includes('[FIN-REPETICION]')) { bloqueOcultoParaGuitarraTeclado = false; return; }
+
+                if (bloqueOcultoParaBateriaVoz && (rolActual === 'bateria' || rolActual === 'voz')) return;
+                if (bloqueOcultoParaGuitarraTeclado && (rolActual === 'guitarra' || rolActual === 'teclado')) return;
+
+                if (contenidoParaRenderizar.includes('[REPETICION]')) {
+                    if (rolActual !== 'bateria' && rolActual !== 'voz') return;
+                    contenidoParaRenderizar = contenidoParaRenderizar.replace('[REPETICION]', '').trim();
+                }
+                if (contenidoParaRenderizar.includes('[SOLO-G-T]')) {
+                    if (rolActual === 'bateria' || rolActual === 'voz') return;
+                    contenidoParaRenderizar = contenidoParaRenderizar.replace('[SOLO-G-T]', '').trim();
+                }
+
+                const esTituloSeccion = detectarSeccionAutomatica(contenidoParaRenderizar);
+                if (esTituloSeccion && bloqueActual !== '') {
+                    htmlFinal += `<div class="section-block">${bloqueActual}</div>`;
+                    bloqueActual = '';
+                }
+
+                const rawNota = notasDeLaCancion[idx] || '';
+                let isBottom = false;
+                let textoNotaLimpio = rawNota;
+                if (rawNota.startsWith('_')) {
+                    isBottom = true;
+                    textoNotaLimpio = rawNota.substring(1);
+                }
+
+                let htmlNota = textoNotaLimpio ? `<div class="note-card" onclick="editarNota(${idx}, event)">${textoNotaLimpio}</div>` : '';
+                let htmlLinea = '';
+                
+                if (esTituloSeccion) { 
+                    htmlLinea = `<div style="break-after: avoid; margin-bottom: 2px;">${esTituloSeccion}</div>`; 
+                } else if (!contenidoParaRenderizar) { 
+                    const alturaVacia = (rolActual === 'bateria' || rolActual === 'voz') ? '0px' : '8px';
+                    htmlLinea = `<div class="song-line empty-line" style="height:${alturaVacia};"></div>`;
+                } else {
+                    const rx = /(\[[^\]]+\])|([^\[\n]+)/g; 
+                    let cl = ''; let buf = null; let m;
+                    while ((m = rx.exec(contenidoParaRenderizar)) !== null) {
+                        if (m[1]) { 
+                            if (buf) cl += bl(buf, '\u00A0'); 
+                            buf = m[1].replace(/[\[\]]/g, ''); 
+                        } else if (m[2]) {
+                            const rawText = m[2];
+                            if (buf && /^\s+$/.test(rawText)) {
+                                cl += bl(buf, '\u00A0');
+                                const espaciosReales = rawText.replace(/ /g, '\u00A0');
+                                cl += bl('', espaciosReales);
+                                buf = null;
+                            } else {
+                                const textoProcesado = rawText.replace(/ /g, '\u00A0');
+                                cl += bl(buf || '', textoProcesado); 
+                                buf = null; 
+                            }
+                        }
+                    }
+                    if (buf) cl += bl(buf, '\u00A0');
+                    htmlLinea = `<div class="song-line">${cl}</div>`;
+                }
+
+                let contenidoWrapper = isBottom ? htmlLinea + htmlNota : htmlNota + htmlLinea;
+                bloqueActual += `<div class="line-wrapper" data-index="${idx}" oncontextmenu="return false;">${contenidoWrapper}</div>`;
+            });
+
+            if (bloqueActual !== '') { htmlFinal += `<div class="section-block">${bloqueActual}</div>`; }
+            const container = document.getElementById('songContent');
+            container.innerHTML = htmlFinal;
+            container.scrollTop = 0;
+
+            if (rolActual === 'bateria' || rolActual === 'voz') {
+                container.classList.add('lyrics-cols-bate');
+                container.style.width = "100%"; 
+            } else {
+                container.classList.remove('lyrics-cols-bate');
+                container.style.width = ""; 
+            }
+        }
+        function bl(a, l) { return `<div class="chord-group"><div class="chord">${a || '&nbsp;'}</div><div class="lyric">${(l === '' || l === undefined) ? '&nbsp;' : l}</div></div>`; }
+        function editarCancionActual() { if (!cancionActual) return; window.location.href = `admin.html?edit=${cancionActual.id}`; }
+        
+        function toggleTransposer(event) {
+            if(event) event.stopPropagation();
+            const p = document.getElementById('transposerPanel');
+            p.style.display = (p.style.display === 'flex') ? 'none' : 'flex';
+        }
+        function transponer(d) { semitonos += d; renderizarLetra(); }
+        function resetTono() { semitonos=0; renderizarLetra(); }
+        function cn(n, d) { let no=n.trim(), r=no.substring(0,1), s=no.substring(1); if(no.length>1&&(no[1]=='#'||no[1]=='b')){r=no.substring(0,2);s=no.substring(2);} const b={'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#'}; if(b[r])r=b[r]; let i=NOTAS.indexOf(r); if(i===-1)return no; let ni=(i+d)%12; if(ni<0)ni+=12; return NOTAS[ni]+s; }
+        
+        let sortableInstance = null;
+        function inicializarArrastre() {
+            const el = document.getElementById('songList');
+            if (!el || typeof Sortable === 'undefined') return;
+            if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; }
+            sortableInstance = Sortable.create(el, {
+                handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', delay: 0,
+                onEnd: function () {
+                    const nuevoOrden = Array.from(el.querySelectorAll('.song-item')).map(item => item.dataset.id);
+                    db.collection('configuracion').doc('playlist_semanal').set({ canciones: nuevoOrden, ultimaEdicion: new Date() }, { merge: true });
+                }
+            });
+        }
+
+        // --- SISTEMA DE LONG PRESS ---
+        let pressTimer;
+        const LONG_PRESS_DURATION = 800;
+        document.addEventListener('touchstart', handleTouchStart, { passive: false });
+        document.addEventListener('touchend', handleTouchEnd);
+        document.addEventListener('touchmove', handleTouchMove); 
+        document.addEventListener('mousedown', handleTouchStart);
+        document.addEventListener('mouseup', handleTouchEnd);
+
+        function handleTouchStart(e) {
+            const target = e.target.closest('.line-wrapper');
+            const esNota = e.target.classList.contains('note-card');
+            if (esNota) return; 
+            if (target) {
+                pressTimer = setTimeout(() => {
+                    const idx = target.getAttribute('data-index');
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    agregarNota(parseInt(idx));
+                }, LONG_PRESS_DURATION);
+            }
+        }
+        function handleTouchEnd(e) { clearTimeout(pressTimer); }
+        function handleTouchMove(e) { clearTimeout(pressTimer); }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(err => console.log('Error SW:', err)); });
+        }
+        
+        document.addEventListener('click', function(event) {
+            const panel = document.getElementById('transposerPanel');
+            const btn = document.getElementById('btnTransposerToggle');
+            if (panel.style.display === 'flex' && !panel.contains(event.target) && !btn.contains(event.target)) {
+                panel.style.display = 'none';
+            }
+            // Cerrar popups de volumen al hacer click fuera
+            if(!event.target.closest('.vol-toggle-container')) {
+                document.querySelectorAll('.vol-popup').forEach(p => p.classList.remove('show'));
+                document.querySelectorAll('.bar-btn-icon').forEach(b => b.classList.remove('active'));
+            }
+        });
+
+
+        /* ===========================================================
+           MOTOR DE AUDIO PRO V3 (FILE-BASED + CROSSFADE + METRO)
+           =========================================================== */
+        let audioCtx = null;
+        
+        // Metrónomo
+        let isMetronomeOn = false;
+        let metronomeTimerID = null;
+        let nextNoteTime = 0.0;
+        let currentBpm = 120;
+        let beatsPerMeasure = 4;
+        let currentBeat = 0;
+        let scheduleAheadTime = 0.1;
+        let lookahead = 25.0;
+
+        // Pads
+        let isPadOn = false;
+        let currentPadKey = 'C';
+        let activeSource = null;    
+        let activeGain = null;      
+        let fadingSource = null;    
+        let fadingGain = null;
+
+        const FILE_PREFIX = "pads/"; 
+        const FILE_EXT = ".mp3";
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function toggleMetronome() {
+            initAudio();
+            isMetronomeOn = !isMetronomeOn;
+            const btn = document.getElementById('btnMetronomeDock');
+            if (isMetronomeOn) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-stop"></i>';
+                currentBeat = 0; 
+                nextNoteTime = audioCtx.currentTime;
+                scheduler();
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-play"></i>';
+                clearTimeout(metronomeTimerID);
+            }
+        }
+
+        function nextNote() {
+            const secondsPerBeat = 60.0 / currentBpm;
+            nextNoteTime += secondsPerBeat;
+            currentBeat++;
+            if (currentBeat >= beatsPerMeasure) currentBeat = 0;
+        }
+
+        function scheduleNote(time) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (currentBeat === 0) osc.frequency.value = 1500; 
+            else osc.frequency.value = 1000; 
+
+            const vol = document.getElementById('metroVolumeSlider').value;
+            gain.gain.setValueAtTime(vol, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+
+            osc.start(time);
+            osc.stop(time + 0.05);
+
+            const drawTime = (time - audioCtx.currentTime) * 1000;
+            setTimeout(() => {
+                const led = document.getElementById('tempoLed');
+                if(led) {
+                    led.classList.add('flash');
+                    led.style.backgroundColor = currentBeat === 0 ? '#00ff00' : '#444';
+                    setTimeout(() => {
+                        led.classList.remove('flash');
+                        led.style.backgroundColor = '#222';
+                    }, 50);
+                }
+            }, Math.max(0, drawTime));
+        }
+
+        function scheduler() {
+            while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+                scheduleNote(nextNoteTime);
+                nextNote();
+            }
+            metronomeTimerID = setTimeout(scheduler, lookahead);
+        }
+
+        function updateBpm(val) { currentBpm = parseInt(val); }
+        function updateTimeSig(val) { beatsPerMeasure = parseInt(val); currentBeat = 0; }
+
+        // --- PADS LOGIC ---
+        function togglePad() {
+            initAudio();
+            const capsule = document.getElementById('padCapsule');
+            const textBtn = document.getElementById('padTriggerBtn'); // El botón de la letra
+            
+            if (!isPadOn) {
+                // ENCENDER
+                isPadOn = true;
+                capsule.classList.add('active'); // Ilumina la cápsula
+                
+                // Aseguramos que la letra sea la correcta antes de sonar
+                const selectedKey = document.getElementById('padKeySelect').value;
+                currentPadKey = selectedKey;
+                textBtn.innerText = selectedKey; // Actualiza la letra visual
+                
+                playPadFile(currentPadKey);
+            } else {
+                // APAGAR
+                isPadOn = false;
+                capsule.classList.remove('active'); // Apaga la luz
+                stopPadSmoothly();
+            }
+        }
+
+        function manualPadChange(newKey) {
+            currentPadKey = newKey;
+            
+            // Actualizar la letra en el botón INMEDIATAMENTE
+            const textBtn = document.getElementById('padTriggerBtn');
+            if(textBtn) textBtn.innerText = newKey;
+
+            // Si el pad ya estaba sonando, hacemos el cambio de tono suave
+            if (isPadOn) {
+                playPadFile(newKey);
+            }
+        }
+
+        async function playPadFile(key) {
+            const fileName = FILE_PREFIX + encodeURIComponent(key) + FILE_EXT;
+            try {
+                const response = await fetch(fileName);
+                if (!response.ok) throw new Error("No pad: " + fileName);
+                const arrayBuffer = await response.arrayBuffer();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+                if (activeSource) fadeOutOldSource(activeSource, activeGain);
+
+                const source = audioCtx.createBufferSource();
+                source.buffer = audioBuffer;
+                source.loop = true; 
+
+                const gainNode = audioCtx.createGain();
+                const masterVol = parseFloat(document.getElementById('padVolumeSlider').value);
+                
+                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                source.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                source.start(0);
+                gainNode.gain.linearRampToValueAtTime(masterVol, audioCtx.currentTime + 2);
+
+                activeSource = source;
+                activeGain = gainNode;
+            } catch (error) {
+                console.error(error);
+                alert("Error: Sube el archivo " + fileName + " a la carpeta 'pads'");
+                isPadOn = false;
+                document.getElementById('btnPadDock').classList.remove('active');
+                document.getElementById('btnPadDock').innerText = "ERROR";
+            }
+        }
+
+        function fadeOutOldSource(source, gainNode) {
+            if (fadingSource) { try { fadingSource.stop(); } catch(e){} }
+            fadingSource = source;
+            fadingGain = gainNode;
+            fadingGain.gain.cancelScheduledValues(audioCtx.currentTime);
+            fadingGain.gain.setValueAtTime(fadingGain.gain.value, audioCtx.currentTime);
+            fadingGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+            setTimeout(() => { try { source.stop(); } catch(e){} }, 2100);
+        }
+
+        function stopPadSmoothly() {
+            if (activeSource && activeGain) {
+                fadeOutOldSource(activeSource, activeGain);
+                activeSource = null;
+                activeGain = null;
+            }
+        }
+
+        // Volumen Pad en vivo
+        document.getElementById('padVolumeSlider').addEventListener('input', function(e) {
+            if (activeGain) {
+                activeGain.gain.cancelScheduledValues(audioCtx.currentTime);
+                activeGain.gain.setValueAtTime(this.value, audioCtx.currentTime);
+            }
+        });
+
+        function toggleVolPopup(popupId) {
+            const popup = document.getElementById(popupId);
+            const isShowing = popup.classList.contains('show');
+            document.querySelectorAll('.vol-popup').forEach(p => p.classList.remove('show'));
+            document.querySelectorAll('.bar-btn-icon').forEach(b => b.classList.remove('active'));
+            if (!isShowing) {
+                popup.classList.add('show');
+                popup.parentElement.querySelector('.bar-btn-icon').classList.add('active');
+            }
+        }
+
+        // --- ACTUALIZAR VISTA CANCION CON INTEGRACIÓN AUDIO ---
+        function actualizarVistaCancion(id) {
+            cancionActual = todasLasCanciones.find(c => c.id === id);
+            semitonos = 0; 
+            
+            document.getElementById('viewTitle').innerText = cancionActual.titulo;
+            document.getElementById('viewArtist').innerText = cancionActual.artista;
+            document.getElementById('currentToneDisplay').innerText = cancionActual.tonoOriginal;
+            document.getElementById('viewBPM').innerText = cancionActual.bpm || '-';
+            document.getElementById('viewCompas').innerText = cancionActual.compas || '-';
+
+            document.getElementById('btnPrevSong').disabled = (indiceNavegacion <= 0);
+            document.getElementById('btnNextSong').disabled = (indiceNavegacion >= listaNavegacionActual.length - 1);
+
+            document.getElementById('viewList').style.display = 'none';
+            document.getElementById('viewSong').style.display = 'flex';
+            
+            cargarNotasYRenderizar();
+            
+            const btnEdit = document.getElementById('btnDirectEdit');
+            if (usuarioActual && usuarioActual.email === ADMIN_EMAIL) btnEdit.style.display = 'flex';
+            else btnEdit.style.display = 'none';
+
+            // --- AUDIO DOCK UPDATE ---
+            const dock = document.getElementById('audioDock');
+            dock.classList.add('visible');
+            document.body.classList.add('audio-dock-open');
+
+            // BPM
+            const bpm = cancionActual.bpm ? parseInt(cancionActual.bpm) : 120;
+            currentBpm = bpm; 
+            document.getElementById('bpmInput').value = bpm;
+            
+            // Compás
+            let beats = 4; 
+            if (cancionActual.compas) {
+                const partes = cancionActual.compas.split('/'); 
+                if(partes.length > 0) beats = parseInt(partes[0]);
+            }
+            if (![2, 3, 4, 6].includes(beats)) beats = 4;
+            beatsPerMeasure = beats;
+            currentBeat = 0;         
+            document.getElementById('timeSigInput').value = beats;
+
+            // Tono Pad
+            const tonoPad = cancionActual.tonoOriginal || 'C';
+            currentPadKey = tonoPad; 
+            const selectPad = document.getElementById('padKeySelect');
+            if(selectPad) selectPad.value = tonoPad;
+            
+            // Crossfade si está prendido
+            if (isPadOn) playPadFile(tonoPad);
+        }
+
+        function volverALista() { 
+            if (isMetronomeOn) toggleMetronome();
+            if (isPadOn) togglePad();
+            document.getElementById('audioDock').classList.remove('visible');
+            document.body.classList.remove('audio-dock-open');
+            desactivarPantalla(); 
+            document.getElementById('viewSong').style.display = 'none'; 
+            document.getElementById('viewList').style.display = 'block'; 
+            document.getElementById('transposerPanel').style.display='none'; 
+        }
+
+    </script>
+</body>
+</html>

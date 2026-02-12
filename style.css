@@ -1,0 +1,1656 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+    /* PALETA DE LUJO (NEON DARK) */
+    --bg-deep: #050505;
+    --glass-surface: rgba(20, 20, 25, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --primary-glow: #6366f1; /* Indigo Neon */
+    --accent-glow: #f59e0b; /* Amber Neon */
+    --danger-glow: #ef4444;
+    --text-main: #ffffff;
+    --text-muted: #94a3b8;
+}
+
+* { box-sizing: border-box; outline: none; }
+
+body {
+    background-color: var(--bg-deep);
+    background-image: 
+        radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.15), transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(245, 158, 11, 0.08), transparent 40%);
+    background-attachment: fixed;
+    color: var(--text-main);
+    font-family: 'Outfit', sans-serif;
+    margin: 0; padding: 30px;
+    min-height: 100vh;
+}
+
+.container { max-width: 1400px; margin: 0 auto; }
+
+/* HEADER */
+header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+h1 {
+    font-size: 28px; font-weight: 700; margin: 0; letter-spacing: -0.5px;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    display: flex; align-items: center; gap: 12px;
+}
+
+/* TABS MÓVIL */
+.mobile-tabs {
+    display: none; background: #131316; border: 1px solid var(--glass-border);
+    padding: 5px; border-radius: 16px; margin-bottom: 20px;
+}
+.tab-btn {
+    flex: 1; padding: 12px; border: none; background: transparent;
+    color: #666; font-weight: 600; font-size: 14px; cursor: pointer;
+    border-radius: 12px; transition: 0.3s ease; font-family: 'Outfit', sans-serif;
+}
+.tab-btn.active {
+    color: white; background: var(--glass-surface);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+}
+
+/* GRID LAYOUT */
+.editor-grid {
+    display: grid; 
+    grid-template-columns: 1.2fr 0.8fr; 
+    gap: 30px;
+    min-height: 0;
+}
+
+/* CARDS */
+.card {
+    background: var(--glass-surface);
+    backdrop-filter: blur(20px); 
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px; 
+    padding: 30px;
+    display: block;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    position: relative; 
+    overflow: visible;
+}
+
+.card h2 { 
+    font-size: 14px; text-transform: uppercase; letter-spacing: 2px; 
+    color: #666; margin-top: 0; margin-bottom: 20px; font-weight: 800; 
+}
+
+/* =========================================
+   FORMULARIOS (CORREGIDO PARA SELECTS)
+   ========================================= */
+.form-group { margin-bottom: 15px; }
+
+input, select {
+    width: 100%; 
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.3); 
+    border: 1px solid var(--glass-border);
+    border-radius: 14px; 
+    color: white; 
+    font-family: 'Outfit', sans-serif; 
+    font-size: 15px; 
+    transition: 0.3s;
+}
+
+/* ARREGLO VISUAL PARA MENÚS DESPLEGABLES (SELECT) */
+select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 40px; /* Espacio para la flecha */
+    cursor: pointer;
+    
+    /* Flecha SVG personalizada Blanca */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 16px;
+}
+
+input:focus, select:focus {
+    background-color: rgba(0,0,0,0.5); 
+    border-color: var(--primary-glow);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    outline: none;
+}
+
+/* Fondo sólido para las opciones (evita transparencia al desplegar) */
+select option { 
+    background-color: #131316; 
+    color: white; 
+    padding: 12px; 
+}
+
+textarea {
+    width: 100%; 
+    min-height: 500px; 
+    resize: vertical;  
+    padding: 20px;
+    background: #0a0a0c; 
+    border: 1px solid var(--glass-border);
+    border-radius: 16px; 
+    color: #e2e8f0;
+    font-family: 'JetBrains Mono', monospace; 
+    font-size: 14px; 
+    line-height: 1.6;
+    margin-top: 10px;
+}
+
+textarea:focus { border-color: #555; }
+
+/* SEARCH WRAPPER */
+.search-wrapper { position: relative; margin-bottom: 20px; }
+.search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; }
+.search-wrapper input { padding-left: 45px; background: #0f0f12; border-color: #333; }
+
+/* BOTONES */
+.btn {
+    padding: 14px 20px; border-radius: 14px; border: none;
+    font-weight: 600; cursor: pointer; transition: 0.3s;
+    display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-family: 'Outfit', sans-serif;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+.btn-primary:hover { box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5); transform: translateY(-1px); }
+.btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
+.btn-danger:hover { box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5); transform: translateY(-1px); }
+.btn-secondary { background: rgba(255,255,255,0.05); color: #ccc; border: 1px solid var(--glass-border); }
+.btn-secondary:hover { background: rgba(255,255,255,0.1); color: white; }
+
+/* Tool Buttons (Icon Only) */
+.btn-tool {
+    background: rgba(255,255,255,0.03); color: #94a3b8; border: 1px solid var(--glass-border);
+    width: 42px; height: 42px; border-radius: 12px; cursor: pointer; transition: 0.2s;
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.btn-tool:hover { background: rgba(255,255,255,0.08); color: white; border-color: #555; transform: translateY(-2px); }
+
+/* ETIQUETAS DE ESTRUCTURA */
+.structure-bar { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+.struct-btn {
+    padding: 6px 14px; border-radius: 50px; border: 1px solid transparent;
+    font-size: 11px; font-weight: 800; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.2s; display: inline-block;
+    break-after: avoid !important;
+}
+.struct-btn:hover { transform: translateY(-2px); filter: brightness(1.2); }
+
+.tag-intro { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); }
+.tag-verso { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
+.tag-coro { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
+.tag-precoro { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border-color: rgba(139, 92, 246, 0.3); }
+.tag-puente { background: rgba(139, 92, 246, 0.15); color: #c084fc; border-color: rgba(139, 92, 246, 0.3); }
+.tag-final { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
+
+.preview-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important; 
+    height: 100%;
+}
+
+.lyrics-container {
+    background: #000; 
+    border-radius: 12px;
+    padding: 15px;
+    font-family: Arial, sans-serif !important; 
+    font-size: 14.5px; 
+    line-height: 1.3;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1; 
+    border: 1px solid #222; 
+    color: #e2e8f0;
+    height: 100%;
+    white-space: pre-wrap; 
+    word-break: break-word;
+}
+
+/* Ajustes de líneas y acordes */
+.song-line { 
+    display: block; 
+    margin-bottom: 12px; 
+    width: 100%;
+    white-space: pre-wrap !important; 
+    word-break: break-all;
+}
+
+/* Contenedor de Acorde sobre Letra */
+.chord-group { 
+    display: inline-flex; 
+    flex-direction: column; 
+    vertical-align: bottom;
+    text-align: left;
+}
+
+.chord { 
+    color: var(--accent-glow); 
+    font-weight: 700; 
+    font-size: 14.5px; 
+    height: 16px; 
+    line-height: 16px;
+    display: block;
+    white-space: nowrap; 
+}
+
+.lyric { 
+    color: #f1f5f9; 
+    font-size: 14.5px; 
+    height: 18px; 
+    line-height: 18px;
+    display: block; 
+    white-space: pre !important; 
+}
+
+/* Mensaje de estado vacío */
+.lyrics-container .empty-state {
+    text-align: center; 
+    color: #444; 
+    margin-top: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* SEARCH DROPDOWN */
+.search-results-dropdown {
+    position: absolute; top: 100%; left: 0; width: 100%;
+    background: #131316; border: 1px solid #333; border-radius: 12px;
+    z-index: 100; max-height: 250px; overflow-y: auto; margin-top: 5px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8); display: none;
+}
+.search-result-item { padding: 12px 18px; cursor: pointer; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+.search-result-item:hover { background: #1f1f25; }
+.search-result-item strong { color: white; font-size: 14px; }
+.search-result-item span { color: #666; font-size: 12px; }
+
+/* MODALES */
+.custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 3000; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; }
+.custom-modal-overlay.open { display: flex; opacity: 1; }
+.custom-modal-box { background: #131316; border: 1px solid rgba(255,255,255,0.1); padding: 30px; border-radius: 24px; width: 90%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.7); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
+.custom-modal-overlay.open .custom-modal-box { transform: scale(1); }
+.modal-icon { font-size: 40px; margin-bottom: 15px; display: inline-block; }
+.modal-title { font-size: 20px; font-weight: 700; color: white; margin-bottom: 10px; font-family: 'Outfit', sans-serif; }
+.modal-text { font-size: 15px; color: #94a3b8; margin-bottom: 25px; font-family: 'Outfit', sans-serif; }
+.modal-input-field { width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; margin-bottom: 20px; outline: none; }
+.modal-input-field:focus { border-color: #6366f1; background: rgba(255,255,255,0.08); }
+.modal-actions { display: flex; gap: 10px; justify-content: center; }
+.btn-modal { flex: 1; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; font-size: 14px; transition: 0.2s; font-family: 'Outfit', sans-serif; }
+.btn-modal.cancel { background: rgba(255,255,255,0.05); color: #ccc; }
+.btn-modal.cancel:hover { background: rgba(255,255,255,0.1); color: white; }
+.btn-modal.confirm { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+.btn-modal.confirm:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
+
+/* --- RESPONSIVE (MÓVIL) --- */
+@media (max-width: 900px) {
+    .editor-grid { grid-template-columns: 1fr; height: auto; display: block; }
+    .card { min-height: 70vh; margin-bottom: 30px; }
+    .mobile-tabs { display: flex; }
+    .mobile-hidden { display: none !important; }
+}
+
+/* =========================================
+   ESTILOS DE LA LISTA DE CANCIONES
+   ========================================= */
+
+.song-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.song-item {
+    background: rgba(255, 255, 255, 0.03); 
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.song-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.song-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.song-info h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: white;
+    letter-spacing: -0.3px;
+}
+
+.song-meta-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.15); 
+    color: #a5b4fc;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-right: 10px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    min-width: 25px;
+}
+
+.song-artist {
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+/* Botones de acción (+ o check) */
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: 0.2s;
+    backdrop-filter: blur(5px);
+}
+
+.btn-add {
+    background: rgba(255, 255, 255, 0.05);
+    color: #666;
+    border: 1px solid transparent;
+}
+
+.btn-add:hover {
+    background: white;
+    color: black;
+    transform: scale(1.1);
+}
+
+.btn-add.added {
+    background: #10b981; 
+    color: white;
+    border: 1px solid #059669;
+}
+
+.btn-remove {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.btn-remove:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* =========================================
+   VISIBILIDAD DE ACORDES (SISTEMA DE ROLES)
+   ========================================= */
+
+body.hide-chords .chord {
+    display: none !important;
+}
+
+body.hide-chords .song-line {
+    align-items: center; 
+    min-height: 30px;    
+}
+
+@media (min-width: 901px) {
+    #previewPanel {
+        position: sticky;
+        top: 30px;
+        height: calc(100vh - 150px); 
+    }
+}
+
+/* =========================================
+   MODO MULTI-COLUMNA (BATERÍA / VOZ)
+   ========================================= */
+
+.lyrics-cols-bate {
+    display: block !important;
+    column-count: 2;
+    column-gap: 30px; 
+    column-rule: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100% !important;
+    height: 90vh !important; 
+    max-height: 90vh !important;
+    font-size: 15px !important; 
+}
+
+.lyrics-cols-bate .line-wrapper {
+    margin-bottom: 2px !important;
+    padding: 0 !important;
+    break-inside: avoid !important;
+}
+
+.lyrics-cols-bate .song-line {
+    margin-bottom: 0px !important;
+    line-height: 1.1 !important;
+    min-height: auto !important;
+}
+
+.lyrics-cols-bate .lyric {
+    line-height: 1.2 !important;
+    height: auto !important;
+    padding-bottom: 2px !important;
+    white-space: pre-wrap !important;
+}
+
+.lyrics-cols-bate .chord {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.lyrics-cols-bate .struct-btn {
+    margin-top: 15px !important;
+    margin-bottom: 5px !important;
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+}
+
+@media (min-width: 1000px) { .lyrics-cols-bate { column-count: 3; } }
+@media (min-width: 1250px) { .lyrics-cols-bate { column-count: 4; column-gap: 20px; } }
+@media (max-width: 900px) {
+    .lyrics-cols-bate {
+        column-count: 1 !important;
+        height: auto !important;
+        max-height: none !important;
+    }
+}
+
+@media (min-width: 901px) {
+    .line-wrapper {
+        position: relative;
+        cursor: pointer;
+        transition: background 0.2s;
+        border-radius: 4px;
+    }
+
+    .line-wrapper:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .line-wrapper:hover::before {
+        content: "ADD NOTE";
+        position: absolute;
+        left: -60px; 
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 9px;
+        font-weight: 800;
+        color: var(--accent-glow);
+        opacity: 0.6;
+    }
+}
+
+.lyrics-cols-bate .line-wrapper:hover::before {
+    left: -15px;
+    content: "+";
+    font-size: 14px;
+}
+
+.admin-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 15px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    margin-bottom: 25px;
+}
+
+.btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #1a1a20;
+    min-width: 120px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5);
+    z-index: 1000;
+    border-radius: 12px;
+    border: 1px solid #333;
+    overflow: hidden;
+    margin-top: 5px;
+}
+
+.dropdown-content button {
+    color: white;
+    padding: 10px 16px;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.dropdown-content button:hover { background: #2a2a35; }
+.dropdown:hover .dropdown-content { display: block; }
+
+@media (max-width: 600px) {
+    .btn-row { justify-content: center; }
+    .dropdown-content {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 80px;
+    }
+}
+
+/* --- SISTEMA DE ARRASTRE SEGURO --- */
+.sortable-ghost {
+    opacity: 0.2;
+    background: var(--primary-glow) !important;
+    border: 1px dashed var(--primary-glow) !important;
+}
+
+.song-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: flex-start;
+    padding-left: 5px;
+}
+
+.song-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding-left: 0 !important;
+}
+
+.drag-handle {
+    cursor: grab;
+    color: #666;
+    padding: 10px 5px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+    color: #fff;
+}
+
+.section-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.section-block .struct-btn {
+    margin-top: 0 !important;
+}
+
+/* --- BOTÓN STUDIO (ADMIN) RENOVADO --- */
+.btn-studio-glow {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 50px;
+    color: white;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    margin-right: 10px;
+}
+
+.btn-studio-glow i { font-size: 14px; }
+
+.btn-studio-glow:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
+    background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+}
+
+.btn-studio-glow:active { transform: scale(0.95); }
+
+@media (max-width: 380px) {
+    .btn-studio-glow span { display: none; }
+    .btn-studio-glow { padding: 10px; border-radius: 12px; }
+}
+
+/* =========================================
+   NUEVO HEADER DE CANCIÓN (2 FILAS)
+   ========================================= */
+
+.sticky-player-header {
+    background: rgba(13, 13, 15, 0.98) !important;
+    padding: 12px 20px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px;
+    border-bottom: 1px solid var(--glass-border);
+    backdrop-filter: blur(15px);
+    z-index: 100;
+}
+
+.header-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+#viewTitle {
+    font-size: 20px !important;
+    line-height: 1.2;
+    color: white;
+    font-weight: 700;
+    margin: 0;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
+.btn-close-viewer {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #94a3b8;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.header-row-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+#viewArtist {
+    color: #94a3b8;
+    font-size: 14px !important;
+    font-weight: 500;
+}
+
+.meta-mini {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #666;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.meta-mini .sep { color: #333; }
+
+.controls-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tone-badge-display {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    color: #f59e0b;
+    font-weight: 800;
+    font-size: 14px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-mini-group {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    overflow: hidden;
+}
+
+.nav-mini-group button {
+    background: transparent;
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.nav-mini-group button:hover { background: rgba(255,255,255,0.1); }
+.nav-mini-group button:active { background: rgba(255,255,255,0.2); }
+.nav-mini-group button:disabled { opacity: 0.3; }
+
+.btn-edit-mini {
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    color: #818cf8;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- TRANSPOSER POPUP MEJORADO --- */
+.transposer-popup {
+    position: fixed;
+    bottom: 100px;
+    right: 25px;
+    background: rgba(19, 19, 24, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 16px;
+    width: 200px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    backdrop-filter: blur(20px);
+    z-index: 210;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    animation: popUp 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.transposer-popup::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    right: 25px;
+    width: 12px;
+    height: 12px;
+    background: rgba(19, 19, 24, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    transform: rotate(45deg);
+}
+
+.transposer-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.transposer-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.btn-tone {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.btn-tone:active { background: rgba(255,255,255,0.2); transform: scale(0.9); }
+
+.btn-tone-reset {
+    flex: 1;
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(99, 102, 241, 0.2);
+    color: #818cf8;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.btn-tone-reset:active { background: rgba(99, 102, 241, 0.4); }
+
+@keyframes popUp {
+    from { opacity: 0; transform: translateY(10px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* --- BARRA DE HERRAMIENTAS INTELIGENTE (ADMIN) --- */
+.smart-tools-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15px;
+    margin-top: 5px;
+}
+
+.tool-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    font-family: 'Outfit', sans-serif;
+}
+
+.pdf-tool {
+    background: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.pdf-tool:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.magic-tool {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15));
+    color: #c4b5fd;
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.magic-tool:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.25));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+    color: white;
+}
+
+.magic-tool i { font-size: 14px; }
+
+/* --- CORRECCIÓN DE ESPACIO EN MÓVILES --- */
+@media (max-width: 600px) {
+    .card {
+        padding: 15px !important; /* Antes era 30px, ganamos mucho espacio */
+    }
+    textarea {
+        font-size: 16px; /* Mejor lectura */
+        padding: 15px;
+    }
+}
+
+/* --- NUEVA BARRA DE HERRAMIENTAS (EDITOR TOOLBAR) --- */
+.editor-toolbar {
+    background: #131316;
+    border: 1px solid var(--glass-border);
+    border-bottom: none; /* Se une con el textarea */
+    border-radius: 16px 16px 0 0; /* Redondeado solo arriba */
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Área de Chips (Estructura) con Scroll Horizontal */
+.toolbar-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 5px; /* Espacio para scrollbar invisible */
+    -webkit-overflow-scrolling: touch;
+    flex: 1; /* Ocupa el espacio disponible */
+    mask-image: linear-gradient(to right, black 90%, transparent 100%); /* Desvanecido al final */
+}
+
+/* Ocultar scrollbar fea */
+.toolbar-chips::-webkit-scrollbar { display: none; }
+
+.chip-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ccc;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    cursor: pointer;
+    flex-shrink: 0; /* No encogerse */
+    transition: 0.2s;
+}
+
+.chip-btn:hover { background: white; color: black; }
+
+/* Botón de Menú (Visibilidad) */
+.toolbar-menu-btn {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* Ajuste del Textarea para pegarse a la barra */
+#letraInput {
+    margin-top: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-top: none; /* Quitar borde superior para unir visualmente */
+    min-height: 400px;
+}
+
+/* Dropdown de Visibilidad Mejorado */
+.visibility-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background: #1a1a20;
+    border: 1px solid #333;
+    border-radius: 12px;
+    width: 220px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    display: none;
+    z-index: 50;
+    padding: 5px;
+    margin-top: 5px;
+}
+
+.vis-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    color: #ccc;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+.vis-item:hover { background: rgba(255,255,255,0.05); color: white; }
+.vis-item i { width: 15px; text-align: center; }
+
+/* Colores para iconos de visibilidad */
+.vis-gt { color: #818cf8; } /* Indigo */
+.vis-bv { color: #f59e0b; } /* Ambar */
+
+/* Indicador sutil de que la línea es "tocable" */
+.line-wrapper::before {
+    content: '✎'; /* O un punto '•' */
+    position: absolute;
+    left: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-glow);
+    opacity: 0; /* Invisible por defecto */
+    transition: opacity 0.2s;
+    font-size: 10px;
+}
+
+/* En móvil, mostrarlo muy tenue siempre para dar la pista */
+@media (max-width: 900px) {
+    .line-wrapper::before {
+        opacity: 0.2; 
+        left: -10px;
+    }
+}
+
+/* =========================================
+   ESPACIADO "TIPO LACUERDA" (SOLO GUITARRA/TECLADO)
+   ========================================= */
+
+/* Cuando NO estamos ocultando acordes (es decir, modo Guitarra/Teclado) */
+body:not(.hide-chords) .lyric,
+body:not(.hide-chords) .chord {
+    /* Aumentamos la separación entre cada letra */
+    letter-spacing: 1.5px !important; 
+    
+    /* Hacemos la fuente un pelín más gruesa para mejorar lectura a distancia */
+    font-weight: 500; 
+}
+
+/* Opcional: Dar un pequeño respiro vertical extra entre el acorde y su letra */
+body:not(.hide-chords) .chord {
+    margin-bottom: 4px; /* Separa el acorde de la línea de texto */
+    font-size: 15px;    /* Acordes un poco más grandes y legibles */
+}
+
+/* Ajuste para que las líneas no se rompan tan fácil en celular con el nuevo espacio */
+body:not(.hide-chords) .song-line {
+    white-space: pre-wrap !important; /* Asegura que el texto fluya bien */
+}
+
+/* --- AUDIO DOCK (Metrónomo & Pads) --- */
+
+
+.audio-dock.visible {
+    transform: translateY(0);
+}
+
+.dock-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.dock-section.grow {
+    flex: 1;
+    align-items: flex-end; /* Pads a la derecha */
+}
+
+.dock-label {
+    font-size: 10px;
+    color: #666;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.dock-label span { color: var(--text-main); }
+
+.dock-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Botones del Dock */
+.dock-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: rgba(255,255,255,0.05);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+
+.dock-btn:active { transform: scale(0.95); }
+
+.dock-btn.active {
+    background: var(--primary-glow);
+    border-color: var(--primary-glow);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+
+.dock-btn.pad-trigger {
+    width: auto;
+    padding: 0 20px;
+    font-size: 13px;
+    font-weight: 700;
+    gap: 8px;
+}
+
+.dock-btn.pad-trigger.active {
+    background: var(--accent-glow); /* Color Ambar para Pads */
+    border-color: var(--accent-glow);
+    color: black;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+}
+
+/* Slider de Volumen */
+.dock-slider {
+    width: 80px;
+    height: 4px;
+    -webkit-appearance: none;
+    background: #333;
+    border-radius: 2px;
+}
+.dock-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+}
+
+/* LED del Metrónomo */
+.tempo-led {
+    width: 8px;
+    height: 8px;
+    background: #333;
+    border-radius: 50%;
+    margin-top: 2px;
+    transition: background 0.05s;
+}
+.tempo-led.flash {
+    background: #ef4444; /* Rojo al beat */
+    box-shadow: 0 0 10px #ef4444;
+}
+
+.dock-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--glass-border);
+}
+
+/* Ajustar el FAB original para que suba cuando sale el Dock */
+.fab-container {
+    transition: bottom 0.3s ease;
+}
+.audio-dock-open .fab-container {
+    bottom: 100px !important; /* Sube los botones flotantes */
+}
+/* Espacio extra al final de la letra para que no la tape el dock */
+.audio-dock-open .lyrics-container {
+    padding-bottom: 100px !important; 
+}
+
+/* --- AUDIO DOCK 2.0 (Estilo Píldora) --- */
+.audio-dock {
+    position: fixed;
+    bottom: 30px; /* Flotando un poco, no pegado al borde */
+    left: 50%;
+    transform: translateX(-50%) translateY(150%); /* Centrado y oculto abajo */
+    width: 95%;
+    max-width: 600px;
+    height: auto;
+    background: transparent;
+    z-index: 300;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efecto rebote */
+    pointer-events: none; /* Para que clicks fuera de las píldoras pasen */
+}
+
+.audio-dock.visible {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Estilo Base de las Píldoras */
+
+
+/* Botón Play Redondo */
+.round-btn {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: none;
+    background: #222;
+    color: white;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+.round-btn.active {
+    background: #ef4444; /* Rojo al estar activo */
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+}
+
+/* Inputs Numéricos (BPM) sin fondo */
+.meta-inputs {
+    display: flex; align-items: center; gap: 8px;
+}
+.input-group {
+    display: flex; flex-direction: column; align-items: center;
+}
+.input-group input {
+    width: 45px; padding: 0; text-align: center;
+    background: transparent; border: none;
+    color: white; font-weight: 800; font-size: 18px;
+    font-family: 'Outfit', sans-serif;
+}
+.input-group span { font-size: 8px; color: #666; font-weight: 700; }
+.v-sep { width: 1px; height: 20px; background: #333; }
+
+.select-clean {
+    background: transparent; border: none; color: #aaa;
+    font-weight: 700; font-size: 14px; width: auto; padding: 0;
+    cursor: pointer;
+    appearance: none; /* Quitar flecha nativa */
+}
+
+/* --- BOTÓN GRADIENTE MORADO A NEGRO --- */
+.pill-btn {
+    padding: 10px 24px;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white; font-weight: 700; font-size: 12px;
+    cursor: pointer; transition: 0.3s;
+    letter-spacing: 1px;
+}
+
+.gradient-purple {
+    /* Estado Apagado (Grisáceo) */
+    background: #222;
+    color: #888;
+}
+
+.gradient-purple.active {
+    /* Estado Encendido (Tu pedido: Morado a Negro) */
+    background: linear-gradient(135deg, #100818 0%, #1e1e1e 100%);
+    border-color: #301449;
+    color: white;
+    box-shadow: 0 0 20px rgba(58, 27, 87, 0.4);
+}
+
+/* Sliders */
+.vol-wrapper { display: flex; align-items: center; gap: 6px; }
+.vol-mini-wrapper { display: flex; align-items: center; gap: 4px; }
+.tiny-icon { font-size: 10px; color: #555; }
+.small-icon { font-size: 12px; color: #888; }
+
+.dock-slider {
+    -webkit-appearance: none;
+    height: 4px; background: #333; border-radius: 2px;
+    cursor: pointer;
+}
+.dock-slider.mini { width: 40px; }
+.dock-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px; border-radius: 50%; background: white;
+}
+
+/* LED */
+.tempo-led {
+    width: 6px; height: 6px; background: #222; border-radius: 50%;
+    margin-left: 5px; transition: 0.1s;
+}
+.tempo-led.flash { background: #00ff00; box-shadow: 0 0 10px #00ff00; transform: scale(1.5); }
+
+/* --- AUDIO BAR SÓLIDA V3.0 --- */
+.audio-bar-solid {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%; /* Ocupa todo el ancho */
+    height: 70px; /* Altura fija compacta */
+    /* TU DEGRADADO MORADO A NEGRO */
+    background: linear-gradient(to top, #000000 10%, #0d0410 100%);
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px; /* Espacio a los lados */
+    z-index: 500;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.7);
+    transform: translateY(100%);
+    transition: transform 0.3s ease-out;
+}
+
+.audio-bar-solid.visible {
+    transform: translateY(0);
+}
+
+.bar-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1; /* Para que se repartan el espacio */
+}
+.bar-section.right { justify-content: flex-end; }
+
+/* --- BOTONES Y CONTROLES --- */
+
+/* Botón Play Redondo */
+.bar-btn-play {
+    width: 45px; height: 45px;
+    border-radius: 50%; border: 2px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05); color: white; font-size: 18px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: 0.2s; flex-shrink: 0;
+}
+.bar-btn-play.active {
+    background: #ef4444; border-color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
+/* Inputs de BPM/Compás super compactos */
+.bar-inputs {
+    display: flex; align-items: center; background: rgba(0,0,0,0.3);
+    padding: 5px 10px; border-radius: 8px; gap: 5px; position: relative;
+}
+.input-compact, .select-compact {
+    background: transparent; border: none; color: white;
+    font-weight: 700; font-size: 16px; text-align: center; padding: 0;
+    font-family: inherit; width: 40px;
+}
+.select-compact { width: auto; appearance: none; cursor: pointer; }
+.separator { color: #666; font-size: 18px; font-weight: 300; }
+
+/* LED indicador */
+.tempo-led-bar {
+    position: absolute; top: -4px; right: -4px;
+    width: 8px; height: 8px; background: #333; border-radius: 50%; transition: 0.1s;
+}
+.tempo-led-bar.flash { background: #0f0; box-shadow: 0 0 8px #0f0; }
+
+
+/* --- SISTEMA DE VOLUMEN VERTICAL --- */
+
+.vol-toggle-container { position: relative; }
+
+/* Botón Icono de Bocina */
+.bar-btn-icon {
+    width: 40px; height: 40px; border-radius: 8px; border: none;
+    background: transparent; color: #aaa; font-size: 20px; cursor: pointer;
+    transition: color 0.2s;
+}
+.bar-btn-icon:hover { color: white; }
+.bar-btn-icon.active { color: #a855f7; } /* Morado cuando está abierto el popup */
+
+/* El Popup Vertical Oculto */
+.vol-popup {
+    position: absolute;
+    bottom: 60px; /* Aparece encima de la barra */
+    left: 50%; transform: translateX(-50%); /* Centrado al botón */
+    width: 50px; height: 140px;
+    background: rgba(20, 20, 25, 0.95);
+    border: 1px solid rgba(168, 85, 247, 0.3); /* Borde morado sutil */
+    border-radius: 12px;
+    padding: 15px 0;
+    display: flex; justify-content: center;
+    opacity: 0; pointer-events: none; visibility: hidden;
+    transition: all 0.2s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+/* Alineación especial para el popup derecho */
+.vol-popup.right-aligned { left: auto; right: 0; transform: none; }
+
+.vol-popup.show {
+    opacity: 1; pointer-events: auto; visibility: visible; bottom: 75px;
+}
+
+/* Slider Vertical (Truco para que funcione en todos los navegadores) */
+.vertical-slider {
+    /* Rotamos un slider horizontal 90 grados */
+    transform: rotate(-90deg);
+    width: 110px; /* Esta será la altura visual */
+    height: 20px; /* Este será el ancho visual */
+    margin-top: 45px; /* Ajuste por la rotación */
+    -webkit-appearance: none; background: transparent; cursor: pointer;
+}
+/* Estilo del riel y el pulgar del slider */
+.vertical-slider::-webkit-slider-runnable-track {
+    background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px;
+}
+.vertical-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px;
+    background: #a855f7; /* Pulgar Morado */
+    border-radius: 50%; margin-top: -6px; box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+}
+
+/* --- Controles Pad Derecha --- */
+.pad-key-display {
+    font-weight: 800; color: #a855f7; font-size: 20px; margin: 0 10px;
+}
+
+.bar-btn-pad {
+    padding: 10px 20px; border-radius: 8px;
+    border: 2px solid #a855f7; /* Borde Morado */
+    background: rgba(44, 11, 56, 0.5); /* Fondo morado oscuro transparente */
+    color: white; font-weight: 700; cursor: pointer; transition: 0.3s;
+    white-space: nowrap; /* Que no salte de línea */
+}
+.bar-btn-pad.active {
+    background: #a855f7; color: black; box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+}
+
+/* Espacio extra para la letra para que la barra no la tape */
+.audio-dock-open .lyrics-container {
+    padding-bottom: 90px !important; 
+}
+
+/* --- SELECTOR DE TONO DEL PAD --- */
+.key-select-wrapper {
+    position: relative;
+    margin: 0 10px;
+}
+
+.pad-key-select {
+    appearance: none; /* Quitar estilo por defecto */
+    background: transparent;
+    border: none;
+    font-weight: 800;
+    color: #a855f7; /* Morado Neon */
+    font-size: 20px;
+    padding-right: 15px;
+    cursor: pointer;
+    text-align: center;
+    width: auto;
+    font-family: 'Outfit', sans-serif;
+}
+
+.pad-key-select:focus { outline: none; }
+.pad-key-select option { background: #131316; color: white; }
+
+.tiny-arrow {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: #666;
+    pointer-events: none;
+}
+
+/* --- ESTILO DE CÁPSULA (Ahorra espacio) --- */
+.pad-capsule {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    padding: 2px;
+    margin-left: 10px;
+    transition: all 0.3s ease;
+}
+
+/* Estado ENCENDIDO (Morado Neon) */
+.pad-capsule.active {
+    background: rgba(168, 85, 247, 0.15); /* Fondo morado tenue */
+    border-color: #a855f7;
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+}
+
+/* Botón Power Circular */
+.pad-power-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.3s;
+}
+
+/* El botón Power se llena de color al activarse */
+.pad-capsule.active .pad-power-btn {
+    background: #a855f7;
+    color: white;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+}
+
+.capsule-divider {
+    width: 1px; height: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 5px;
+}
+
+/* Ajustes del Selector dentro de la cápsula */
+.pad-key-select {
+    background: transparent !important;
+    border: none !important;
+    color: #888 !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    padding: 0 20px 0 5px !important; /* Espacio a la derecha para la flecha */
+    width: auto !important;
+    cursor: pointer;
+    background-image: none !important; /* Quitamos la flecha nativa */
+}
+
+/* El texto se vuelve blanco brillante al activarse */
+.pad-capsule.active .pad-key-select {
+    color: white !important;
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.8);
+}
+
+.select-container { position: relative; display: flex; align-items: center; }
+
+/* Flechita personalizada */
+.tiny-arrow {
+    position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+    font-size: 10px; color: #555; pointer-events: none;
+}
+.pad-capsule.active .tiny-arrow { color: #a855f7; }
+
+/* --- NUEVA CÁPSULA SPLIT (Solución de espacio) --- */
+.pad-split-capsule {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50px;
+    height: 42px;
+    padding: 0 5px;
+    margin-left: 8px;
+    transition: all 0.3s ease;
+}
+
+/* Estado ENCENDIDO (Borde y Brillo Morado) */
+.pad-split-capsule.active {
+    border-color: #a855f7;
+    background: rgba(168, 85, 247, 0.1); /* Fondo morado muy suave */
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+}
+
+/* BOTÓN DE TEXTO (La Letra) */
+.pad-text-btn {
+    background: transparent;
+    border: none;
+    color: #666; /* Gris cuando está apagado */
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    padding: 0 10px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    min-width: 40px; /* Ancho fijo para que no baile al cambiar letra */
+}
+
+/* Letra Morada Brillante cuando está ON */
+.pad-split-capsule.active .pad-text-btn {
+    color: #a855f7;
+    text-shadow: 0 0 10px rgba(168, 85, 247, 0.8);
+}
+
+/* LÍNEA DIVISORIA */
+.capsule-sep {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ZONA DEL SELECTOR (Flecha) */
+.pad-select-zone {
+    position: relative;
+    width: 25px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pad-select-zone i {
+    font-size: 10px;
+    color: #555;
+    pointer-events: none; /* Para que el click pase al select */
+}
+
+.pad-split-capsule.active .pad-select-zone i {
+    color: #a855f7; /* Flecha morada si está activo */
+}
+
+/* El select invisible encima de la flecha */
+.pad-select-zone select {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0; /* Invisible pero funcional */
+    cursor: pointer;
+    appearance: none;
+}
