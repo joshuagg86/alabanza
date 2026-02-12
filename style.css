@@ -1366,7 +1366,7 @@ body:not(.hide-chords) .song-line {
 
 /* Botón Play Redondo */
 .bar-btn-play {
-    width: 45px; height: 45px;
+    width: 30px; height: 30px;
     border-radius: 50%; border: 2px solid rgba(255,255,255,0.1);
     background: rgba(255,255,255,0.05); color: white; font-size: 18px;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
@@ -1653,4 +1653,34 @@ body:not(.hide-chords) .song-line {
     opacity: 0; /* Invisible pero funcional */
     cursor: pointer;
     appearance: none;
+}
+
+/* Botón pequeño para Subdivisión (1/8) */
+.btn-subdiv {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #888;
+    border-radius: 6px;
+    font-size: 11px;
+    padding: 4px 6px;
+    margin-left: 8px; /* Separación del select */
+    margin-right: 8px; /* Separación del LED */
+    cursor: pointer;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.2s ease;
+    min-width: 35px;
+}
+
+/* Estado Activo (Color Ámbar/Naranja) */
+.btn-subdiv.active {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    border-color: #f59e0b;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
+.btn-subdiv:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
 }

@@ -96,7 +96,7 @@
 
         /* Botón Play Redondo */
         .bar-btn-play {
-            width: 45px; height: 45px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1);
+            width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1);
             background: rgba(255,255,255,0.05); color: white; font-size: 18px;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
             transition: 0.2s; flex-shrink: 0;
@@ -342,6 +342,7 @@
                     <button id="btnMetronomeDock" class="bar-btn-play" onclick="toggleMetronome()">
                         <i class="fas fa-play"></i>
                     </button>
+                    
                     <div class="bar-inputs">
                         <input type="number" id="bpmInput" class="input-compact" value="120" onchange="updateBpm(this.value)">
                         <span class="separator">/</span>
@@ -351,8 +352,12 @@
                             <option value="2">2</option>
                             <option value="6">6</option>
                         </select>
+                        
+                        <button id="btnSubdivision" class="btn-subdiv" onclick="toggleSubdivision()">1/4</button>
+                        
                         <div id="tempoLed" class="tempo-led-bar"></div>
                     </div>
+                    
                     <div class="vol-toggle-container">
                         <button class="bar-btn-icon" onclick="toggleVolPopup('metroVolPopup')">
                             <i class="fas fa-volume-up"></i>
@@ -1053,211 +1058,251 @@
         });
 
 
-        /* ===========================================================
-           MOTOR DE AUDIO PRO V3 (FILE-BASED + CROSSFADE + METRO)
-           =========================================================== */
-        let audioCtx = null;
+/* ===========================================================
+   MOTOR DE AUDIO PRO V3 (CORREGIDO Y UNIFICADO)
+   =========================================================== */
+let audioCtx = null;
+
+// Variables Metrónomo
+let isMetronomeOn = false;
+let isSubdivisionOn = false; // Variable para el botón 1/8
+let metronomeTimerID = null;
+let nextNoteTime = 0.0;
+let currentBpm = 120;
+let beatsPerMeasure = 4;
+let currentBeat = 0;
+let scheduleAheadTime = 0.1;
+let lookahead = 25.0;
+
+// Variables Pads
+let isPadOn = false;
+let currentPadKey = 'C';
+let activeSource = null;    
+let activeGain = null;      
+let fadingSource = null;    
+let fadingGain = null;
+
+const FILE_PREFIX = "pads/"; 
+const FILE_EXT = ".mp3";
+
+function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+// --- LÓGICA DE SUBDIVISIÓN (BOTÓN 1/8) ---
+function toggleSubdivision() {
+    isSubdivisionOn = !isSubdivisionOn;
+    const btn = document.getElementById('btnSubdivision');
+    
+    if (isSubdivisionOn) {
+        btn.classList.add('active');
+        btn.innerText = "1/8"; // Muestra corcheas
+    } else {
+        btn.classList.remove('active');
+        btn.innerText = "1/4"; // Muestra negras
+    }
+    
+    // Si el metrónomo está prendido, reiniciamos para que el cambio se note al instante
+    if (isMetronomeOn) {
+        toggleMetronome(); // Apaga
+        toggleMetronome(); // Prende
+    }
+}
+
+function toggleMetronome() {
+    initAudio();
+    isMetronomeOn = !isMetronomeOn;
+    const btn = document.getElementById('btnMetronomeDock');
+    if (isMetronomeOn) {
+        btn.classList.add('active');
+        btn.innerHTML = '<i class="fas fa-stop"></i>';
+        currentBeat = 0; 
+        nextNoteTime = audioCtx.currentTime;
+        scheduler();
+    } else {
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-play"></i>';
+        clearTimeout(metronomeTimerID);
+    }
+}
+
+function nextNote() {
+    const secondsPerBeat = 60.0 / currentBpm;
+    // Si está activa la subdivisión, el tiempo avanza la mitad (0.5)
+    const factor = isSubdivisionOn ? 0.5 : 1;
+    
+    nextNoteTime += secondsPerBeat * factor;
+    currentBeat += factor;
+
+    if (currentBeat >= beatsPerMeasure) {
+        currentBeat = 0;
+    }
+}
+
+function scheduleNote(time) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    // --- SONIDOS DIFERENTES ---
+    // 1. Beat 1 (Fuerte - TIC)
+    if (currentBeat === 0) {
+        osc.frequency.value = 1500; 
+        gain.gain.value = 1;
+    } 
+    // 2. Subdivisión (Contratiempo - tuc suave)
+    // Detectamos decimales (ej: 0.5, 1.5)
+    else if (currentBeat % 1 !== 0) {
+        osc.frequency.value = 800; 
+        osc.type = 'sine'; // Onda suave
+        gain.gain.value = 0.3; // Volumen bajo
+    } 
+    // 3. Beats normales (2, 3, 4 - tac)
+    else {
+        osc.frequency.value = 1000; 
+        gain.gain.value = 0.7; 
+    }
+
+    const masterVol = document.getElementById('metroVolumeSlider').value;
+    gain.gain.setValueAtTime(gain.gain.value * masterVol, time);
+    
+    // Evitar "pop" al final del sonido
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+
+    osc.start(time);
+    osc.stop(time + 0.05);
+
+    // --- LED VISUAL (Solo en tiempos enteros) ---
+    if (currentBeat % 1 === 0) {
+        const drawTime = (time - audioCtx.currentTime) * 1000;
+        setTimeout(() => {
+            const led = document.getElementById('tempoLed');
+            if(led) {
+                led.classList.add('flash');
+                led.style.backgroundColor = currentBeat === 0 ? '#00ff00' : '#444'; // Verde en el 1
+                setTimeout(() => {
+                    led.classList.remove('flash');
+                    led.style.backgroundColor = '#333';
+                }, 50);
+            }
+        }, Math.max(0, drawTime));
+    }
+}
+
+function scheduler() {
+    while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+        scheduleNote(nextNoteTime);
+        nextNote();
+    }
+    metronomeTimerID = setTimeout(scheduler, lookahead);
+}
+
+function updateBpm(val) { currentBpm = parseInt(val); }
+function updateTimeSig(val) { beatsPerMeasure = parseInt(val); currentBeat = 0; }
+
+// --- PADS LOGIC (Sin cambios, funciona bien) ---
+function togglePad() {
+    initAudio();
+    const capsule = document.getElementById('padCapsule');
+    const textBtn = document.getElementById('padTriggerBtn');
+    
+    if (!isPadOn) {
+        isPadOn = true;
+        capsule.classList.add('active');
+        const selectedKey = document.getElementById('padKeySelect').value;
+        currentPadKey = selectedKey;
+        textBtn.innerText = selectedKey;
+        playPadFile(currentPadKey);
+    } else {
+        isPadOn = false;
+        capsule.classList.remove('active');
+        stopPadSmoothly();
+    }
+}
+
+function manualPadChange(newKey) {
+    currentPadKey = newKey;
+    const textBtn = document.getElementById('padTriggerBtn');
+    if(textBtn) textBtn.innerText = newKey;
+    if (isPadOn) {
+        playPadFile(newKey);
+    }
+}
+
+async function playPadFile(key) {
+    // Codificar nombre por si tiene # (aunque usas bemoles ahora)
+    const fileName = FILE_PREFIX + encodeURIComponent(key) + FILE_EXT;
+    try {
+        const response = await fetch(fileName);
+        if (!response.ok) throw new Error("No pad: " + fileName);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+        if (activeSource) fadeOutOldSource(activeSource, activeGain);
+
+        const source = audioCtx.createBufferSource();
+        source.buffer = audioBuffer;
+        source.loop = true; 
+
+        const gainNode = audioCtx.createGain();
+        const masterVol = parseFloat(document.getElementById('padVolumeSlider').value);
         
-        // Metrónomo
-        let isMetronomeOn = false;
-        let metronomeTimerID = null;
-        let nextNoteTime = 0.0;
-        let currentBpm = 120;
-        let beatsPerMeasure = 4;
-        let currentBeat = 0;
-        let scheduleAheadTime = 0.1;
-        let lookahead = 25.0;
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        source.start(0);
+        gainNode.gain.linearRampToValueAtTime(masterVol, audioCtx.currentTime + 2);
 
-        // Pads
-        let isPadOn = false;
-        let currentPadKey = 'C';
-        let activeSource = null;    
-        let activeGain = null;      
-        let fadingSource = null;    
-        let fadingGain = null;
+        activeSource = source;
+        activeGain = gainNode;
+    } catch (error) {
+        console.error(error);
+        // Alerta visual discreta en lugar de alert()
+        const textBtn = document.getElementById('padTriggerBtn');
+        if(textBtn) textBtn.innerText = "Err";
+        isPadOn = false;
+        document.getElementById('padCapsule').classList.remove('active');
+    }
+}
 
-        const FILE_PREFIX = "pads/"; 
-        const FILE_EXT = ".mp3";
+function fadeOutOldSource(source, gainNode) {
+    if (fadingSource) { try { fadingSource.stop(); } catch(e){} }
+    fadingSource = source;
+    fadingGain = gainNode;
+    fadingGain.gain.cancelScheduledValues(audioCtx.currentTime);
+    fadingGain.gain.setValueAtTime(fadingGain.gain.value, audioCtx.currentTime);
+    fadingGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
+    setTimeout(() => { try { source.stop(); } catch(e){} }, 2100);
+}
 
-        function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
+function stopPadSmoothly() {
+    if (activeSource && activeGain) {
+        fadeOutOldSource(activeSource, activeGain);
+        activeSource = null;
+        activeGain = null;
+    }
+}
 
-        function toggleMetronome() {
-            initAudio();
-            isMetronomeOn = !isMetronomeOn;
-            const btn = document.getElementById('btnMetronomeDock');
-            if (isMetronomeOn) {
-                btn.classList.add('active');
-                btn.innerHTML = '<i class="fas fa-stop"></i>';
-                currentBeat = 0; 
-                nextNoteTime = audioCtx.currentTime;
-                scheduler();
-            } else {
-                btn.classList.remove('active');
-                btn.innerHTML = '<i class="fas fa-play"></i>';
-                clearTimeout(metronomeTimerID);
-            }
-        }
+document.getElementById('padVolumeSlider').addEventListener('input', function(e) {
+    if (activeGain) {
+        activeGain.gain.cancelScheduledValues(audioCtx.currentTime);
+        activeGain.gain.setValueAtTime(this.value, audioCtx.currentTime);
+    }
+});
 
-        function nextNote() {
-            const secondsPerBeat = 60.0 / currentBpm;
-            nextNoteTime += secondsPerBeat;
-            currentBeat++;
-            if (currentBeat >= beatsPerMeasure) currentBeat = 0;
-        }
-
-        function scheduleNote(time) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            if (currentBeat === 0) osc.frequency.value = 1500; 
-            else osc.frequency.value = 1000; 
-
-            const vol = document.getElementById('metroVolumeSlider').value;
-            gain.gain.setValueAtTime(vol, time);
-            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-
-            osc.start(time);
-            osc.stop(time + 0.05);
-
-            const drawTime = (time - audioCtx.currentTime) * 1000;
-            setTimeout(() => {
-                const led = document.getElementById('tempoLed');
-                if(led) {
-                    led.classList.add('flash');
-                    led.style.backgroundColor = currentBeat === 0 ? '#00ff00' : '#444';
-                    setTimeout(() => {
-                        led.classList.remove('flash');
-                        led.style.backgroundColor = '#222';
-                    }, 50);
-                }
-            }, Math.max(0, drawTime));
-        }
-
-        function scheduler() {
-            while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
-                scheduleNote(nextNoteTime);
-                nextNote();
-            }
-            metronomeTimerID = setTimeout(scheduler, lookahead);
-        }
-
-        function updateBpm(val) { currentBpm = parseInt(val); }
-        function updateTimeSig(val) { beatsPerMeasure = parseInt(val); currentBeat = 0; }
-
-        // --- PADS LOGIC ---
-        function togglePad() {
-            initAudio();
-            const capsule = document.getElementById('padCapsule');
-            const textBtn = document.getElementById('padTriggerBtn'); // El botón de la letra
-            
-            if (!isPadOn) {
-                // ENCENDER
-                isPadOn = true;
-                capsule.classList.add('active'); // Ilumina la cápsula
-                
-                // Aseguramos que la letra sea la correcta antes de sonar
-                const selectedKey = document.getElementById('padKeySelect').value;
-                currentPadKey = selectedKey;
-                textBtn.innerText = selectedKey; // Actualiza la letra visual
-                
-                playPadFile(currentPadKey);
-            } else {
-                // APAGAR
-                isPadOn = false;
-                capsule.classList.remove('active'); // Apaga la luz
-                stopPadSmoothly();
-            }
-        }
-
-        function manualPadChange(newKey) {
-            currentPadKey = newKey;
-            
-            // Actualizar la letra en el botón INMEDIATAMENTE
-            const textBtn = document.getElementById('padTriggerBtn');
-            if(textBtn) textBtn.innerText = newKey;
-
-            // Si el pad ya estaba sonando, hacemos el cambio de tono suave
-            if (isPadOn) {
-                playPadFile(newKey);
-            }
-        }
-
-        async function playPadFile(key) {
-            const fileName = FILE_PREFIX + encodeURIComponent(key) + FILE_EXT;
-            try {
-                const response = await fetch(fileName);
-                if (!response.ok) throw new Error("No pad: " + fileName);
-                const arrayBuffer = await response.arrayBuffer();
-                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-
-                if (activeSource) fadeOutOldSource(activeSource, activeGain);
-
-                const source = audioCtx.createBufferSource();
-                source.buffer = audioBuffer;
-                source.loop = true; 
-
-                const gainNode = audioCtx.createGain();
-                const masterVol = parseFloat(document.getElementById('padVolumeSlider').value);
-                
-                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                source.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                source.start(0);
-                gainNode.gain.linearRampToValueAtTime(masterVol, audioCtx.currentTime + 2);
-
-                activeSource = source;
-                activeGain = gainNode;
-            } catch (error) {
-                console.error(error);
-                alert("Error: Sube el archivo " + fileName + " a la carpeta 'pads'");
-                isPadOn = false;
-                document.getElementById('btnPadDock').classList.remove('active');
-                document.getElementById('btnPadDock').innerText = "ERROR";
-            }
-        }
-
-        function fadeOutOldSource(source, gainNode) {
-            if (fadingSource) { try { fadingSource.stop(); } catch(e){} }
-            fadingSource = source;
-            fadingGain = gainNode;
-            fadingGain.gain.cancelScheduledValues(audioCtx.currentTime);
-            fadingGain.gain.setValueAtTime(fadingGain.gain.value, audioCtx.currentTime);
-            fadingGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
-            setTimeout(() => { try { source.stop(); } catch(e){} }, 2100);
-        }
-
-        function stopPadSmoothly() {
-            if (activeSource && activeGain) {
-                fadeOutOldSource(activeSource, activeGain);
-                activeSource = null;
-                activeGain = null;
-            }
-        }
-
-        // Volumen Pad en vivo
-        document.getElementById('padVolumeSlider').addEventListener('input', function(e) {
-            if (activeGain) {
-                activeGain.gain.cancelScheduledValues(audioCtx.currentTime);
-                activeGain.gain.setValueAtTime(this.value, audioCtx.currentTime);
-            }
-        });
-
-        function toggleVolPopup(popupId) {
-            const popup = document.getElementById(popupId);
-            const isShowing = popup.classList.contains('show');
-            document.querySelectorAll('.vol-popup').forEach(p => p.classList.remove('show'));
-            document.querySelectorAll('.bar-btn-icon').forEach(b => b.classList.remove('active'));
-            if (!isShowing) {
-                popup.classList.add('show');
-                popup.parentElement.querySelector('.bar-btn-icon').classList.add('active');
-            }
-        }
+function toggleVolPopup(popupId) {
+    const popup = document.getElementById(popupId);
+    const isShowing = popup.classList.contains('show');
+    document.querySelectorAll('.vol-popup').forEach(p => p.classList.remove('show'));
+    document.querySelectorAll('.bar-btn-icon').forEach(b => b.classList.remove('active'));
+    if (!isShowing) {
+        popup.classList.add('show');
+        popup.parentElement.querySelector('.bar-btn-icon').classList.add('active');
+    }
+}
 
         // --- ACTUALIZAR VISTA CANCION CON INTEGRACIÓN AUDIO ---
         function actualizarVistaCancion(id) {
@@ -1323,7 +1368,7 @@
             document.getElementById('viewList').style.display = 'block'; 
             document.getElementById('transposerPanel').style.display='none'; 
         }
-
+        
     </script>
 </body>
 </html>
