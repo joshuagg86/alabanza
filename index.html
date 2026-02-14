@@ -1293,35 +1293,37 @@ function scheduler() {
 function updateBpm(val) { currentBpm = parseInt(val); }
 function updateTimeSig(val) { beatsPerMeasure = parseInt(val); currentBeat = 0; }
 
-// --- PADS LOGIC (Sin cambios, funciona bien) ---
-function togglePad() {
-    initAudio();
-    const capsule = document.getElementById('padCapsule');
-    const textBtn = document.getElementById('padTriggerBtn');
-    
-    if (!isPadOn) {
-        isPadOn = true;
-        capsule.classList.add('active');
-        const selectedKey = document.getElementById('padKeySelect').value;
-        currentPadKey = selectedKey;
-        textBtn.innerText = selectedKey;
-        playPadFile(currentPadKey);
-    } else {
-        isPadOn = false;
-        capsule.classList.remove('active');
-        stopPadSmoothly();
-    }
+function togglePad() { 
+    initAudio(); // ¡Faltaba esto! Es lo que "despierta" el motor de audio
+    isPadOn = !isPadOn; 
+    const capsule = document.getElementById('padCapsule'); 
+    const btn = document.getElementById('padTriggerBtn');
+    const select = document.getElementById('padKeySelect');
+
+    if(isPadOn) { 
+        capsule.classList.add('active'); 
+        currentPadKey = select.value; // ¡Faltaba asignar el tono antes de tocar!
+        // Mostramos el texto visual de la opción (C#)
+        btn.innerHTML = select.options[select.selectedIndex].text;
+        playPadFile(currentPadKey); 
+    } else { 
+        capsule.classList.remove('active'); 
+        // Volvemos al ícono cuando se apaga
+        btn.innerHTML = '<i class="fas fa-music"></i>';
+        stopPadSmoothly(); 
+    } 
 }
 
-function manualPadChange(newKey) {
-    currentPadKey = newKey;
-    const textBtn = document.getElementById('padTriggerBtn');
-    if(textBtn) textBtn.innerText = newKey;
-    if (isPadOn) {
-        playPadFile(newKey);
-    }
-}
+function manualPadChange(k) { 
+    currentPadKey = k; 
+    const btn = document.getElementById('padTriggerBtn');
+    const select = document.getElementById('padKeySelect');
 
+    if(isPadOn) { 
+        btn.innerHTML = select.options[select.selectedIndex].text;
+        playPadFile(k); 
+    } 
+}
 /* ===========================================================
    MOTOR DE AUDIO OPTIMIZADO (CACHE & QUICK CROSSFADE)
    =========================================================== */
@@ -1330,6 +1332,7 @@ function manualPadChange(newKey) {
 const padBufferCache = {}; 
 
 async function playPadFile(key) {
+    initAudio(); // Aseguramos que el motor esté activo
     const fileName = FILE_PREFIX + encodeURIComponent(key) + FILE_EXT;
     
     try {
@@ -1339,33 +1342,35 @@ async function playPadFile(key) {
         if (padBufferCache[key]) {
             audioBuffer = padBufferCache[key];
         } else {
-            // Si no está, lo descargamos (solo pasará la primera vez)
             const response = await fetch(fileName);
             if (!response.ok) throw new Error("No pad: " + fileName);
             const arrayBuffer = await response.arrayBuffer();
             audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-            
-            // Guardamos en caché para el próximo cambio
             padBufferCache[key] = audioBuffer;
         }
+
+        // --- MEJORA PRO: Si la nueva canción tiene el MISMO tono, no cortamos el audio ---
+        if (activeSource && activeSource.key === key) return;
 
         if (activeSource) fadeOutOldSource(activeSource, activeGain);
 
         const source = audioCtx.createBufferSource();
         source.buffer = audioBuffer;
         source.loop = true; 
+        source.key = key; // Etiquetamos la pista actual con su tono
 
         const gainNode = audioCtx.createGain();
         const masterVol = parseFloat(document.getElementById('padVolumeSlider').value);
         
+        // Anclamos en 0 el inicio del nuevo pad
         gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
         source.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         
         source.start(0);
         
-        // 2. CROSSFADE MÁS RÁPIDO (Reducido de 2s a 1.2s)
-        gainNode.gain.linearRampToValueAtTime(masterVol, audioCtx.currentTime + 1.2);
+        // 2. CROSSFADE MÁS SUAVE (1.5s)
+        gainNode.gain.linearRampToValueAtTime(masterVol, audioCtx.currentTime + 1.5);
 
         activeSource = source;
         activeGain = gainNode;
@@ -1378,15 +1383,20 @@ async function playPadFile(key) {
     }
 }
 
-// 3. AJUSTE EN EL FADEOUT (Sincronizado a 1.2s)
+// 3. AJUSTE EN EL FADEOUT (Crossfade perfecto)
 function fadeOutOldSource(source, gainNode) {
     if (fadingSource) { try { fadingSource.stop(); } catch(e){} }
     fadingSource = source;
     fadingGain = gainNode;
+    
+    // Cancelamos cualquier cambio previo y "anclamos" el volumen actual
     fadingGain.gain.cancelScheduledValues(audioCtx.currentTime);
     fadingGain.gain.setValueAtTime(fadingGain.gain.value, audioCtx.currentTime);
-    fadingGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.2);
-    setTimeout(() => { try { source.stop(); } catch(e){} }, 1300);
+    
+    // Bajamos el volumen a 0 suavemente en 1.5 segundos
+    fadingGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+    
+    setTimeout(() => { try { source.stop(); } catch(e){} }, 1600);
 }
 
 function stopPadSmoothly() {
@@ -1464,6 +1474,15 @@ function toggleVolPopup(popupId) {
             currentPadKey = tonoPad; 
             const selectPad = document.getElementById('padKeySelect');
             if(selectPad) selectPad.value = tonoPad;
+            
+            // Sincronizar texto visual y audio si cambiamos de canción
+            const padBtn = document.getElementById('padTriggerBtn');
+            if (isPadOn) {
+                if(padBtn) padBtn.innerHTML = selectPad.options[selectPad.selectedIndex].text;
+                playPadFile(tonoPad);
+            } else {
+                if(padBtn) padBtn.innerHTML = '<i class="fas fa-music"></i>';
+            }
             
             // Crossfade si está prendido
             if (isPadOn) playPadFile(tonoPad);
