@@ -453,7 +453,7 @@
                 });
             }
         });
-        const ADMIN_EMAIL = "admin@genesaret.com"; 
+        const ADMIN_EMAILS = ["admin@genesaret.com", "monica@genesaret.com", "joshua@genesaret.com"]; 
 
         // Variables Globales
         let usuarioActual = null;
@@ -696,7 +696,7 @@ modalRol
                     }, 2000); 
                 });
 
-                if (user.email === ADMIN_EMAIL) {
+                if (ADMIN_EMAILS.includes(user.email)) {
                     const btnAdmin = document.getElementById('btnAdmin');
                     if(btnAdmin) btnAdmin.style.display = 'flex';
                 }
@@ -754,7 +754,7 @@ modalRol
             const btnNuevo = document.getElementById('btnNuevoRol');
             
             // 1. Mostrar botón si es Admin
-            if (usuarioActual && usuarioActual.email === ADMIN_EMAIL) {
+            if (usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) {
                 btnNuevo.style.display = 'block';
             }
 
@@ -774,7 +774,7 @@ modalRol
                 snap.forEach(doc => {
                     const d = doc.data();
                     const id = doc.id;
-                    const opcionesAdmin = (usuarioActual.email === ADMIN_EMAIL) ? 
+                    const opcionesAdmin = (ADMIN_EMAILS.includes(usuarioActual.email)) ? 
                         `<i class="fas fa-trash" style="color:#ef4444; cursor:pointer;" onclick="eliminarRol('${id}', event)"></i>` : '';
 
                     html += `
@@ -1445,7 +1445,7 @@ function toggleVolPopup(popupId) {
             cargarNotasYRenderizar();
             
             const btnEdit = document.getElementById('btnDirectEdit');
-            if (usuarioActual && usuarioActual.email === ADMIN_EMAIL) btnEdit.style.display = 'flex';
+            if (usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) btnEdit.style.display = 'flex';
             else btnEdit.style.display = 'none';
 
             // --- AUDIO DOCK UPDATE ---
