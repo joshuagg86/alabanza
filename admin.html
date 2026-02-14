@@ -368,7 +368,8 @@
         }
 
         firebase.auth().onAuthStateChanged(user => {
-            if (!user || user.email !== ADMIN_EMAIL) {
+            // AQUÍ ESTÁ LA MAGIA: Verificamos si el correo está en la lista de ADMIN_EMAILS
+            if (!user || !ADMIN_EMAILS.includes(user.email)) {
                 window.location.href = 'index.html';
             } else {
                 document.getElementById('adminBody').style.display = 'block';

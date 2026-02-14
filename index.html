@@ -1576,9 +1576,12 @@ function toggleVolPopup(popupId) {
         }
 
         // Renderizado con el nuevo diseño minimalista
+        // Renderizado con el nuevo diseño minimalista
         async function cargarRolServicio() {
             const container = document.getElementById('rolListaContainer');
-            if (usuarioActual && usuarioActual.email === ADMIN_EMAIL) {
+            
+            // CORRECCIÓN: Verifica usando la lista ADMIN_EMAILS
+            if (usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) {
                 document.getElementById('btnNuevoRol').style.display = 'block';
             }
 
@@ -1600,36 +1603,36 @@ function toggleVolPopup(popupId) {
                     const dateObj = new Date(f[0], f[1]-1, f[2]);
                     const esProximo = index === 0;
 
-                    const opcionesAdmin = (usuarioActual.email === ADMIN_EMAIL) ? 
+                    // CORRECCIÓN: Verifica usando la lista ADMIN_EMAILS para mostrar lápiz y bote de basura
+                    const opcionesAdmin = (usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) ? 
                 `<div class="admin-actions" style="display:flex; gap:10px;">
                     <i class="fas fa-pen" style="color:#818cf8; cursor:pointer;" onclick="editarRol('${doc.id}', '${d.fecha}', '${d.direccion}', '${d.coro1}', '${d.coro2}', event)"></i>
                     <i class="fas fa-trash" style="color:#ef4444; cursor:pointer;" onclick="eliminarRol('${doc.id}', event)"></i>
                 </div>` : '';
 
-            // --- NUEVO HTML DE LA TARJETA (Estructura separada) ---
-            html += `
-                <div class="card rol-minimal-card ${esProximo ? 'proximo-servicio' : ''}">
-                    <div class="rol-minimal-header">
-                        <div class="rol-date">
-                            <span class="day">${dateObj.getDate()}</span>
-                            <span class="month">${dateObj.toLocaleDateString('es-MX', {month:'short'}).toUpperCase()}</span>
-                        </div>
-                        ${opcionesAdmin}
-                    </div>
-                    <div class="rol-minimal-body">
-                        <div class="rol-item">
-                            <i class="fas fa-star"></i> <strong>Dirige:</strong> <span>${d.direccion}</span>
-                        </div>
-                        <div class="rol-item">
-                            <i class="fas fa-microphone"></i> <strong>Coro 1:</strong> <span>${d.coro1}</span>
-                        </div>
-                        <div class="rol-item">
-                            <i class="fas fa-microphone"></i> <strong>Coro 2:</strong> <span>${d.coro2}</span>
-                        </div>
-                    </div>
-                </div>`;
-        });
-        container.innerHTML = html;
+                    html += `
+                        <div class="card rol-minimal-card ${esProximo ? 'proximo-servicio' : ''}">
+                            <div class="rol-minimal-header">
+                                <div class="rol-date">
+                                    <span class="day">${dateObj.getDate()}</span>
+                                    <span class="month">${dateObj.toLocaleDateString('es-MX', {month:'short'}).toUpperCase()}</span>
+                                </div>
+                                ${opcionesAdmin}
+                            </div>
+                            <div class="rol-minimal-body">
+                                <div class="rol-item">
+                                    <i class="fas fa-star"></i> <strong>Dirige:</strong> <span>${d.direccion}</span>
+                                </div>
+                                <div class="rol-item">
+                                    <i class="fas fa-microphone"></i> <strong>Coro 1:</strong> <span>${d.coro1}</span>
+                                </div>
+                                <div class="rol-item">
+                                    <i class="fas fa-microphone"></i> <strong>Coro 2:</strong> <span>${d.coro2}</span>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                container.innerHTML = html;
             });
         }
         
