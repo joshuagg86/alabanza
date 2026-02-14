@@ -467,3 +467,21 @@ function crearBloque(acorde, letra) {
 }
 
 function irALista() { window.location.href = 'index.html'; }
+function guardarRol() {
+    const rol = {
+        fecha: document.getElementById('rolFecha').value,
+        director: document.getElementById('rolDirector').value,
+        piano: document.getElementById('rolPiano').value,
+        guitarra: document.getElementById('rolGuitarra').value,
+        bateria: document.getElementById('rolBateria').value,
+        bajo: document.getElementById('rolBajo').value,
+        coros: document.getElementById('rolCoros').value,
+        fechaCreacion: new Date()
+    };
+
+    if(!rol.fecha || !rol.director) return alert("Mínimo pon fecha y director.");
+
+    db.collection('roles').add(rol).then(() => {
+        alert("¡Rol publicado con éxito!");
+    }).catch(e => console.error(e));
+}

@@ -247,6 +247,26 @@
             </div>
         </div>
     </div>
+    <div id="modalRol" class="custom-modal-overlay">
+    <div class="custom-modal-box">
+        <div class="modal-icon">📅</div>
+        <div class="modal-title">Programar Servicio</div>
+        <div style="text-align: left; margin-top: 15px;">
+            <label style="font-size: 11px; color: #666; font-weight: 800;">FECHA</label>
+            <input type="date" id="inputRolFecha" class="modal-input-field">
+            <label style="font-size: 11px; color: #666; font-weight: 800;">DIRECCIÓN</label>
+            <input type="text" id="inputRolDir" class="modal-input-field" placeholder="Líder de alabanza">
+            <label style="font-size: 11px; color: #666; font-weight: 800;">CORO 1</label>
+            <input type="text" id="inputRolC1" class="modal-input-field" placeholder="Voz 1">
+            <label style="font-size: 11px; color: #666; font-weight: 800;">CORO 2</label>
+            <input type="text" id="inputRolC2" class="modal-input-field" placeholder="Voz 2">
+        </div>
+        <div class="modal-actions">
+            <button onclick="cerrarModalRol()" class="btn-modal cancel">Cancelar</button>
+            <button onclick="guardarNuevoRolFirebase()" class="btn-modal confirm">Guardar</button>
+        </div>
+    </div>
+</div>
 
     <div class="container">
         <div id="viewList">
@@ -270,6 +290,7 @@
             <div class="tabs-wrapper" style="background: #131316; border: 1px solid var(--glass-border); padding: 5px; border-radius: 16px; display: flex; margin-bottom: 25px;">
                 <button id="tabAll" class="tab-btn active" onclick="cambiarTab('all')">Repertorio</button>
                 <button id="tabPlaylist" class="tab-btn" onclick="cambiarTab('playlist')">Domingo</button>
+                <button id="tabRol" class="tab-btn" onclick="cambiarTab('rol')">Rol</button>
             </div>
             
             <div class="search-container">
@@ -280,6 +301,14 @@
             <ul id="songList" class="song-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
                 <div style="text-align:center; padding:60px; color:#444;"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
             </ul>
+            <div id="viewRolContent" style="display: none; margin-top: 20px; padding-bottom: 100px;">
+                <button id="btnNuevoRol" class="btn btn-primary" style="display:none; width:100%; margin-bottom:20px;" onclick="abrirModalNuevoRol()">
+                    <i class="fas fa-plus"></i> Programar Mes
+                </button>
+                
+                <div id="rolListaContainer">
+                    </div>
+            </div>
         </div>
 
         <div id="viewSong" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 50; flex-direction: column; overflow: hidden;">
@@ -615,7 +644,7 @@
                 }
             });
         }
-
+modalRol
         function mostrarSelectorRol() {
             document.getElementById('modalCambioRol').style.display = 'flex';
         }
@@ -699,9 +728,71 @@
         function cambiarTab(tab) {
             tabActual = tab;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            if(tab === 'all') document.getElementById('tabAll').classList.add('active');
-            else document.getElementById('tabPlaylist').classList.add('active');
-            renderizarLista();
+            
+            // Elementos a controlar
+            const listContainer = document.getElementById('songList');
+            const searchContainer = document.querySelector('.search-container');
+            const rolContainer = document.getElementById('viewRolContent');
+
+            if (tab === 'rol') {
+                document.getElementById('tabRol').classList.add('active');
+                listContainer.style.display = 'none';
+                searchContainer.style.display = 'none';
+                rolContainer.style.display = 'block';
+                cargarRolServicio(); // Función que crearemos
+            } else {
+                listContainer.style.display = 'flex';
+                searchContainer.style.display = 'block';
+                rolContainer.style.display = 'none';
+                if(tab === 'all') document.getElementById('tabAll').classList.add('active');
+                else document.getElementById('tabPlaylist').classList.add('active');
+                renderizarLista();
+            }
+        }
+        async function cargarRolServicio() {
+            const container = document.getElementById('rolListaContainer');
+            const btnNuevo = document.getElementById('btnNuevoRol');
+            
+            // 1. Mostrar botón si es Admin
+            if (usuarioActual && usuarioActual.email === ADMIN_EMAIL) {
+                btnNuevo.style.display = 'block';
+            }
+
+            // 2. Traer roles del mes (desde hoy en adelante)
+            const hoy = new Date().toISOString().split('T')[0];
+            
+            db.collection('roles')
+            .where('fecha', '>=', hoy)
+            .orderBy('fecha', 'asc')
+            .onSnapshot(snap => {
+                if (snap.empty) {
+                    container.innerHTML = "<p style='text-align:center; color:#666; margin-top:50px;'>No hay fechas programadas aún.</p>";
+                    return;
+                }
+                
+                let html = '';
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const id = doc.id;
+                    const opcionesAdmin = (usuarioActual.email === ADMIN_EMAIL) ? 
+                        `<i class="fas fa-trash" style="color:#ef4444; cursor:pointer;" onclick="eliminarRol('${id}', event)"></i>` : '';
+
+                    html += `
+                        <div class="card" style="margin-bottom:15px; background: rgba(255,255,255,0.03);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px;">
+                                <span style="color:var(--accent-glow); font-weight:700; text-transform:capitalize;">
+                                    <i class="fas fa-calendar-day"></i> ${new Date(d.fecha + "T00:00:00").toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short'})}
+                                </span>
+                                ${opcionesAdmin}
+                            </div>
+                            <div class="rol-row"><strong>Dirección:</strong> <span>${d.direccion}</span></div>
+                            <div class="rol-row"><strong>Coro 1:</strong> <span>${d.coro1}</span></div>
+                            <div class="rol-row"><strong>Coro 2:</strong> <span>${d.coro2}</span></div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            });
         }
 
         function renderizarLista() {
@@ -1231,14 +1322,32 @@ function manualPadChange(newKey) {
     }
 }
 
+/* ===========================================================
+   MOTOR DE AUDIO OPTIMIZADO (CACHE & QUICK CROSSFADE)
+   =========================================================== */
+   
+// Nueva variable para guardar los audios ya descargados
+const padBufferCache = {}; 
+
 async function playPadFile(key) {
-    // Codificar nombre por si tiene # (aunque usas bemoles ahora)
     const fileName = FILE_PREFIX + encodeURIComponent(key) + FILE_EXT;
+    
     try {
-        const response = await fetch(fileName);
-        if (!response.ok) throw new Error("No pad: " + fileName);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+        let audioBuffer;
+
+        // 1. VERIFICAR SI YA ESTÁ EN CACHÉ
+        if (padBufferCache[key]) {
+            audioBuffer = padBufferCache[key];
+        } else {
+            // Si no está, lo descargamos (solo pasará la primera vez)
+            const response = await fetch(fileName);
+            if (!response.ok) throw new Error("No pad: " + fileName);
+            const arrayBuffer = await response.arrayBuffer();
+            audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            
+            // Guardamos en caché para el próximo cambio
+            padBufferCache[key] = audioBuffer;
+        }
 
         if (activeSource) fadeOutOldSource(activeSource, activeGain);
 
@@ -1254,13 +1363,14 @@ async function playPadFile(key) {
         gainNode.connect(audioCtx.destination);
         
         source.start(0);
-        gainNode.gain.linearRampToValueAtTime(masterVol, audioCtx.currentTime + 2);
+        
+        // 2. CROSSFADE MÁS RÁPIDO (Reducido de 2s a 1.2s)
+        gainNode.gain.linearRampToValueAtTime(masterVol, audioCtx.currentTime + 1.2);
 
         activeSource = source;
         activeGain = gainNode;
     } catch (error) {
-        console.error(error);
-        // Alerta visual discreta en lugar de alert()
+        console.error("Error en Pad:", error);
         const textBtn = document.getElementById('padTriggerBtn');
         if(textBtn) textBtn.innerText = "Err";
         isPadOn = false;
@@ -1268,14 +1378,15 @@ async function playPadFile(key) {
     }
 }
 
+// 3. AJUSTE EN EL FADEOUT (Sincronizado a 1.2s)
 function fadeOutOldSource(source, gainNode) {
     if (fadingSource) { try { fadingSource.stop(); } catch(e){} }
     fadingSource = source;
     fadingGain = gainNode;
     fadingGain.gain.cancelScheduledValues(audioCtx.currentTime);
     fadingGain.gain.setValueAtTime(fadingGain.gain.value, audioCtx.currentTime);
-    fadingGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 2);
-    setTimeout(() => { try { source.stop(); } catch(e){} }, 2100);
+    fadingGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.2);
+    setTimeout(() => { try { source.stop(); } catch(e){} }, 1300);
 }
 
 function stopPadSmoothly() {
@@ -1368,7 +1479,142 @@ function toggleVolPopup(popupId) {
             document.getElementById('viewList').style.display = 'block'; 
             document.getElementById('transposerPanel').style.display='none'; 
         }
+        // Variable global para saber si creamos o editamos
+        let rolEditandoId = null;
+
+        // Modificado para limpiar siempre al abrir como "Nuevo"
+        function abrirModalNuevoRol() {
+            rolEditandoId = null; 
+            document.getElementById('inputRolFecha').value = "";
+            document.getElementById('inputRolDir').value = "";
+            document.getElementById('inputRolC1').value = "";
+            document.getElementById('inputRolC2').value = "";
+            
+            document.querySelector('#modalRol .modal-title').innerText = "Programar Servicio";
+            document.getElementById('modalRol').classList.add('open');
+        }
+        function cerrarModalRol() {
+            // 1. Cerramos el modal
+            document.getElementById('modalRol').classList.remove('open');
+            
+            // 2. Limpiamos la variable por si estábamos editando y nos arrepentimos
+            rolEditandoId = null; 
+        }
+
+        // Nueva función para editar
+        function editarRol(id, f, d, c1, c2, e) {
+            e.stopPropagation(); // Evita clics no deseados
+            rolEditandoId = id;
+            
+            document.getElementById('inputRolFecha').value = f;
+            document.getElementById('inputRolDir').value = d;
+            document.getElementById('inputRolC1').value = c1 === "---" ? "" : c1;
+            document.getElementById('inputRolC2').value = c2 === "---" ? "" : c2;
+            
+            document.querySelector('#modalRol .modal-title').innerText = "Editar Servicio";
+            document.getElementById('modalRol').classList.add('open');
+        }
+
+        // Modificado para detectar si es un UPDATE o un ADD
+        function guardarNuevoRolFirebase() {
+            const f = document.getElementById('inputRolFecha').value;
+            const d = document.getElementById('inputRolDir').value;
+            const c1 = document.getElementById('inputRolC1').value;
+            const c2 = document.getElementById('inputRolC2').value;
+
+            if(!f || !d) return alert("Por favor selecciona fecha y dirección");
+
+            const datos = {
+                fecha: f,
+                direccion: d,
+                coro1: c1 || "---",
+                coro2: c2 || "---",
+                ultimaEdicion: new Date()
+            };
+
+            let promesa;
+            if (rolEditandoId) {
+                // Si hay un ID, actualizamos
+                promesa = db.collection('roles').doc(rolEditandoId).update(datos);
+            } else {
+                // Si no hay ID, creamos uno nuevo
+                datos.creadoEn = new Date();
+                promesa = db.collection('roles').add(datos);
+            }
+
+            promesa.then(() => {
+                document.getElementById('modalRol').classList.remove('open');
+                if(window.vibrate) navigator.vibrate(50);
+                rolEditandoId = null; // Reiniciamos la variable
+            }).catch(e => console.error("Error:", e));
+        }
+
+        function eliminarRol(id, e) {
+            e.stopPropagation();
+            Modal.confirm("¿Eliminar fecha?", "Se borrará este rol del calendario.", "🗑️").then(conf => {
+                if(conf) db.collection('roles').doc(id).delete();
+            });
+        }
+
+        // Renderizado con el nuevo diseño minimalista
+        async function cargarRolServicio() {
+            const container = document.getElementById('rolListaContainer');
+            if (usuarioActual && usuarioActual.email === ADMIN_EMAIL) {
+                document.getElementById('btnNuevoRol').style.display = 'block';
+            }
+
+            const hoy = new Date().toISOString().split('T')[0];
+            
+            db.collection('roles')
+            .where('fecha', '>=', hoy)
+            .orderBy('fecha', 'asc')
+            .onSnapshot(snap => {
+                if (snap.empty) {
+                    container.innerHTML = "<div class='empty-state'><i class='fas fa-calendar-times fa-3x'></i><p>No hay fechas programadas.</p></div>";
+                    return;
+                }
+                
+                let html = '';
+                snap.docs.forEach((doc, index) => {
+                    const d = doc.data();
+                    const f = d.fecha.split('-');
+                    const dateObj = new Date(f[0], f[1]-1, f[2]);
+                    const esProximo = index === 0;
+
+                    const opcionesAdmin = (usuarioActual.email === ADMIN_EMAIL) ? 
+                `<div class="admin-actions" style="display:flex; gap:10px;">
+                    <i class="fas fa-pen" style="color:#818cf8; cursor:pointer;" onclick="editarRol('${doc.id}', '${d.fecha}', '${d.direccion}', '${d.coro1}', '${d.coro2}', event)"></i>
+                    <i class="fas fa-trash" style="color:#ef4444; cursor:pointer;" onclick="eliminarRol('${doc.id}', event)"></i>
+                </div>` : '';
+
+            // --- NUEVO HTML DE LA TARJETA (Estructura separada) ---
+            html += `
+                <div class="card rol-minimal-card ${esProximo ? 'proximo-servicio' : ''}">
+                    <div class="rol-minimal-header">
+                        <div class="rol-date">
+                            <span class="day">${dateObj.getDate()}</span>
+                            <span class="month">${dateObj.toLocaleDateString('es-MX', {month:'short'}).toUpperCase()}</span>
+                        </div>
+                        ${opcionesAdmin}
+                    </div>
+                    <div class="rol-minimal-body">
+                        <div class="rol-item">
+                            <i class="fas fa-star"></i> <strong>Dirige:</strong> <span>${d.direccion}</span>
+                        </div>
+                        <div class="rol-item">
+                            <i class="fas fa-microphone"></i> <strong>Coro 1:</strong> <span>${d.coro1}</span>
+                        </div>
+                        <div class="rol-item">
+                            <i class="fas fa-microphone"></i> <strong>Coro 2:</strong> <span>${d.coro2}</span>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        container.innerHTML = html;
+            });
+        }
         
     </script>
+    
 </body>
 </html>

@@ -1,4 +1,6 @@
-const CACHE_NAME = 'alabanza-v2';
+const CACHE_NAME = 'alabanza-v3'; // Subimos versión
+const PADS = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'].map(t => `./pads/${t}.mp3`);
+
 const urlsToCache = [
   './',
   './index.html',

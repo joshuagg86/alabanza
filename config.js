@@ -15,5 +15,7 @@ if (!firebase.apps.length) {
 
 // Creamos la variable GLOBAL 'db' para que app.js la pueda usar
 window.db = firebase.firestore();
+// Funcion para que las canciones se guardenen el telefono
+window.db.enablePersistence().catch(err => console.error("Error persistencia:", err.code));
 
 console.log("✅ Configuración cargada. Base de datos lista.");
