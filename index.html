@@ -713,12 +713,27 @@ modalRol
             document.getElementById('displayUserBadge').innerHTML = `${icon} <span style="margin-left: 8px;">${nombreDisplay}</span>`;
         }
 
+        let primeraCargaCanciones = true; // Variable de control
+
         function cargarDatosApp() {
             db.collection('canciones').orderBy('titulo').onSnapshot(snap => {
                 todasLasCanciones = [];
                 snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
                 renderizarLista();
+
+                // --- NUEVO: Si es la primera vez que carga la página, revisa la URL ---
+                if (primeraCargaCanciones) {
+                    primeraCargaCanciones = false;
+                    const params = new URLSearchParams(window.location.search);
+                    const songId = params.get('song');
+                    
+                    if (songId) {
+                        // Da un pequeño respiro para asegurar que el HTML esté listo y abre la canción
+                        setTimeout(() => abrirCancion(songId), 100);
+                    }
+                }
             });
+            
             db.collection('configuracion').doc('playlist_semanal').onSnapshot(doc => {
                 idsEnPlaylist = doc.exists ? (doc.data().canciones || []) : [];
                 renderizarLista();
@@ -864,6 +879,8 @@ modalRol
             indiceNavegacion = listaNavegacionActual.indexOf(id);
 
             actualizarVistaCancion(id);
+            const nuevaUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?song=" + id;
+            window.history.pushState({ path: nuevaUrl }, '', nuevaUrl);
         }
 
         function navegarCancion(direccion) {
@@ -1497,6 +1514,13 @@ function toggleVolPopup(popupId) {
             document.getElementById('viewSong').style.display = 'none'; 
             document.getElementById('viewList').style.display = 'block'; 
             document.getElementById('transposerPanel').style.display='none'; 
+            
+            // --- NUEVO: Limpia el buscador y reinicia la lista automáticamente ---
+            document.getElementById('searchInput').value = '';
+            renderizarLista();
+
+            const urlLimpia = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.pushState({ path: urlLimpia }, '', urlLimpia);
         }
         // Variable global para saber si creamos o editamos
         let rolEditandoId = null;
