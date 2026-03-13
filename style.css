@@ -430,26 +430,47 @@ body.hide-chords .song-line {
 }
 
 /* =========================================
-   MODO MULTI-COLUMNA (OPTIMIZADO BATERÍA)
+   MODO MULTI-COLUMNA (OPTIMIZADO BATERÍA - FLUJO TOTAL)
    ========================================= */
 
 .lyrics-cols-bate {
     display: block !important;
-    column-count: 2;
-    column-gap: 30px; 
-    column-rule: 1px solid rgba(255, 255, 255, 0.1);
+    column-count: 4; /* Mantén el máximo de columnas */
+    column-gap: 30px;
+    column-fill: auto !important; /* CLAVE: Llena una columna antes de pasar a la otra */
     width: 100% !important;
-    height: 90vh !important; 
-    max-height: 90vh !important;
-    /* AJUSTE: Letra un poco más chica para ganar visión global */
-    font-size: 13.5px !important; 
+    height: 80vh !important; /* Limitamos la altura para que el texto "choque" abajo y salte */
+    max-height: 80vh !important;
+    font-size: 13.5px !important;
+    overflow: hidden;
+}
+
+.lyrics-cols-bate .section-block {
+    display: block !important; 
+    width: 100%;
+    margin-bottom: 15px !important;
+    
+    /* Esto es lo que elimina los huecos negros */
+    break-inside: auto !important;
+    -webkit-column-break-inside: auto !important;
+    page-break-inside: auto !important;
+}
+
+.section-block {
+    display: block !important; 
+    width: 100%;
+    margin-bottom: 12px !important;
+    
+    /* Forzamos el flujo continuo eliminando bloqueos */
+    break-inside: auto !important;
+    -webkit-column-break-inside: auto !important;
 }
 
 .lyrics-cols-bate .line-wrapper {
     margin-bottom: 2px !important;
-    padding: 0 !important;
-    /* CAMBIO CLAVE: 'auto' permite que el bloque termine en la siguiente columna */
-    break-inside: auto !important; 
+    display: block !important;
+    /* Cambiamos avoid por auto para rellenar los huecos negros */
+    break-inside: auto !important;
 }
 
 .lyrics-cols-bate .song-line {
@@ -458,26 +479,18 @@ body.hide-chords .song-line {
     min-height: auto !important;
 }
 
-.lyrics-cols-bate .lyric {
-    line-height: 1.2 !important;
-    height: auto !important;
-    padding-bottom: 1px !important; /* Espacio mínimo entre líneas */
-    white-space: pre-wrap !important;
-}
-
 .lyrics-cols-bate .struct-btn {
-    /* Reducimos márgenes de los botones para ganar filas de letra */
-    margin-top: 8px !important; 
+    margin-top: 5px !important;
     margin-bottom: 4px !important;
-    font-size: 10px !important;
-    padding: 2px 8px !important;
-    /* Asegura que el título no quede solo al final de la columna */
-    break-after: avoid !important;
+    /* Al quitar 'break-after: avoid', permitimos que el título se quede solo 
+       abajo y la letra suba a la siguiente columna si es necesario */
+    break-after: auto !important;
+    -webkit-column-break-after: auto !important;
 }
 
-/* Ajuste para pantallas medianas (laptops) */
+/* Ajuste de columnas según el ancho de tu laptop */
 @media (min-width: 1000px) { .lyrics-cols-bate { column-count: 3; } }
-@media (min-width: 1250px) { .lyrics-cols-bate { column-count: 4; column-gap: 20px; } }
+@media (min-width: 1400px) { .lyrics-cols-bate { column-count: 4; } }
 @media (max-width: 900px) {
     .lyrics-cols-bate {
         column-count: 1 !important;
@@ -615,14 +628,13 @@ body.hide-chords .song-line {
     color: #fff;
 }
 
-.section-block {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-    display: inline-block;
+/* --- .section-block {
+    -webkit-column-break-inside: auto !important; 
+    break-inside: auto !important;
+    display: block;
     width: 100%;
     margin-bottom: 15px;
-}
+} --- */
 
 .section-block .struct-btn {
     margin-top: 0 !important;
