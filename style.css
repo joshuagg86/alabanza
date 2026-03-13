@@ -430,7 +430,7 @@ body.hide-chords .song-line {
 }
 
 /* =========================================
-   MODO MULTI-COLUMNA (BATERÍA / VOZ)
+   MODO MULTI-COLUMNA (OPTIMIZADO BATERÍA)
    ========================================= */
 
 .lyrics-cols-bate {
@@ -441,13 +441,15 @@ body.hide-chords .song-line {
     width: 100% !important;
     height: 90vh !important; 
     max-height: 90vh !important;
-    font-size: 15px !important; 
+    /* AJUSTE: Letra un poco más chica para ganar visión global */
+    font-size: 13.5px !important; 
 }
 
 .lyrics-cols-bate .line-wrapper {
     margin-bottom: 2px !important;
     padding: 0 !important;
-    break-inside: avoid !important;
+    /* CAMBIO CLAVE: 'auto' permite que el bloque termine en la siguiente columna */
+    break-inside: auto !important; 
 }
 
 .lyrics-cols-bate .song-line {
@@ -459,24 +461,21 @@ body.hide-chords .song-line {
 .lyrics-cols-bate .lyric {
     line-height: 1.2 !important;
     height: auto !important;
-    padding-bottom: 2px !important;
+    padding-bottom: 1px !important; /* Espacio mínimo entre líneas */
     white-space: pre-wrap !important;
 }
 
-.lyrics-cols-bate .chord {
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
 .lyrics-cols-bate .struct-btn {
-    margin-top: 15px !important;
-    margin-bottom: 5px !important;
+    /* Reducimos márgenes de los botones para ganar filas de letra */
+    margin-top: 8px !important; 
+    margin-bottom: 4px !important;
     font-size: 10px !important;
     padding: 2px 8px !important;
+    /* Asegura que el título no quede solo al final de la columna */
+    break-after: avoid !important;
 }
 
+/* Ajuste para pantallas medianas (laptops) */
 @media (min-width: 1000px) { .lyrics-cols-bate { column-count: 3; } }
 @media (min-width: 1250px) { .lyrics-cols-bate { column-count: 4; column-gap: 20px; } }
 @media (max-width: 900px) {
