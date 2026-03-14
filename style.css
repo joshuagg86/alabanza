@@ -492,10 +492,25 @@ body.hide-chords .song-line {
 @media (min-width: 1000px) { .lyrics-cols-bate { column-count: 3; } }
 @media (min-width: 1400px) { .lyrics-cols-bate { column-count: 4; } }
 @media (max-width: 900px) {
+    /* 1. Liberamos el contenedor de la letra para que crezca y se pueda deslizar */
     .lyrics-cols-bate {
-        column-count: 1 !important;
-        height: auto !important;
+        column-count: 1 !important; 
+        height: auto !important; 
         max-height: none !important;
+        display: block !important;
+        overflow: visible !important;
+    }
+
+    /* 2. Aseguramos que el visor de la canción permita el scroll táctil */
+    #viewSong {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* 3. Agregamos espacio al final para que los controles de audio no tapen la letra */
+    .lyrics-container {
+        padding-bottom: 140px !important;
+        height: auto !important;
     }
 }
 
