@@ -1696,29 +1696,37 @@ function toggleVolPopup(popupId) {
          }
 
          async function precargarTodosLosPads() {
-                console.log("🚀 Iniciando precarga agresiva de pads...");
-                const notas = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
-                
-                for (const nota of notas) {
-                    if (!padBufferCache[nota]) {
-                        try {
-                            const fileName = FILE_PREFIX + encodeURIComponent(nota) + FILE_EXT;
-                            // Agregamos un timestamp para saltar cualquier error de red
-                            const response = await fetch(fileName + "?v=" + Date.now()); 
-                            const arrayBuffer = await response.arrayBuffer();
-                            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                            padBufferCache[nota] = audioBuffer;
-                            console.log(`✅ ${nota} guardado en RAM y listo.`);
-                        } catch (e) {
-                            console.error(`❌ Error en pad ${nota}:`, e);
-                        }
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // ------------------------------------------
+
+            console.log("🚀 Iniciando precarga agresiva de pads...");
+            const notas = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+            
+            for (const nota of notas) {
+                if (!padBufferCache[nota]) {
+                    try {
+                        const fileName = FILE_PREFIX + encodeURIComponent(nota) + FILE_EXT;
+
+                        const response = await fetch(fileName + "?v=" + Date.now()); 
+                        const arrayBuffer = await response.arrayBuffer();
+                        
+                        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                        
+                        padBufferCache[nota] = audioBuffer;
+                        console.log(`✅ ${nota} guardado en RAM y listo.`);
+                    } catch (e) {
+                        console.error(`❌ Error en pad ${nota}:`, e);
                     }
                 }
-                padsListos = true;
-                verificarEstadoTotal();
-                console.log("🎯 Pads cargados en RAM");
             }
-            precargarTodosLosPads();
+            padsListos = true;
+            verificarEstadoTotal();
+            console.log("🎯 Pads cargados en RAM");
+        }
+
+        precargarTodosLosPads();
 
         function eliminarCancionDirecto(id, titulo, event) {
             event.stopPropagation(); // Evita que se abra la canción al querer borrarla
