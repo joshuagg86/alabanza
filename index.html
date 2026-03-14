@@ -452,6 +452,7 @@
                     if (event.key === 'Enter') {
                         event.preventDefault();
                         procesarAutenticacion();
+                        precargarTodosLosPads();
                     }
                 });
             }
@@ -468,6 +469,8 @@
         let cancionActual = null;
         let semitonos = 0;
         let notasDeLaCancion = {};
+        let cancionesListas = false;
+        let padsListos = false;
         const NOTAS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
         let listaNavegacionActual = []; 
@@ -719,17 +722,17 @@ modalRol
         let primeraCargaCanciones = true; // Variable de control
 
        function cargarDatosApp() {
-            // 1. Sincroniza TODO el repertorio y actualiza el indicador de nube
+
             db.collection('canciones').orderBy('titulo').onSnapshot({ includeMetadataChanges: true }, snap => {
-                // --- AQUÍ ACTIVAMOS EL INDICADOR ---
-                // snap.metadata.fromCache es true si los datos ya están en tu laptop
-                actualizarIndicadorSync(snap.metadata.fromCache);
+                // CORRECCIÓN: Aquí le damos el valor a la variable
+                cancionesListas = snap.metadata.fromCache;
+                verificarEstadoTotal();
 
                 todasLasCanciones = [];
                 snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
                 renderizarLista();
                 
-                // Manejo de URL inicial
+
                 if (primeraCargaCanciones) {
                     primeraCargaCanciones = false;
                     const params = new URLSearchParams(window.location.search);
@@ -738,16 +741,20 @@ modalRol
                 }
             });
 
-            // 2. Sincronización de notas personales
+        
             if (usuarioActual) {
                 db.collection('notas_personales')
                 .where('usuarioEmail', '==', usuarioActual.email)
                 .onSnapshot({ includeMetadataChanges: true }, snap => {
-                    console.log("📝 Notas personales sincronizadas localmente");
+                    console.log("📝 Notas personales sincronizadas");
+                    // Si las notas personales también están en cache, reforzamos el estado
+                    if (snap.metadata.fromCache) {
+                        cancionesListas = true;
+                        verificarEstadoTotal();
+                    }
                 });
             }
 
-            // 3. Sincroniza la playlist del domingo
             db.collection('configuracion').doc('playlist_semanal').onSnapshot(doc => {
                 idsEnPlaylist = doc.exists ? (doc.data().canciones || []) : [];
                 renderizarLista();
@@ -1686,27 +1693,33 @@ function toggleVolPopup(popupId) {
                 container.innerHTML = html;
             });
 
-            async function precargarTodosLosPads() {
-                console.log("Iniciando precarga de pads...");
+         }
+
+         async function precargarTodosLosPads() {
+                console.log("🚀 Iniciando precarga agresiva de pads...");
                 const notas = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
                 
                 for (const nota of notas) {
                     if (!padBufferCache[nota]) {
                         try {
                             const fileName = FILE_PREFIX + encodeURIComponent(nota) + FILE_EXT;
-                            const response = await fetch(fileName);
+                            // Agregamos un timestamp para saltar cualquier error de red
+                            const response = await fetch(fileName + "?v=" + Date.now()); 
                             const arrayBuffer = await response.arrayBuffer();
                             const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                             padBufferCache[nota] = audioBuffer;
-                            console.log(`✅ Pad ${nota} listo para uso offline`);
+                            console.log(`✅ ${nota} guardado en RAM y listo.`);
                         } catch (e) {
-                            console.error(`Error precargando ${nota}:`, e);
+                            console.error(`❌ Error en pad ${nota}:`, e);
                         }
                     }
                 }
+                padsListos = true;
+                verificarEstadoTotal();
+                console.log("🎯 Pads cargados en RAM");
             }
             precargarTodosLosPads();
-        }
+
         function eliminarCancionDirecto(id, titulo, event) {
             event.stopPropagation(); // Evita que se abra la canción al querer borrarla
             
@@ -1736,6 +1749,22 @@ function toggleVolPopup(popupId) {
                 icon.style.color = "#6366f1"; // Morado/Indigo
                 icon.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
                 icon.title = "Sincronizando con la nube...";
+            }
+        }
+        function verificarEstadoTotal() {
+            const icon = document.getElementById('syncIndicator');
+            if (!icon) return;
+
+            // Solo si AMBAS son verdaderas, pasamos a verde
+            if (cancionesListas && padsListos) {
+                icon.style.color = "#10b981"; // Verde Esmeralda
+                icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                icon.title = "Todo listo: Letras y Pads offline";
+                console.log("✅ SISTEMA TOTALMENTE SINCRONIZADO");
+            } else {
+                // Mientras falte alguna, mantenemos el estado de carga
+                icon.style.color = "#6366f1"; 
+                icon.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
             }
         }
     </script>
