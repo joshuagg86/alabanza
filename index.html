@@ -280,6 +280,9 @@
                         <i class="fas fa-wand-magic-sparkles"></i>
                         <span>Studio</span>
                     </button>
+                    <div id="syncIndicator" title="Estado de Sincronización" style="font-size: 16px; color: #666; transition: 0.3s; margin-right: 5px;">
+                        <i class="fas fa-cloud"></i>
+                    </div>
                     <div class="user-badge" onclick="mostrarSelectorRol()" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px 14px; border-radius: 50px; font-size: 13px; border: 1px solid var(--glass-border); cursor: pointer; transition: 0.2s;">
                         <span id="displayUserBadge"><i class="fas fa-user"></i> ...</span>
                     </div>
@@ -715,25 +718,36 @@ modalRol
 
         let primeraCargaCanciones = true; // Variable de control
 
-        function cargarDatosApp() {
-            db.collection('canciones').orderBy('titulo').onSnapshot(snap => {
+       function cargarDatosApp() {
+            // 1. Sincroniza TODO el repertorio y actualiza el indicador de nube
+            db.collection('canciones').orderBy('titulo').onSnapshot({ includeMetadataChanges: true }, snap => {
+                // --- AQUÍ ACTIVAMOS EL INDICADOR ---
+                // snap.metadata.fromCache es true si los datos ya están en tu laptop
+                actualizarIndicadorSync(snap.metadata.fromCache);
+
                 todasLasCanciones = [];
                 snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
                 renderizarLista();
-
-                // --- NUEVO: Si es la primera vez que carga la página, revisa la URL ---
+                
+                // Manejo de URL inicial
                 if (primeraCargaCanciones) {
                     primeraCargaCanciones = false;
                     const params = new URLSearchParams(window.location.search);
                     const songId = params.get('song');
-                    
-                    if (songId) {
-                        // Da un pequeño respiro para asegurar que el HTML esté listo y abre la canción
-                        setTimeout(() => abrirCancion(songId), 100);
-                    }
+                    if (songId) setTimeout(() => abrirCancion(songId), 100);
                 }
             });
-            
+
+            // 2. Sincronización de notas personales
+            if (usuarioActual) {
+                db.collection('notas_personales')
+                .where('usuarioEmail', '==', usuarioActual.email)
+                .onSnapshot({ includeMetadataChanges: true }, snap => {
+                    console.log("📝 Notas personales sincronizadas localmente");
+                });
+            }
+
+            // 3. Sincroniza la playlist del domingo
             db.collection('configuracion').doc('playlist_semanal').onSnapshot(doc => {
                 idsEnPlaylist = doc.exists ? (doc.data().canciones || []) : [];
                 renderizarLista();
@@ -829,13 +843,23 @@ modalRol
 
             cancionesAMostrar.forEach(c => {
                 const enPlaylist = idsEnPlaylist.includes(c.id);
+                
+                // Define el botón de acción normal (+ o check)
                 let btnAccion = tabActual === 'all' ? 
                     (enPlaylist ? `<div class="action-btn btn-add added" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-check"></i></div>` : `<div class="action-btn btn-add" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-plus"></i></div>`) :
                     `<div class="action-btn btn-remove" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-minus"></i></div>`;
 
-                const dragHandle = tabActual === 'playlist' 
-                    ? `<div class="drag-handle"><i class="fas fa-grip-lines"></i></div>` 
-                    : ''; 
+                // NUEVO: Botón de Eliminar solo para administradores
+                let btnEliminarAdmin = '';
+                if (tabActual === 'all' && usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) {
+                    btnEliminarAdmin = `
+                        <div class="action-btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; margin-right: 8px;" 
+                            onclick="eliminarCancionDirecto('${c.id}', '${c.titulo.replace(/'/g, "\\'")}', event)">
+                            <i class="fas fa-trash"></i>
+                        </div>`;
+                }
+
+                const dragHandle = tabActual === 'playlist' ? `<div class="drag-handle"><i class="fas fa-grip-lines"></i></div>` : ''; 
 
                 html += `
                 <li class="song-item" data-id="${c.id}" onclick="abrirCancion('${c.id}')">
@@ -844,7 +868,10 @@ modalRol
                         <h3>${c.titulo}</h3>
                         <div><span class="song-meta-badge">${c.tonoOriginal||'?'}</span><span class="song-artist">${c.artista||''}</span></div>
                     </div>
-                    ${btnAccion}
+                    <div style="display:flex; align-items:center;">
+                        ${btnEliminarAdmin}
+                        ${btnAccion}
+                    </div>
                 </li>`;
             });
             lista.innerHTML = html;
@@ -1658,8 +1685,59 @@ function toggleVolPopup(popupId) {
                 });
                 container.innerHTML = html;
             });
+
+            async function precargarTodosLosPads() {
+                console.log("Iniciando precarga de pads...");
+                const notas = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+                
+                for (const nota of notas) {
+                    if (!padBufferCache[nota]) {
+                        try {
+                            const fileName = FILE_PREFIX + encodeURIComponent(nota) + FILE_EXT;
+                            const response = await fetch(fileName);
+                            const arrayBuffer = await response.arrayBuffer();
+                            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                            padBufferCache[nota] = audioBuffer;
+                            console.log(`✅ Pad ${nota} listo para uso offline`);
+                        } catch (e) {
+                            console.error(`Error precargando ${nota}:`, e);
+                        }
+                    }
+                }
+            }
+            precargarTodosLosPads();
         }
-        
+        function eliminarCancionDirecto(id, titulo, event) {
+            event.stopPropagation(); // Evita que se abra la canción al querer borrarla
+            
+            Modal.confirm("¿Eliminar canción?", `¿Estás seguro de borrar "${titulo}"? Esta acción no se puede deshacer.`, "🗑️")
+            .then(confirmado => {
+                if (confirmado) {
+                    db.collection('canciones').doc(id).delete()
+                    .then(() => {
+                        if (navigator.vibrate) navigator.vibrate(50); // Feedback táctil
+                        console.log("Canción eliminada");
+                    })
+                    .catch(e => Modal.alert("Error", "No se pudo eliminar: " + e.message));
+                }
+            });
+        }
+        function actualizarIndicadorSync(fromCache) {
+            const icon = document.getElementById('syncIndicator');
+            if (!icon) return;
+
+            if (fromCache) {
+                // Los datos ya están en tu laptop
+                icon.style.color = "#10b981"; // Verde Esmeralda
+                icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                icon.title = "Sincronizado Offline";
+            } else {
+                // Los datos vienen de internet (sincronizando)
+                icon.style.color = "#6366f1"; // Morado/Indigo
+                icon.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
+                icon.title = "Sincronizando con la nube...";
+            }
+        }
     </script>
     
 </body>
