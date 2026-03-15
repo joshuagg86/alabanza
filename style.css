@@ -435,24 +435,23 @@ body.hide-chords .song-line {
 
 .lyrics-cols-bate {
     display: block !important;
-    column-count: 4; 
-    column-gap: 30px;
+    column-count: 5 !important; /* Subimos a 5 columnas para aprovechar el ancho */
+    column-gap: 15px !important; /* Columnas más pegadas (antes 30px) */
     column-fill: auto !important; 
     width: 100% !important;
-    /* Quitamos min-height para que el scroll sea natural */
-    height: auto !important; 
-    font-size: 13.5px !important;
-    overflow: visible !important; 
-    padding-bottom: 180px !important; 
+    height: 85vh !important; /* Altura fija para forzar el salto de columna */
+    font-size: 11px !important; /* Letra más pequeña para que quepa más texto */
+    line-height: 1.1 !important; /* Interlineado más apretado */
+    overflow: hidden !important; /* Evitamos el scroll para que todo se vea de golpe */
+    padding-bottom: 20px !important; 
 }
 
 .lyrics-cols-bate .section-block {
     display: block !important; 
     width: 100%;
-    margin-bottom: 15px !important;
+    margin-bottom: 8px !important; /* Reducimos el espacio entre estrofas */
     break-inside: avoid !important;
     -webkit-column-break-inside: avoid !important;
-    page-break-inside: avoid !important;
 }
 
 .section-block {
@@ -466,10 +465,10 @@ body.hide-chords .song-line {
 }
 
 .lyrics-cols-bate .line-wrapper {
-    margin-bottom: 2px !important;
+    margin-bottom: 0px !important; /* Líneas pegaditas para que quepa más */
     display: block !important;
-    /* Cambiamos avoid por auto para rellenar los huecos negros */
-    break-inside: auto !important;
+    /* Dejamos 'auto' para que el sistema rellene huecos negros si es necesario */
+    break-inside: auto !important; 
 }
 
 .lyrics-cols-bate .song-line {
