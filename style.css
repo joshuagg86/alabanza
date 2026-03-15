@@ -435,25 +435,24 @@ body.hide-chords .song-line {
 
 .lyrics-cols-bate {
     display: block !important;
-    column-count: 4; /* Mantén el máximo de columnas */
+    column-count: 4; 
     column-gap: 30px;
-    column-fill: auto !important; /* CLAVE: Llena una columna antes de pasar a la otra */
+    column-fill: auto !important; 
     width: 100% !important;
-    height: 80vh !important; /* Limitamos la altura para que el texto "choque" abajo y salte */
-    max-height: 80vh !important;
+    /* Quitamos min-height para que el scroll sea natural */
+    height: auto !important; 
     font-size: 13.5px !important;
-    overflow: hidden;
+    overflow: visible !important; 
+    padding-bottom: 180px !important; 
 }
 
 .lyrics-cols-bate .section-block {
     display: block !important; 
     width: 100%;
     margin-bottom: 15px !important;
-    
-    /* Esto es lo que elimina los huecos negros */
-    break-inside: auto !important;
-    -webkit-column-break-inside: auto !important;
-    page-break-inside: auto !important;
+    break-inside: avoid !important;
+    -webkit-column-break-inside: avoid !important;
+    page-break-inside: avoid !important;
 }
 
 .section-block {
