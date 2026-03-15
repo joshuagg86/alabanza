@@ -1695,19 +1695,19 @@ function toggleVolPopup(popupId) {
 
          }
 
-         aasync function precargarTodosLosPads() {
-            // 1. Verificamos quién está usando la app antes de hacer nada pesado
+        async function precargarTodosLosPads() {
+            // 1. Verificamos quién está usando la app
             const user = firebase.auth().currentUser;
             
-            // Si no hay usuario o el correo no es el tuyo, detenemos todo
+            // Si no hay usuario o no eres tú, salimos
             if (!user || user.email !== 'joshua@genesaret.com') {
                 console.log("🎸 Modo Músico: Pads omitidos para ahorrar RAM.");
-                padsListos = true; // Marcamos como listo para que el icono se ponga verde solo con las letras
+                padsListos = true;
                 if (typeof verificarEstadoTotal === 'function') verificarEstadoTotal();
                 return; 
             }
 
-            // 2. Si el correo coincide (eres tú), procedemos con la carga normal
+            // 2. Si eres tú, inicializamos el audio
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
@@ -1724,9 +1724,9 @@ function toggleVolPopup(popupId) {
                         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                         
                         padBufferCache[nota] = audioBuffer;
-                        console.log(`✅ ${nota} guardado en RAM y listo.`);
+                        console.log(`✅ ${nota} guardado en RAM.`);
                         
-                        // Mantenemos la pausa de seguridad para no estresar tu Galaxy A54
+                        // Pausa para tu Galaxy A54
                         await new Promise(res => setTimeout(res, 300)); 
                     } catch (e) {
                         console.error(`❌ Error en pad ${nota}:`, e);
@@ -1734,8 +1734,8 @@ function toggleVolPopup(popupId) {
                 }
             }
             padsListos = true;
-            verificarEstadoTotal();
-            console.log("🎯 Pads cargados en RAM (Solo para Joshua)");
+            if (typeof verificarEstadoTotal === 'function') verificarEstadoTotal();
+            console.log("🎯 Pads cargados en RAM (Solo Joshua)");
         }
 
         // 3. Importante: Para que 'currentUser' no sea null al cargar la página,
