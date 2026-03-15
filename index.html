@@ -1695,27 +1695,39 @@ function toggleVolPopup(popupId) {
 
          }
 
-         async function precargarTodosLosPads() {
+         aasync function precargarTodosLosPads() {
+            // 1. Verificamos quién está usando la app antes de hacer nada pesado
+            const user = firebase.auth().currentUser;
+            
+            // Si no hay usuario o el correo no es el tuyo, detenemos todo
+            if (!user || user.email !== 'joshua@genesaret.com') {
+                console.log("🎸 Modo Músico: Pads omitidos para ahorrar RAM.");
+                padsListos = true; // Marcamos como listo para que el icono se ponga verde solo con las letras
+                if (typeof verificarEstadoTotal === 'function') verificarEstadoTotal();
+                return; 
+            }
+
+            // 2. Si el correo coincide (eres tú), procedemos con la carga normal
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-            // ------------------------------------------
 
-            console.log("🚀 Iniciando precarga agresiva de pads...");
+            console.log("🚀 Iniciando precarga de pads para Baterista...");
             const notas = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
             
             for (const nota of notas) {
                 if (!padBufferCache[nota]) {
                     try {
                         const fileName = FILE_PREFIX + encodeURIComponent(nota) + FILE_EXT;
-
                         const response = await fetch(fileName + "?v=" + Date.now()); 
                         const arrayBuffer = await response.arrayBuffer();
-                        
                         const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
                         
                         padBufferCache[nota] = audioBuffer;
                         console.log(`✅ ${nota} guardado en RAM y listo.`);
+                        
+                        // Mantenemos la pausa de seguridad para no estresar tu Galaxy A54
+                        await new Promise(res => setTimeout(res, 300)); 
                     } catch (e) {
                         console.error(`❌ Error en pad ${nota}:`, e);
                     }
@@ -1723,10 +1735,16 @@ function toggleVolPopup(popupId) {
             }
             padsListos = true;
             verificarEstadoTotal();
-            console.log("🎯 Pads cargados en RAM");
+            console.log("🎯 Pads cargados en RAM (Solo para Joshua)");
         }
 
-        precargarTodosLosPads();
+        // 3. Importante: Para que 'currentUser' no sea null al cargar la página,
+        // llamamos a la función dentro del observador de Firebase
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                precargarTodosLosPads();
+            }
+        });
 
         function eliminarCancionDirecto(id, titulo, event) {
             event.stopPropagation(); // Evita que se abra la canción al querer borrarla
