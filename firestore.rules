@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function esAdmin() {
+      return request.auth != null && request.auth.token.email in [
+        "admin@genesaret.com",
+        "monica@genesaret.com",
+        "joshua@genesaret.com"
+      ];
+    }
+
+    // Todos los usuarios con sesión pueden agregar y editar canciones.
+    match /canciones/{document=**} {
+      allow read, create, update: if request.auth != null;
+      allow delete: if esAdmin();
+    }
+
+    match /configuracion/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+    match /notas_personales/{docId} {
+      allow create: if request.auth != null && request.resource.data.usuarioEmail == request.auth.token.email;
+      allow update, delete, read: if request.auth != null && resource.data.usuarioEmail == request.auth.token.email;
+    }
+
+    match /usuarios/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Todos los usuarios con sesión pueden crear y editar el rol de alabanza.
+    match /roles/{document=**} {
+      allow read, create, update: if request.auth != null;
+      allow delete: if esAdmin();
+    }
+  }
+}

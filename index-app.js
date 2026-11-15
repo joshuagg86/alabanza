@@ -1,3 +1,14 @@
+function normalizarBusqueda(texto) {
+    return String(texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+function coincideBusqueda(cancion, busqueda) {
+    return normalizarBusqueda(`${cancion.titulo || ''} ${cancion.artista || ''}`).includes(busqueda);
+}
+function limpiarBusqueda() {
+    document.getElementById('searchInput').value = '';
+    renderizarLista();
+    document.getElementById('searchInput').focus();
+}
 document.addEventListener('DOMContentLoaded', () => {
             const passwordInput = document.getElementById('txtPassword');
             if (passwordInput) {
@@ -10,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         });
-        const ADMIN_EMAILS = ["admin@genesaret.com", "monica@genesaret.com", "joshua@genesaret.com"]; 
 
         // === VARIABLES GLOBALES (CORREGIDAS SIN DUPLICADOS) ===
         let tabActual = 'home'; // Única declaración inicial
@@ -19,7 +29,20 @@ document.addEventListener('DOMContentLoaded', () => {
         let rolActual = localStorage.getItem('alabanza_rol') || 'voz';
         let rolTemp = null;
         let todasLasCanciones = [];
-        let idsEnPlaylist = [];
+        const playlistsPorDia = { domingo: [], miercoles: [] };
+        let servicioActual = 'domingo';
+        let rolesProgramados = [];
+        let filtroRoles = 'todos';
+        let rolesCargados = false;
+        let errorRoles = false;
+        function playlistActual() { return playlistsPorDia[servicioActual]; }
+        function esTabServicio() { return ['playlist', 'wednesday'].includes(tabActual); }
+        function seleccionarServicio(dia) {
+            if (!Servicios.dias[dia]) return;
+            servicioActual = dia;
+            document.getElementById('playlistDayTarget').value = dia;
+            renderizarLista();
+        }
         let cancionActual = null;
         let semitonos = 0;
         let notasDeLaCancion = {};
@@ -34,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let wakeLock = null;
 
         async function activarPantalla() {
+            if (wakeLock && !wakeLock.released) return;
             if ('wakeLock' in navigator) {
                 try {
                     wakeLock = await navigator.wakeLock.request('screen');
@@ -53,7 +77,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function togglePasswordVisibility() {
             const passInput = document.getElementById('txtPassword');
-            const icon = document.querySelector('.toggle-pass');
+            const toggle = document.querySelector('.toggle-pass');
+            const mostrar = passInput.type === 'password';
+            toggle.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            toggle.setAttribute('aria-pressed', String(mostrar));
+            const icon = document.querySelector('.toggle-pass i');
             if (passInput.type === 'password') {
                 passInput.type = 'text';
                 icon.classList.replace('fa-eye', 'fa-eye-slash');
@@ -152,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const roleContainer = document.getElementById('roleSelectorContainer');
 
             errorDiv.style.display = 'none';
+            document.getElementById('txtPassword').autocomplete = modoRegistro ? 'new-password' : 'current-password';
 
             if (modoRegistro) {
                 titulo.innerText = "Crear Cuenta";
@@ -172,12 +201,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modoRegistro) registroMejorado(); else loginFirebase();
         }
 
+        let inicioSesionManual = false;
         function loginFirebase() {
             const email = document.getElementById('txtEmail').value;
             const pass = document.getElementById('txtPassword').value;
             const errDiv = document.getElementById('loginError');
             if(!email || !pass) { errDiv.style.display='block'; errDiv.innerText="Faltan datos"; return; }
-            firebase.auth().signInWithEmailAndPassword(email, pass).catch((e) => { errDiv.style.display = 'block'; errDiv.innerText = "Error: " + e.message; });
+            inicioSesionManual = true;
+            firebase.auth().signInWithEmailAndPassword(email, pass).catch((e) => { inicioSesionManual = false; errDiv.style.display = 'block'; errDiv.innerText = "Error: " + e.message; });
         }
 
         function registroMejorado() {
@@ -187,24 +218,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if(!email || !pass) { errDiv.style.display='block'; errDiv.innerText="Ingresa un correo y contraseña."; return; }
             if(!rolTemp) { errDiv.style.display='block'; errDiv.innerText="Selecciona qué instrumento tocas."; return; }
 
+            inicioSesionManual = true;
             firebase.auth().createUserWithEmailAndPassword(email, pass)
                 .then((cred) => {
                     return db.collection('usuarios').doc(cred.user.uid).set({ rol: rolTemp, email: email });
                 })
                 .then(() => { localStorage.setItem('alabanza_rol', rolTemp); })
-                .catch((e) => { errDiv.style.display = 'block'; errDiv.innerText = "Error al registrar: " + e.message; });
+                .catch((e) => { inicioSesionManual = false; errDiv.style.display = 'block'; errDiv.innerText = "Error al registrar: " + e.message; });
         }
 
         function cerrarSesion() {
             Modal.confirm("¿Salir?", "¿Cerrar sesión actual?", "👋").then(res => { 
                 if(res) {
-                    const splash = document.getElementById('splashScreen');
-                    if(splash) { splash.style.display = 'flex'; splash.style.opacity = '1'; }
                     firebase.auth().signOut().then(() => location.reload()); 
                 }
             });
         }
-modalRol
         function mostrarSelectorRol() {
             document.getElementById('modalCambioRol').style.display = 'flex';
         }
@@ -225,51 +254,211 @@ modalRol
             });
         }
 
-        firebase.auth().onAuthStateChanged(user => {
-            if (user) {
-                usuarioActual = user;
-                document.getElementById('loginModal').style.display = 'none';
-                
-                const splash = document.getElementById('splashScreen');
-                const logo = document.getElementById('splashLogo');
-                const loader = document.getElementById('splashLoader');
-                
-                splash.style.display = 'flex';
-                setTimeout(() => {
-                    if(logo) logo.classList.add('animate-splash');
-                    if(loader) loader.style.opacity = "1";
-                }, 100);
-
-                db.collection('usuarios').doc(user.uid).get().then(doc => {
-                    if (doc.exists && doc.data().rol) {
-                        rolActual = doc.data().rol;
-                        localStorage.setItem('alabanza_rol', rolActual);
-                    }
-                    actualizarBadgeUsuario(user, rolActual);
-                    aplicarRol();
-                    cargarDatosApp();
-
-                    setTimeout(() => { 
-                        cambiarTab('home'); 
-                    }, 500);
-
-                    setTimeout(() => {
-                        if(splash) {
-                            splash.style.opacity = "0";
-                            splash.style.transition = "opacity 0.5s ease";
-                            setTimeout(() => { splash.style.display = 'none'; }, 500);
-                        }
-                    }, 2000); 
-                });
-
-                if (ADMIN_EMAILS.includes(user.email)) {
-                    const btnAdmin = document.getElementById('btnAdmin');
-                    if(btnAdmin) btnAdmin.style.display = 'flex';
-                }
+        const estadoConexion = { canciones: false, listas: {}, pendientes: {}, archivos: false };
+        let retornoEditorPendiente = null;
+        let seccionesLectura = [];
+        let seccionFrame = null;
+        let temporizadorToast = null;
+        let modoEnsayo = false;
+        let pantallaCompletaEnsayo = false;
+        function clavePreferenciasCancion() {
+            return 'alabanza_lector_v1_' + (usuarioActual?.uid || 'local') + '_' + rolActual + '_' + cancionActual.id;
+        }
+        function cargarPreferenciasCancion() {
+            if (!cancionActual) return;
+            const clave = clavePreferenciasCancion();
+            const prefs = ExperienciaLectura.preferencias(clave);
+            if (ExperienciaLectura.leer(clave)) {
+                tamanoLectura = prefs.letra;
+                tamanoBateria = prefs.bateria;
             } else {
-                document.getElementById('loginModal').style.display = 'flex';
+                tamanoLectura = Math.max(16, Math.min(26, Number(ExperienciaLectura.leer('alabanza_letra_tamano')) || 19));
+                tamanoBateria = Math.max(12, Math.min(24, Number(ExperienciaLectura.leer('alabanza_bateria_tamano')) || 19));
+            }
+            lecturaContinua = prefs.continua;
+            document.getElementById('readerScrollSpeed').value = String(prefs.velocidad);
+            const ocultar = prefs.ocultarAcordes ?? (rolActual === 'bateria' || rolActual === 'voz');
+            document.body.classList.toggle('hide-chords', ocultar);
+            actualizarBotonAcordes();
+        }
+        function guardarPreferenciasCancion() {
+            if (!cancionActual) return;
+            ExperienciaLectura.guardar(clavePreferenciasCancion(), {
+                letra: tamanoLectura, bateria: tamanoBateria,
+                velocidad: Number(document.getElementById('readerScrollSpeed').value),
+                ocultarAcordes: document.body.classList.contains('hide-chords'), continua: lecturaContinua
+            });
+        }
+        function actualizarBotonAcordes() {
+            const ocultar = document.body.classList.contains('hide-chords');
+            ['btnToggleChords', 'readerChords'].forEach(id => {
+                const boton = document.getElementById(id);
+                boton.querySelector('i').className = ocultar ? 'fas fa-eye' : 'fas fa-eye-slash';
+                boton.setAttribute('aria-pressed', String(!ocultar));
+                boton.setAttribute('aria-label', ocultar ? 'Mostrar acordes' : 'Ocultar acordes');
+            });
+        }
+        function seleccionarSeccionLectura(linea, boton) {
+            document.querySelectorAll('#songStructure [aria-current]').forEach(el => el.removeAttribute('aria-current'));
+            document.querySelectorAll('#songContent .section-selected').forEach(el => el.classList.remove('section-selected'));
+            boton.setAttribute('aria-current', 'location');
+            linea.closest('.section-block').classList.add('section-selected');
+            const nav = document.getElementById('songStructure');
+            const rect = boton.getBoundingClientRect(), marco = nav.getBoundingClientRect();
+            if (rect.top < marco.top || rect.bottom > marco.bottom) nav.scrollTop += rect.top - marco.top - 12;
+        }
+        function actualizarSeccionVisible() {
+            if (!seccionesLectura.length || document.getElementById('viewSong').style.display !== 'flex') return;
+            const contenido = document.getElementById('songContent');
+            const hoja = contenido.querySelector('.drum-sheet');
+            if (hoja && !hoja.classList.contains('drum-sheet-overflow') && document.querySelector('#songStructure [aria-current]')) return;
+            const marco = contenido.getBoundingClientRect();
+            let elegida = seccionesLectura[0];
+            for (const seccion of seccionesLectura) {
+                const rect = seccion.linea.getBoundingClientRect();
+                if (rect.left < marco.right && rect.right > marco.left && rect.top <= marco.top + 45) elegida = seccion;
+            }
+            if (contenido.scrollTop >= contenido.scrollHeight - contenido.clientHeight - 2 && contenido.scrollTop > 0) elegida = seccionesLectura[seccionesLectura.length - 1];
+            if (!elegida.boton.hasAttribute('aria-current')) seleccionarSeccionLectura(elegida.linea, elegida.boton);
+        }
+        function programarSeccionVisible() {
+            if (seccionFrame !== null) return;
+            seccionFrame = requestAnimationFrame(() => { seccionFrame = null; actualizarSeccionVisible(); });
+        }
+        function capturarRetornoEditor() {
+            const contenido = document.getElementById('songContent');
+            const marco = contenido.getBoundingClientRect();
+            const lineas = Array.from(contenido.querySelectorAll('.line-wrapper'));
+            const ancla = lineas.find(linea => linea.getBoundingClientRect().bottom > marco.top + 20) || lineas[0];
+            const activa = seccionesLectura.find(seccion => seccion.boton.hasAttribute('aria-current'));
+            return {
+                uid: usuarioActual?.uid, cancion: cancionActual.id, fecha: Date.now(),
+                indice: ancla?.dataset.index, offset: ancla ? ancla.getBoundingClientRect().top - marco.top : 0,
+                scroll: contenido.scrollTop, seccion: activa?.boton.textContent,
+                navegacion: listaNavegacionActual, tab: tabActual, ensayo: modoEnsayo
+            };
+        }
+        function restaurarRetornoEditor() {
+            if (!retornoEditorPendiente || !cancionActual) return;
+            const retorno = retornoEditorPendiente;
+            retornoEditorPendiente = null;
+            const contenido = document.getElementById('songContent');
+            const ancla = Array.from(contenido.querySelectorAll('.line-wrapper')).find(linea => linea.dataset.index === String(retorno.indice));
+            const seccion = seccionesLectura.find(item => item.boton.textContent === retorno.seccion);
+            if (ancla) contenido.scrollTop += ancla.getBoundingClientRect().top - contenido.getBoundingClientRect().top - (Number(retorno.offset) || 0);
+            else if (seccion) contenido.scrollTop += seccion.linea.getBoundingClientRect().top - contenido.getBoundingClientRect().top - 20;
+            else contenido.scrollTop = Number(retorno.scroll) || 0;
+            if (seccion) seleccionarSeccionLectura(seccion.linea, seccion.boton);
+            if (retorno.ensayo) establecerModoEnsayo(true);
+            mostrarToastLector('Canción guardada');
+            ExperienciaLectura.guardar('alabanza_editor_return', null, sessionStorage);
+            const url = new URL(window.location.href);
+            url.searchParams.delete('saved');
+            window.history.replaceState({}, '', url);
+        }
+        function mostrarToastLector(texto) {
+            const toast = document.getElementById('readerToast');
+            clearTimeout(temporizadorToast);
+            toast.textContent = texto;
+            toast.hidden = false;
+            temporizadorToast = setTimeout(() => { toast.hidden = true; }, 2800);
+        }
+        function establecerModoEnsayo(activo) {
+            modoEnsayo = activo;
+            document.getElementById('viewSong').classList.toggle('rehearsal-mode', activo);
+            const boton = document.getElementById('readerRehearsal');
+            boton.setAttribute('aria-pressed', String(activo));
+            boton.querySelector('span').textContent = activo ? 'Salir de ensayo' : 'Ensayo';
+            if (activo) {
+                activarPantalla();
+                document.getElementById('transposerPanel').style.display = 'none';
+            }
+            solicitarAjusteBateria();
+        }
+        async function alternarModoEnsayo() {
+            const activo = !modoEnsayo;
+            establecerModoEnsayo(activo);
+            if (activo && !document.fullscreenElement && document.getElementById('viewSong').requestFullscreen) {
+                try { await document.getElementById('viewSong').requestFullscreen(); pantallaCompletaEnsayo = true; }
+                catch (_) { /* Compact rehearsal also works without fullscreen support. */ }
+            } else if (!activo && pantallaCompletaEnsayo && document.fullscreenElement) {
+                pantallaCompletaEnsayo = false;
+                try { await document.exitFullscreen(); } catch (_) {}
+            }
+        }
+        async function comprobarArchivosOffline() {
+            if (!('caches' in window) || !navigator.serviceWorker?.controller) return;
+            const necesarios = ['./index.html', './index-app.js', './reader-experience.js', './permissions.js', './config.js', './rhythm.js', './services.js', './drummer-reader.js', './reader.css', './style.css', './index-style.css', './ux.css',
+                'https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js',
+                'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js',
+                'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js'];
+            try { estadoConexion.archivos = (await Promise.all(necesarios.map(url => caches.match(new URL(url, location.href).href)))).every(Boolean); }
+            catch (_) { estadoConexion.archivos = false; }
+            verificarEstadoTotal();
+        }
+
+        const escuchasDatos = [];
+        function escucharDatos(referencia, ...argumentos) {
+            escuchasDatos.push(referencia.onSnapshot(...argumentos));
+        }
+        let versionSesion = 0;
+        let temporizadorSplash = null;
+        function ocultarSplash() {
+            clearTimeout(temporizadorSplash);
+            document.getElementById('splashScreen').style.display = 'none';
+            document.getElementById('splashLogo').classList.remove('animate-splash');
+        }
+        firebase.auth().onAuthStateChanged(async user => {
+            // Repeated notifications must not reset navigation or duplicate listeners.
+            if (user && usuarioActual && usuarioActual.uid === user.uid) return;
+            const version = ++versionSesion;
+            const mostrarBienvenida = Boolean(user && inicioSesionManual);
+            inicioSesionManual = false;
+            if (detenerNotas) { detenerNotas(); detenerNotas = null; }
+            if (detenerNotaActual) { detenerNotaActual(); detenerNotaActual = null; }
+            documentoNotaEscuchada = null;
+            escuchasDatos.splice(0).forEach(detener => detener());
+            estadoConexion.canciones = false;
+            estadoConexion.listas = {};
+            estadoConexion.pendientes = {};
+            pausarDesplazamientoLetra();
+            notasLocales = { canciones: {} };
+            notasDeLaCancion = {};
+            notasConsultadas = false;
+            usuarioActual = user;
+            ocultarSplash();
+            document.getElementById('loginModal').style.display = user ? 'none' : 'flex';
+            const btnAdmin = document.getElementById('btnAdmin');
+            if (btnAdmin) btnAdmin.style.display = Permisos.puedeEditar(user) ? 'flex' : 'none';
+            if (!user) return;
+
+            if (mostrarBienvenida) {
                 const splash = document.getElementById('splashScreen');
-                if(splash) splash.style.display = 'none';
+                splash.style.opacity = '1';
+                splash.style.display = 'flex';
+                document.getElementById('splashLogo').classList.add('animate-splash');
+                document.getElementById('splashLoader').style.opacity = '1';
+                // A slow/offline profile request must never lock the application.
+                temporizadorSplash = setTimeout(ocultarSplash, 4000);
+            }
+            actualizarBadgeUsuario(user, rolActual);
+            aplicarRol();
+            cargarDatosApp();
+            cambiarTab('home');
+            try {
+                const doc = await db.collection('usuarios').doc(user.uid).get();
+                if (version !== versionSesion) return;
+                const rolAnterior = rolActual;
+                if (doc.exists && doc.data().rol) {
+                    rolActual = doc.data().rol;
+                    localStorage.setItem('alabanza_rol', rolActual);
+                }
+                actualizarBadgeUsuario(user, rolActual);
+                if (rolActual !== rolAnterior) aplicarRol();
+            } catch (error) {
+                console.warn('No se pudo cargar el perfil; se conserva el instrumento local.', error);
+            } finally {
+                if (version === versionSesion) ocultarSplash();
             }
         });
 
@@ -285,44 +474,65 @@ modalRol
        function cargarDatosApp() {
 
             // 1. Escuchar Canciones en tiempo real
-            db.collection('canciones').orderBy('titulo').onSnapshot({ includeMetadataChanges: true }, snap => {
-                cancionesListas = snap.metadata.fromCache;
+            escucharDatos(db.collection('canciones').orderBy('titulo'),{ includeMetadataChanges: true }, snap => {
+                cancionesListas = true;
+                estadoConexion.canciones = true;
+                estadoConexion.pendientes.canciones = snap.metadata.hasPendingWrites;
                 verificarEstadoTotal();
 
                 todasLasCanciones = [];
                 snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
                 renderizarLista();
-                
+                if (tabActual === 'home') renderizarDashboard();
+                if (cancionActual) {
+                    const actualizada = todasLasCanciones.find(c => c.id === cancionActual.id);
+                    if (actualizada && JSON.stringify(actualizada) !== JSON.stringify(cancionActual)) {
+                        const anterior = cancionActual;
+                        cancionActual = actualizada;
+                        if (actualizada.bpm !== anterior.bpm) updateBpm(actualizada.bpm);
+                        if (actualizada.compas !== anterior.compas) updateTimeSig(actualizada.compas);
+                        actualizarEncabezadoCancion();
+                        if (document.getElementById('viewSong').style.display === 'flex') renderizarLetra();
+                    }
+                }
 
-                if (primeraCargaCanciones) {
+                if (primeraCargaCanciones && (!snap.metadata.fromCache || todasLasCanciones.some(c => c.id === new URLSearchParams(window.location.search).get('song')))) {
                     primeraCargaCanciones = false;
                     const params = new URLSearchParams(window.location.search);
                     const songId = params.get('song');
-                    if (songId) setTimeout(() => abrirCancion(songId), 100);
+                    if (songId && todasLasCanciones.some(c => c.id === songId)) abrirCancion(songId);
                 }
             });
 
-            // 2. Escuchar Notas Personales (Solo si hay un usuario firmado)
-            if (usuarioActual) {
-                db.collection('notas_personales')
-                .where('usuarioEmail', '==', usuarioActual.email)
-                .onSnapshot({ includeMetadataChanges: true }, snap => {
-                    console.log("📝 Notas personales sincronizadas");
-                    if (snap.metadata.fromCache) {
-                        cancionesListas = true;
-                        verificarEstadoTotal();
-                    }
-                });
-            }
+            iniciarNotasPersonales();
 
-            // 3. Escuchar la Playlist Semanal del Domingo
-            db.collection('configuracion').doc('playlist_semanal').onSnapshot(doc => {
-                idsEnPlaylist = doc.exists ? (doc.data().canciones || []) : [];
-                renderizarLista();
+            // Keep Sunday's existing document and give Wednesday an independent list.
+            Object.entries(Servicios.dias).forEach(([dia, config]) => {
+                escucharDatos(db.collection('configuracion').doc(config.documento),{ includeMetadataChanges: true }, doc => {
+                    estadoConexion.listas[dia] = true;
+                    estadoConexion.pendientes[dia] = doc.metadata.hasPendingWrites;
+                    verificarEstadoTotal();
+                    playlistsPorDia[dia] = doc.exists ? (doc.data().canciones || []) : [];
+                    renderizarLista();
+                    if (tabActual === 'home') renderizarDashboard();
+                });
             });
+            escucharDatos(db.collection('roles').where('fecha', '>=', Servicios.hoy()).orderBy('fecha', 'asc'),snap => {
+                    rolesProgramados = snap.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                    rolesCargados = true;
+                    errorRoles = false;
+                    cargarRolServicio();
+                    renderizarResumenServicio();
+                    if (tabActual === 'home') renderizarDashboard();
+                }, () => {
+                    rolesCargados = true;
+                    errorRoles = true;
+                    cargarRolServicio();
+                    renderizarResumenServicio();
+                });
 
             // 4. Escuchar Colección de Usuarios del Grupo en tiempo real
-            db.collection('usuarios').onSnapshot(snap => {
+            escucharDatos(db.collection('usuarios'),snap => {
                 listaUsuariosGrupo = [];
                 snap.forEach(doc => {
                     // Guardamos tanto el ID del documento como sus datos internos
@@ -337,6 +547,12 @@ modalRol
 
         function cambiarTab(tab) {
             tabActual = tab;
+            if (tab === 'playlist' || tab === 'wednesday') servicioActual = tab === 'playlist' ? 'domingo' : 'miercoles';
+            document.getElementById('playlistDayTarget').value = servicioActual;
+            document.getElementById('playlistDestination').hidden = tab !== 'all';
+            document.getElementById('serviceRoleSummary').hidden = !esTabServicio();
+            renderizarResumenServicio();
+            document.getElementById('searchSummary').hidden = !['all', 'playlist', 'wednesday'].includes(tab);
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             
             // Elementos a controlar del DOM
@@ -353,7 +569,7 @@ modalRol
 
             if (tab === 'home') {
                 document.getElementById('tabHome').classList.add('active');
-                if(dashContainer) dashContainer.style.display = 'block';
+                if(dashContainer) dashContainer.style.display = 'flex';
                 renderizarDashboard(); // Refresca contadores y fechas del líder
             } else if (tab === 'rol') {
                 document.getElementById('tabRol').classList.add('active');
@@ -363,63 +579,19 @@ modalRol
                 listContainer.style.display = 'flex';
                 searchContainer.style.display = 'block';
                 if(tab === 'all') document.getElementById('tabAll').classList.add('active');
-                else document.getElementById('tabPlaylist').classList.add('active');
+                else document.getElementById(tab === 'wednesday' ? 'tabWednesday' : 'tabPlaylist').classList.add('active');
                 renderizarLista();
             }
         }
-        async function cargarRolServicio() {
-            const container = document.getElementById('rolListaContainer');
-            const btnNuevo = document.getElementById('btnNuevoRol');
-            
-            // 1. Mostrar botón si es Admin
-            if (usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) {
-                btnNuevo.style.display = 'block';
-            }
-
-            // 2. Traer roles del mes (desde hoy en adelante)
-            const hoy = new Date().toISOString().split('T')[0];
-            
-            db.collection('roles')
-            .where('fecha', '>=', hoy)
-            .orderBy('fecha', 'asc')
-            .onSnapshot(snap => {
-                if (snap.empty) {
-                    container.innerHTML = "<p style='text-align:center; color:#666; margin-top:50px;'>No hay fechas programadas aún.</p>";
-                    return;
-                }
-                
-                let html = '';
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    const id = doc.id;
-                    const opcionesAdmin = (ADMIN_EMAILS.includes(usuarioActual.email)) ? 
-                        `<i class="fas fa-trash" style="color:#ef4444; cursor:pointer;" onclick="eliminarRol('${id}', event)"></i>` : '';
-
-                    html += `
-                        <div class="card" style="margin-bottom:15px; background: rgba(255,255,255,0.03);">
-                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px;">
-                                <span style="color:var(--accent-glow); font-weight:700; text-transform:capitalize;">
-                                    <i class="fas fa-calendar-day"></i> ${new Date(d.fecha + "T00:00:00").toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short'})}
-                                </span>
-                                ${opcionesAdmin}
-                            </div>
-                            <div class="rol-row"><strong>Dirección:</strong> <span>${d.direccion}</span></div>
-                            <div class="rol-row"><strong>Coro 1:</strong> <span>${d.coro1}</span></div>
-                            <div class="rol-row"><strong>Coro 2:</strong> <span>${d.coro2}</span></div>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
-            });
-        }
-
         function renderizarLista() {
+            // Keep realtime updates from replacing the card during a gesture.
+            if (arrastreEnCurso) { refrescoTrasArrastre = true; return; }
             const lista = document.getElementById('songList');
             const searchContainer = document.querySelector('.search-container');
             const inputBusqueda = document.getElementById('searchInput');
 
             // Controlamos visibilidad de contenedores del repertorio según la pestaña
-            if (tabActual === 'home') {
+            if (tabActual === 'home' || tabActual === 'rol') {
                 if (lista) lista.style.display = 'none';
                 if (searchContainer) searchContainer.style.display = 'none';
             } else {
@@ -430,30 +602,33 @@ modalRol
             if (!lista) return;
             
             // Evitamos que truene si el input de búsqueda aún no se monta en el DOM
-            const busqueda = inputBusqueda ? inputBusqueda.value.toLowerCase() : "";
+            const busqueda = inputBusqueda ? normalizarBusqueda(inputBusqueda.value) : "";
             let html = '';
             
             let cancionesAMostrar = todasLasCanciones;
-            if (tabActual === 'playlist') {
-                cancionesAMostrar = idsEnPlaylist.map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c);
+            if (esTabServicio()) {
+                cancionesAMostrar = playlistActual().map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c);
             }
             
-            cancionesAMostrar = cancionesAMostrar.filter(c => c.titulo.toLowerCase().includes(busqueda));
+            cancionesAMostrar = cancionesAMostrar.filter(c => coincideBusqueda(c, busqueda));
+            const resumen = document.getElementById('searchSummary');
+            resumen.hidden = !['all', 'playlist', 'wednesday'].includes(tabActual);
+            resumen.textContent = `${cancionesAMostrar.length} ${cancionesAMostrar.length === 1 ? 'canción' : 'canciones'}${busqueda ? ' encontradas' : ''}`;
 
             if (cancionesAMostrar.length === 0) { 
-                lista.innerHTML = '<div style="text-align:center; padding:40px; color:#555;">No hay canciones</div>'; 
+                lista.innerHTML = `<li class="empty-state"><i class="fas fa-music" aria-hidden="true"></i><h3>${busqueda ? 'Sin coincidencias' : esTabServicio() ? `El ${Servicios.dias[servicioActual].nombre.toLowerCase()} aún no tiene canciones` : 'Tu repertorio está por comenzar'}</h3><p>${busqueda ? 'Prueba con otro título o con el nombre del artista.' : esTabServicio() ? 'Explora el repertorio y usa + para añadir canciones.' : 'Las canciones aparecerán aquí cuando se agreguen.'}</p>${busqueda ? '<button class="btn btn-secondary" onclick="limpiarBusqueda()">Limpiar búsqueda</button>' : esTabServicio() ? '<button class="btn btn-primary" onclick="cambiarTab(&quot;all&quot;)">Explorar repertorio</button>' : ''}</li>`;
                 return; 
             }
 
             cancionesAMostrar.forEach(c => {
-                const enPlaylist = idsEnPlaylist.includes(c.id);
+                const enPlaylist = playlistActual().includes(c.id);
                 
                 let btnAccion = tabActual === 'all' ? 
                     (enPlaylist ? `<div class="action-btn btn-add added" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-check"></i></div>` : `<div class="action-btn btn-add" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-plus"></i></div>`) :
                     `<div class="action-btn btn-remove" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-minus"></i></div>`;
 
                 let btnEliminarAdmin = '';
-                if (tabActual === 'all' && usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) {
+                if (tabActual === 'all' && Permisos.puedeEliminar(usuarioActual)) {
                     btnEliminarAdmin = `
                         <div class="action-btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; margin-right: 8px;" 
                             onclick="eliminarCancionDirecto('${c.id}', '${c.titulo.replace(/'/g, "\\'")}', event)">
@@ -461,7 +636,7 @@ modalRol
                         </div>`;
                 }
 
-                const dragHandle = tabActual === 'playlist' ? `<div class="drag-handle"><i class="fas fa-grip-lines"></i></div>` : ''; 
+                const dragHandle = esTabServicio() ? `<div class="drag-handle"><i class="fas fa-grip-lines"></i></div>` : '';
 
                 html += `
                 <li class="song-item" data-id="${c.id}" onclick="abrirCancion('${c.id}')">
@@ -478,23 +653,24 @@ modalRol
             });
             
             lista.innerHTML = html;
-            if (tabActual === 'playlist') inicializarArrastre();
+            if (esTabServicio()) inicializarArrastre();
         }
 
         function togglePlaylist(id, event) {
             event.stopPropagation();
-            let nuevaLista = [...idsEnPlaylist];
+            let nuevaLista = [...playlistActual()];
             if (nuevaLista.includes(id)) nuevaLista = nuevaLista.filter(x => x !== id);
             else nuevaLista.push(id);
-            db.collection('configuracion').doc('playlist_semanal').set({ canciones: nuevaLista }, { merge: true });
+            db.collection('configuracion').doc(Servicios.dias[servicioActual].documento).set({ canciones: nuevaLista }, { merge: true })
+                .catch(() => Modal.alert('No se guardó el cambio', 'Revisa tu conexión y los permisos de la lista e intenta de nuevo.'));
         }
 
         function abrirCancion(id) {
-            const busqueda = document.getElementById('searchInput').value.toLowerCase();
+            const busqueda = normalizarBusqueda(document.getElementById('searchInput').value);
             let contextoCanciones = [];
 
-            if (tabActual === 'playlist') {
-                contextoCanciones = idsEnPlaylist
+            if (esTabServicio()) {
+                contextoCanciones = playlistActual()
                     .map(playlistId => todasLasCanciones.find(c => c.id === playlistId))
                     .filter(c => c !== undefined); 
             } else {
@@ -502,9 +678,15 @@ modalRol
             }
 
             if(busqueda) {
-                contextoCanciones = contextoCanciones.filter(c => c.titulo.toLowerCase().includes(busqueda));
+                contextoCanciones = contextoCanciones.filter(c => coincideBusqueda(c, busqueda));
             }
 
+            const regreso = new URLSearchParams(window.location.search).get('saved') === '1' ? ExperienciaLectura.retorno(usuarioActual?.uid, id) : null;
+            if (regreso && Array.isArray(regreso.navegacion)) {
+                const ids = regreso.navegacion.filter(item => todasLasCanciones.some(c => c.id === item));
+                if (ids.includes(id)) contextoCanciones = ids.map(item => todasLasCanciones.find(c => c.id === item));
+                if (['home', 'all', 'playlist', 'wednesday', 'rol'].includes(regreso.tab)) cambiarTab(regreso.tab);
+            }
             listaNavegacionActual = contextoCanciones.map(c => c.id);
             indiceNavegacion = listaNavegacionActual.indexOf(id);
 
@@ -527,40 +709,161 @@ modalRol
             activarPantalla();
         }
 
-        function cargarNotasYRenderizar() {
-            document.getElementById('songContent').innerHTML = '<div style="text-align:center; padding:100px; color:#555;">Cargando...</div>';
-            if(!usuarioActual) return;
-            const docId = usuarioActual.uid + "_" + cancionActual.id;
-            db.collection('notas_personales').doc(docId).get().then(doc => {
-                notasDeLaCancion = doc.exists ? (doc.data().notas || {}) : {};
-                renderizarLetra();
-            }).catch(() => { notasDeLaCancion = {}; renderizarLetra(); });
+        let notasLocales = { canciones: {} };
+        let detenerNotas = null;
+        let detenerNotaActual = null;
+        let documentoNotaEscuchada = null;
+        let notasConsultadas = false;
+        let errorNotas = false;
+        let secuenciaNota = 0;
+        const enviosNotas = new Set();
+        function claveNotasLocales() { return 'alabanza_notas_v2_' + usuarioActual.uid; }
+        function persistirNotasLocales() {
+            if (usuarioActual) return ExperienciaLectura.guardar(claveNotasLocales(), notasLocales);
+            return false;
         }
-
+        function mostrarNotasActuales() {
+            if (!cancionActual || !usuarioActual) return;
+            const nuevas = ExperienciaLectura.notasVisibles(notasLocales, cancionActual.id);
+            if (JSON.stringify(nuevas) === JSON.stringify(notasDeLaCancion)) return;
+            notasDeLaCancion = nuevas;
+            if (document.getElementById('viewSong').style.display === 'flex') renderizarLetra();
+        }
+        function iniciarNotasPersonales() {
+            if (detenerNotas) detenerNotas();
+            const usuario = usuarioActual;
+            notasLocales = ExperienciaLectura.leer(claveNotasLocales(), { canciones: {} });
+            if (!notasLocales || typeof notasLocales.canciones !== 'object' || !notasLocales.canciones) notasLocales = { canciones: {} };
+            notasConsultadas = false;
+            errorNotas = false;
+            // Query existing owned documents: reading a nonexistent document can be
+            // denied by ownership rules, and older notes may use a different ID.
+            detenerNotas = db.collection('notas_personales').where('usuarioEmail', '==', usuario.email)
+                .onSnapshot({ includeMetadataChanges: true }, snap => {
+                    if (!usuarioActual || usuarioActual.uid !== usuario.uid) return;
+                    if (detenerNotaActual) { detenerNotaActual(); detenerNotaActual = null; documentoNotaEscuchada = null; }
+                    delete estadoConexion.pendientes.notaActual;
+                    const recibidas = {};
+                    snap.forEach(doc => {
+                        const datos = doc.data();
+                        const id = datos.cancionId || (doc.id.startsWith(usuario.uid + '_') ? doc.id.slice(usuario.uid.length + 1) : null);
+                        if (!id) return;
+                        const previa = recibidas[id];
+                        // Prefer the canonical document when both old and new IDs exist.
+                        const canonica = doc.id === usuario.uid + '_' + id;
+                        recibidas[id] = {
+                            documento: canonica || !previa ? doc.id : previa.documento,
+                            documentos: [...new Set([...(previa?.documentos || []), doc.id])],
+                            notas: canonica ? { ...(previa?.notas || {}), ...(datos.notas || {}) } : { ...(datos.notas || {}), ...(previa?.notas || {}) }
+                        };
+                    });
+                    const ids = new Set([...Object.keys(notasLocales.canciones), ...Object.keys(recibidas)]);
+                    ids.forEach(id => {
+                        const previa = notasLocales.canciones[id] || {};
+                        if (recibidas[id]) notasLocales.canciones[id] = { ...recibidas[id], pendientes: previa.pendientes || {} };
+                        else if (!snap.metadata.fromCache) notasLocales.canciones[id] = { notas: {}, pendientes: previa.pendientes || {} };
+                    });
+                    if (!snap.metadata.fromCache) {
+                        notasConsultadas = true;
+                        notasLocales.sincronizadas = true;
+                    }
+                    errorNotas = false;
+                    estadoConexion.pendientes.notas = snap.metadata.hasPendingWrites;
+                    persistirNotasLocales();
+                    mostrarNotasActuales();
+                    verificarEstadoTotal();
+                }, error => {
+                    if (!usuarioActual || usuarioActual.uid !== usuario.uid) return;
+                    errorNotas = true;
+                    console.warn('No se pudieron sincronizar las notas personales.', error);
+                    escucharNotaActualSiHaceFalta();
+                    mostrarNotasActuales();
+                    verificarEstadoTotal();
+                });
+            sincronizarNotasPendientes();
+        }
+        function escucharNotaActualSiHaceFalta() {
+            if (!errorNotas || !usuarioActual || !cancionActual) return;
+            const usuario = usuarioActual, id = cancionActual.id;
+            const documento = usuario.uid + '_' + id;
+            if (documentoNotaEscuchada === documento) return;
+            if (detenerNotaActual) detenerNotaActual();
+            delete estadoConexion.pendientes.notaActual;
+            documentoNotaEscuchada = documento;
+            // Some deployments allow individual owned documents but not queries.
+            detenerNotaActual = db.collection('notas_personales').doc(documento).onSnapshot({ includeMetadataChanges: true }, doc => {
+                if (usuarioActual?.uid !== usuario.uid || cancionActual?.id !== id) return;
+                if (!doc.exists) return;
+                const anterior = notasLocales.canciones[id] || {};
+                notasLocales.canciones[id] = {
+                    documento, documentos: anterior.documentos || [documento],
+                    notas: doc.data().notas || {}, pendientes: anterior.pendientes || {}
+                };
+                estadoConexion.pendientes.notaActual = doc.metadata.hasPendingWrites;
+                persistirNotasLocales();
+                mostrarNotasActuales();
+                verificarEstadoTotal();
+            }, error => {
+                if (usuarioActual?.uid === usuario.uid && cancionActual?.id === id) console.warn('La copia local de comentarios se conserva.', error);
+            });
+        }
+        function cargarNotasYRenderizar() {
+            if (!cancionActual) return;
+            notasDeLaCancion = usuarioActual ? ExperienciaLectura.notasVisibles(notasLocales, cancionActual.id) : {};
+            document.getElementById('songContent').scrollTop = 0;
+            renderizarLetra();
+            escucharNotaActualSiHaceFalta();
+        }
         function guardarNotaEnNube(index, texto) {
             if (!usuarioActual || !cancionActual) return;
-            const docId = usuarioActual.uid + "_" + cancionActual.id;
-            const ref = db.collection('notas_personales').doc(docId);
-            if (texto === null || texto === "") {
-                delete notasDeLaCancion[index];
-                ref.set({
-                    notas: { [index]: firebase.firestore.FieldValue.delete() }
-                }, { merge: true }).then(() => {
-                    renderizarLetra();
+            const id = cancionActual.id;
+            const estado = notasLocales.canciones[id] || (notasLocales.canciones[id] = { notas: {}, pendientes: {} });
+            estado.pendientes ||= {};
+            estado.pendientes[index] = { texto: texto || null, revision: Date.now() + '_' + (++secuenciaNota) };
+            const guardada = persistirNotasLocales();
+            mostrarNotasActuales();
+            verificarEstadoTotal();
+            if (!guardada && !navigator.onLine) Modal.alert('Almacenamiento no disponible', 'Mantén esta página abierta y vuelve a conectar para guardar tu comentario.');
+            sincronizarNotasPendientes();
+        }
+        function sincronizarNotasPendientes() {
+            if (!usuarioActual || !navigator.onLine) return;
+            const usuario = usuarioActual;
+            const almacen = notasLocales;
+            Object.entries(almacen.canciones).forEach(([id, estado]) => {
+                Object.entries(estado.pendientes || {}).forEach(([indice, cambio]) => {
+                    const envio = usuario.uid + '_' + id + '_' + indice;
+                    if (enviosNotas.has(envio)) return;
+                    enviosNotas.add(envio);
+                    const documento = estado.documento || usuario.uid + '_' + id;
+                    const destinos = cambio.texto === null ? [...new Set([documento, ...(estado.documentos || [])])] : [documento];
+                    Promise.all(destinos.map(destino => db.collection('notas_personales').doc(destino).set({
+                        usuarioEmail: usuario.email, cancionId: id,
+                        notas: { [indice]: cambio.texto === null ? firebase.firestore.FieldValue.delete() : cambio.texto }
+                    }, { merge: true }))).then(() => {
+                        if (!usuarioActual || usuarioActual.uid !== usuario.uid || almacen !== notasLocales) return;
+                        const actual = notasLocales.canciones[id];
+                        if (cambio.texto === null) delete actual.notas[indice];
+                        else actual.notas[indice] = cambio.texto;
+                        actual.documento = documento;
+                        if (actual.pendientes?.[indice]?.revision === cambio.revision) delete actual.pendientes[indice];
+                        persistirNotasLocales();
+                    }).catch(error => {
+                        console.warn('El comentario se conserva pendiente en este dispositivo.', error);
+                    }).finally(() => {
+                        enviosNotas.delete(envio);
+                        if (!usuarioActual || usuarioActual.uid !== usuario.uid || almacen !== notasLocales) return;
+                        verificarEstadoTotal();
+                        const siguiente = notasLocales.canciones[id]?.pendientes?.[indice];
+                        if (siguiente && siguiente.revision !== cambio.revision) sincronizarNotasPendientes();
+                    });
                 });
-            } else {
-                notasDeLaCancion[index] = texto;
-                ref.set({
-                    usuarioEmail: usuarioActual.email,
-                    cancionId: cancionActual.id, 
-                    notas: notasDeLaCancion
-                }, { merge: true }).then(() => {
-                    renderizarLetra();
-                });
-            }
+            });
         }
 
         function agregarNota(index) {
+            const cancionEditada = cancionActual?.id;
+            const usuarioEditando = usuarioActual?.uid;
             const valorActual = notasDeLaCancion[index] || '';
             const esNueva = !valorActual;
             Modal.show({
@@ -571,6 +874,7 @@ modalRol
                 icon: "📝",
                 showDelete: !esNueva 
             }).then(resultado => {
+                if (cancionActual?.id !== cancionEditada || usuarioActual?.uid !== usuarioEditando) return;
                 if (resultado === "__DELETE__") {
                     guardarNotaEnNube(index, null); 
                 } else if (resultado !== false) {
@@ -592,12 +896,19 @@ modalRol
                 if(btnIcon) btnIcon.className = "fas fa-eye-slash";
                 if(fabContainer) fabContainer.style.display = 'flex';
             }
+            if (cancionActual && document.getElementById('viewSong').style.display === 'flex') {
+                cargarPreferenciasCancion();
+                renderizarLetra();
+            }
         }
 
         function alternarAcordes() {
             document.body.classList.toggle('hide-chords');
             const btnIcon = document.querySelector('#btnToggleChords i');
             btnIcon.className = document.body.classList.contains('hide-chords') ? "fas fa-eye" : "fas fa-eye-slash";
+            actualizarBotonAcordes();
+            guardarPreferenciasCancion();
+            solicitarAjusteBateria();
         }
 
         function detectarSeccionAutomatica(linea) {
@@ -630,7 +941,9 @@ modalRol
 
         function renderizarLetra() {
             if (!cancionActual) return;
-            let texto = cancionActual.letraChordPro;
+            pausarDesplazamientoLetra();
+            const scrollAnterior = document.getElementById('songContent').scrollTop;
+            let texto = cancionActual.letraChordPro || '';
             if (semitonos !== 0) { 
                 texto = texto.replace(/\[(.*?)\]/g, (m, ac) => { 
                     const p = ac.split('/'); 
@@ -646,22 +959,28 @@ modalRol
             let bloqueOcultoParaGuitarraTeclado = false;
 
             lineas.forEach((linea, idx) => {
-                let contenidoParaRenderizar = linea.trim(); 
-                if (contenidoParaRenderizar.includes('[INICIO-SOLO-GT]')) { bloqueOcultoParaBateriaVoz = true; return; }
-                if (contenidoParaRenderizar.includes('[FIN-SOLO-GT]')) { bloqueOcultoParaBateriaVoz = false; return; }
-                if (contenidoParaRenderizar.includes('[INICIO-REPETICION]')) { bloqueOcultoParaGuitarraTeclado = true; return; }
-                if (contenidoParaRenderizar.includes('[FIN-REPETICION]')) { bloqueOcultoParaGuitarraTeclado = false; return; }
+                let contenidoParaRenderizar = linea.trim();
+                let ocultarLinea = false;
+                if (contenidoParaRenderizar.includes('[INICIO-SOLO-GT]')) { bloqueOcultoParaBateriaVoz = true; ocultarLinea = true; }
+                if (contenidoParaRenderizar.includes('[FIN-SOLO-GT]')) { bloqueOcultoParaBateriaVoz = false; ocultarLinea = true; }
+                if (contenidoParaRenderizar.includes('[INICIO-REPETICION]')) { bloqueOcultoParaGuitarraTeclado = true; ocultarLinea = true; }
+                if (contenidoParaRenderizar.includes('[FIN-REPETICION]')) { bloqueOcultoParaGuitarraTeclado = false; ocultarLinea = true; }
 
-                if (bloqueOcultoParaBateriaVoz && (rolActual === 'bateria' || rolActual === 'voz')) return;
-                if (bloqueOcultoParaGuitarraTeclado && (rolActual === 'guitarra' || rolActual === 'teclado')) return;
+                if (bloqueOcultoParaBateriaVoz && (rolActual === 'bateria' || rolActual === 'voz')) ocultarLinea = true;
+                if (bloqueOcultoParaGuitarraTeclado && (rolActual === 'guitarra' || rolActual === 'teclado')) ocultarLinea = true;
 
                 if (contenidoParaRenderizar.includes('[REPETICION]')) {
-                    if (rolActual !== 'bateria' && rolActual !== 'voz') return;
+                    if (rolActual !== 'bateria' && rolActual !== 'voz') ocultarLinea = true;
                     contenidoParaRenderizar = contenidoParaRenderizar.replace('[REPETICION]', '').trim();
                 }
                 if (contenidoParaRenderizar.includes('[SOLO-G-T]')) {
-                    if (rolActual === 'bateria' || rolActual === 'voz') return;
+                    if (rolActual === 'bateria' || rolActual === 'voz') ocultarLinea = true;
                     contenidoParaRenderizar = contenidoParaRenderizar.replace('[SOLO-G-T]', '').trim();
+                }
+                // Role filters hide lyrics, but personal reminders keep their original line index.
+                if (ocultarLinea) {
+                    if (!notasDeLaCancion[idx]) return;
+                    contenidoParaRenderizar = '';
                 }
 
                 const esTituloSeccion = detectarSeccionAutomatica(contenidoParaRenderizar);
@@ -678,10 +997,12 @@ modalRol
                     textoNotaLimpio = rawNota.substring(1);
                 }
 
-                let htmlNota = textoNotaLimpio ? `<div class="note-card" onclick="editarNota(${idx}, event)">${textoNotaLimpio}</div>` : '';
+                let htmlNota = textoNotaLimpio ? `<button type="button" class="note-card" onclick="editarNota(${idx}, event)" aria-label="Editar nota: ${escaparLectura(textoNotaLimpio)}"><i class="fas fa-pen" aria-hidden="true"></i><span>${escaparLectura(textoNotaLimpio)}</span></button>` : '';
                 let htmlLinea = '';
                 
-                if (esTituloSeccion) { 
+                if (ocultarLinea) {
+                    htmlLinea = '';
+                } else if (esTituloSeccion) {
                     htmlLinea = `<div style="break-after: avoid; margin-bottom: 2px;">${esTituloSeccion}</div>`; 
                 } else if (!contenidoParaRenderizar) { 
                     const alturaVacia = (rolActual === 'bateria' || rolActual === 'voz') ? '0px' : '8px';
@@ -701,7 +1022,7 @@ modalRol
                                 cl += bl('', espaciosReales);
                                 buf = null;
                             } else {
-                                const textoProcesado = rawText.replace(/ /g, '\u00A0');
+                                const textoProcesado = rawText;
                                 cl += bl(buf || '', textoProcesado); 
                                 buf = null; 
                             }
@@ -718,18 +1039,188 @@ modalRol
             if (bloqueActual !== '') { htmlFinal += `<div class="section-block">${bloqueActual}</div>`; }
             const container = document.getElementById('songContent');
             container.innerHTML = htmlFinal;
-            container.scrollTop = 0;
+            actualizarEstructuraCancion();
+            container.scrollTop = scrollAnterior;
 
-            if (rolActual === 'bateria' || rolActual === 'voz') {
-                container.classList.add('lyrics-cols-bate');
-                container.style.width = "100%"; 
-            } else {
-                container.classList.remove('lyrics-cols-bate');
-                container.style.width = ""; 
-            }
+            // All instruments read vertically; legacy newspaper columns can
+            // push remaining verses outside the viewport when height is constrained.
+            container.classList.remove('lyrics-cols-bate');
+            container.style.width = '';
+            aplicarTamanoLectura();
         }
+        function actualizarEstructuraCancion() {
+            const nav = document.getElementById('songStructure');
+            const titulos = document.querySelectorAll('#songContent .struct-btn');
+            nav.replaceChildren();
+            seccionesLectura = [];
+            titulos.forEach(titulo => {
+                const linea = titulo.closest('.line-wrapper');
+                const indice = linea.dataset.index;
+                linea.id = 'song-section-' + indice;
+                linea.tabIndex = -1;
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.textContent = titulo.textContent;
+                boton.className = 'structure-button';
+                const color = Array.from(titulo.classList).find(clase => clase.startsWith('tag-'));
+                if (color) boton.classList.add(color);
+                boton.setAttribute('aria-controls', linea.id);
+                boton.setAttribute('aria-label', 'Ir a ' + titulo.textContent);
+                boton.addEventListener('click', () => irASeccionCancion(linea.id, boton));
+                nav.append(boton);
+                seccionesLectura.push({ linea, boton });
+            });
+            nav.hidden = titulos.length === 0;
+        }
+        function irASeccionCancion(id, boton) {
+            pausarDesplazamientoLetra();
+            const linea = document.getElementById(id);
+            if (!linea) return;
+            const contenido = document.getElementById('songContent');
+            seleccionarSeccionLectura(linea, boton);
+            // A fitted drum sheet is already visible; emphasize the requested section.
+            const hoja = contenido.querySelector('.drum-sheet');
+            if (!hoja || hoja.classList.contains('drum-sheet-overflow')) {
+                const top = contenido.scrollTop + linea.getBoundingClientRect().top - contenido.getBoundingClientRect().top - 20;
+                contenido.scrollTo({ top: Math.max(0, top), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+            }
+            linea.focus({ preventScroll: true });
+        }
+        function escaparLectura(texto) {
+            return String(texto).replace(/[&<>"']/g, caracter => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[caracter]));
+        }
+        let lecturaContinua = false;
+        let desplazamientoActivo = false;
+        let desplazamientoFrame = null;
+        let desplazamientoTiempo = null;
+        let desplazamientoPosicion = 0;
+        function pausarDesplazamientoLetra() {
+            desplazamientoActivo = false;
+            cancelAnimationFrame(desplazamientoFrame);
+            desplazamientoFrame = null;
+            desplazamientoTiempo = null;
+            const boton = document.getElementById('readerPlay');
+            boton.setAttribute('aria-pressed', 'false');
+            boton.setAttribute('aria-label', 'Iniciar desplazamiento de letra');
+            boton.querySelector('i').className = 'fas fa-play';
+            document.getElementById('readerPlayLabel').textContent = 'Auto';
+        }
+        function alternarDesplazamientoLetra() {
+            if (desplazamientoActivo) { pausarDesplazamientoLetra(); return; }
+            if (!cancionActual) return;
+            // Continuous reading uses the vertical layout, including on desktop drums.
+            if (!lecturaContinua) {
+                lecturaContinua = true;
+                guardarPreferenciasCancion();
+                renderizarLetra();
+            }
+            const contenido = document.getElementById('songContent');
+            desplazamientoActivo = true;
+            desplazamientoPosicion = contenido.scrollTop;
+            desplazamientoTiempo = null;
+            const boton = document.getElementById('readerPlay');
+            boton.setAttribute('aria-pressed', 'true');
+            boton.setAttribute('aria-label', 'Pausar desplazamiento de letra');
+            boton.querySelector('i').className = 'fas fa-pause';
+            document.getElementById('readerPlayLabel').textContent = 'Pausa';
+            activarPantalla();
+            desplazamientoFrame = requestAnimationFrame(avanzarDesplazamientoLetra);
+        }
+        function avanzarDesplazamientoLetra(tiempo) {
+            if (!desplazamientoActivo) return;
+            const contenido = document.getElementById('songContent');
+            const limite = Math.max(0, contenido.scrollHeight - contenido.clientHeight);
+            if (!cancionActual || document.hidden || document.getElementById('viewSong').style.display === 'none' || contenido.scrollTop >= limite - 1) {
+                pausarDesplazamientoLetra(); return;
+            }
+            if (desplazamientoTiempo !== null) {
+                const segundos = Math.min(100, tiempo - desplazamientoTiempo) / 1000;
+                const linea = contenido.querySelector('.song-line:not(.empty-line)');
+                const altoLinea = linea ? parseFloat(getComputedStyle(linea).lineHeight) || 30 : 30;
+                const pulsos = Ritmo.compases[Ritmo.compas(currentTimeSig)].pulsos;
+                const factor = Number(document.getElementById('readerScrollSpeed').value) || 1;
+                // One lyric line per bar is a starting estimate, adjustable by the musician.
+                desplazamientoPosicion = Math.min(limite, desplazamientoPosicion + altoLinea * Ritmo.bpm(currentBpm) / 60 / pulsos * factor * segundos);
+                contenido.scrollTop = desplazamientoPosicion;
+            }
+            desplazamientoTiempo = tiempo;
+            desplazamientoFrame = requestAnimationFrame(avanzarDesplazamientoLetra);
+        }
+        const superficieLectura = document.getElementById('songContent');
+        ['wheel', 'touchstart', 'pointerdown'].forEach(tipo => superficieLectura.addEventListener(tipo, pausarDesplazamientoLetra, { passive: true }));
+        superficieLectura.addEventListener('keydown', evento => {
+            if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(evento.key)) pausarDesplazamientoLetra();
+        });
+        document.addEventListener('visibilitychange', () => { if (document.hidden) pausarDesplazamientoLetra(); });
+        let tamanoLectura = Math.max(16, Math.min(26, Number(ExperienciaLectura.leer('alabanza_letra_tamano')) || 19));
+        let tamanoBateria = Math.max(12, Math.min(24, Number(ExperienciaLectura.leer('alabanza_bateria_tamano')) || 19));
+        let ajusteBateriaFrame = null;
+        function aplicarTamanoLectura() {
+            const formato = document.getElementById('readerLayout');
+            formato.hidden = !VistaBateria.activa(rolActual);
+            formato.setAttribute('aria-pressed', String(lecturaContinua));
+            formato.setAttribute('aria-label', lecturaContinua ? 'Usar columnas para batería' : 'Usar lectura vertical');
+            formato.title = lecturaContinua ? 'Usar columnas para batería' : 'Usar lectura vertical';
+            const bateria = (VistaBateria.activa(rolActual) && !lecturaContinua);
+            const fuente = bateria ? tamanoBateria : tamanoLectura;
+            document.getElementById('viewSong').style.setProperty('--reader-font', tamanoLectura + 'px');
+            document.getElementById('readerSmaller').disabled = fuente <= (bateria ? 12 : 16);
+            document.getElementById('readerLarger').disabled = fuente >= (bateria ? 24 : 26);
+            solicitarAjusteBateria();
+        }
+        function alternarFormatoLectura() {
+            pausarDesplazamientoLetra();
+            lecturaContinua = !lecturaContinua;
+            guardarPreferenciasCancion();
+            renderizarLetra();
+        }
+        function cambiarTamanoLectura(cambio) {
+            if ((VistaBateria.activa(rolActual) && !lecturaContinua)) {
+                tamanoBateria = Math.max(12, Math.min(24, tamanoBateria + cambio));
+                ExperienciaLectura.guardar('alabanza_bateria_tamano', tamanoBateria);
+            } else {
+                tamanoLectura = Math.max(16, Math.min(26, tamanoLectura + cambio));
+                ExperienciaLectura.guardar('alabanza_letra_tamano', tamanoLectura);
+            }
+            guardarPreferenciasCancion();
+            aplicarTamanoLectura();
+        }
+        function solicitarAjusteBateria() {
+            cancelAnimationFrame(ajusteBateriaFrame);
+            ajusteBateriaFrame = requestAnimationFrame(() => {
+                const visor = document.getElementById('viewSong');
+                const contenido = document.getElementById('songContent');
+                const activa = (VistaBateria.activa(rolActual) && !lecturaContinua);
+                visor.classList.toggle('drummer-desktop', activa);
+                const estado = document.getElementById('drumFitStatus');
+                estado.hidden = !activa;
+                document.getElementById('readerSizeLabel').textContent = activa ? 'Vista de batería · ajuste automático' : 'Tamaño de letra';
+                if (!activa) {
+                    VistaBateria.restaurar(contenido);
+                    restaurarRetornoEditor();
+                    actualizarSeccionVisible();
+                    return;
+                }
+                if (!cancionActual || !visor.clientHeight || !contenido.querySelector('.section-block')) return;
+                const resultado = VistaBateria.ajustar(contenido, tamanoBateria);
+                if (resultado) estado.textContent = resultado.completo
+                    ? `${resultado.columnas} ${resultado.columnas === 1 ? 'columna' : 'columnas'} · ${resultado.fuente} px · Canción completa`
+                    : 'Canción extensa: amplía la ventana o usa pantalla completa. Se conserva el scroll para no ocultar letra.';
+                restaurarRetornoEditor();
+                actualizarSeccionVisible();
+            });
+        }
+        window.addEventListener('resize', aplicarTamanoLectura);
+        window.matchMedia(VistaBateria.media).addEventListener('change', aplicarTamanoLectura);
+        if (document.fonts) document.fonts.ready.then(solicitarAjusteBateria);
         function bl(a, l) { return `<div class="chord-group"><div class="chord">${a || '&nbsp;'}</div><div class="lyric">${(l === '' || l === undefined) ? '&nbsp;' : l}</div></div>`; }
-        function editarCancionActual() { if (!cancionActual) return; window.location.href = `admin.html?edit=${cancionActual.id}`; }
+        function editarCancionActual() {
+            if (!cancionActual || !Permisos.puedeEditar(usuarioActual)) return;
+            pausarDesplazamientoLetra();
+            guardarPreferenciasCancion();
+            ExperienciaLectura.guardar('alabanza_editor_return', capturarRetornoEditor(), sessionStorage);
+            window.location.href = 'admin.html?edit=' + encodeURIComponent(cancionActual.id);
+        }
         
         function toggleTransposer(event) {
             if(event) event.stopPropagation();
@@ -741,15 +1232,73 @@ modalRol
         function cn(n, d) { let no=n.trim(), r=no.substring(0,1), s=no.substring(1); if(no.length>1&&(no[1]=='#'||no[1]=='b')){r=no.substring(0,2);s=no.substring(2);} const b={'Db':'C#','Eb':'D#','Gb':'F#','Ab':'G#','Bb':'A#'}; if(b[r])r=b[r]; let i=NOTAS.indexOf(r); if(i===-1)return no; let ni=(i+d)%12; if(ni<0)ni+=12; return NOTAS[ni]+s; }
         
         let sortableInstance = null;
+        let arrastreEnCurso = false;
+        let refrescoTrasArrastre = false;
         function inicializarArrastre() {
             const el = document.getElementById('songList');
             if (!el || typeof Sortable === 'undefined') return;
             if (sortableInstance) { sortableInstance.destroy(); sortableInstance = null; }
+            const diaArrastre = servicioActual;
+            const movimientoReducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             sortableInstance = Sortable.create(el, {
-                handle: '.drag-handle', animation: 200, ghostClass: 'sortable-ghost', delay: 0,
-                onEnd: function () {
-                    const nuevoOrden = Array.from(el.querySelectorAll('.song-item')).map(item => item.dataset.id);
-                    db.collection('configuracion').doc('playlist_semanal').set({ canciones: nuevoOrden, ultimaEdicion: new Date() }, { merge: true });
+                draggable: '.song-item',
+                // The full card can be picked up; action buttons keep their own clicks.
+                filter: '.action-btn, button, a, input, select',
+                preventOnFilter: false,
+                animation: movimientoReducido ? 0 : 320,
+                easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                ghostClass: 'playlist-placeholder',
+                chosenClass: 'playlist-chosen',
+                dragClass: 'playlist-dragging',
+                fallbackClass: 'playlist-floating',
+                forceFallback: true,
+                fallbackOnBody: true,
+                fallbackTolerance: 3,
+                delay: 180,
+                delayOnTouchOnly: true,
+                touchStartThreshold: 4,
+                scrollSensitivity: 70,
+                scrollSpeed: 8,
+                onChoose: function () {
+                    document.body.classList.add('playlist-pointer-held');
+                },
+                onUnchoose: function () {
+                    document.body.classList.remove('playlist-pointer-held');
+                },
+                onStart: function () {
+                    arrastreEnCurso = true;
+                    el.classList.add('playlist-sorting');
+                    if (!movimientoReducido && navigator.vibrate) navigator.vibrate(12);
+                },
+                onEnd: function (evento) {
+                    el.classList.remove('playlist-sorting');
+                    document.body.classList.remove('playlist-pointer-held');
+                    const cambio = evento.oldDraggableIndex !== evento.newDraggableIndex;
+                    if (cambio) {
+                        evento.item.classList.add('playlist-landed');
+                        const visibles = Array.from(el.querySelectorAll('.song-item')).map(item => item.dataset.id);
+
+                        // Searching must never remove songs hidden by the filter.
+                        const nuevoOrden = Servicios.reordenar(playlistsPorDia[diaArrastre], visibles);
+                        db.collection('configuracion').doc(Servicios.dias[diaArrastre].documento)
+                            .set({ canciones: nuevoOrden, ultimaEdicion: new Date() }, { merge: true })
+                            .catch(() => {
+                                Modal.alert('No se guardó el orden', 'Revisa tu conexión e intenta mover la canción de nuevo.');
+                                renderizarLista();
+                            });
+                        const resumen = document.getElementById('searchSummary');
+                        resumen.textContent = `Canción movida a la posición ${evento.newDraggableIndex + 1} de ${visibles.length}`;
+                        if (!movimientoReducido && navigator.vibrate) navigator.vibrate(8);
+                    }
+                    // Let the landing finish before applying incoming snapshots.
+                    window.setTimeout(() => {
+                        evento.item.classList.remove('playlist-landed');
+                        arrastreEnCurso = false;
+                        if (refrescoTrasArrastre) {
+                            refrescoTrasArrastre = false;
+                            renderizarLista();
+                        }
+                    }, movimientoReducido ? 0 : 560);
                 }
             });
         }
@@ -765,7 +1314,7 @@ modalRol
 
         function handleTouchStart(e) {
             const target = e.target.closest('.line-wrapper');
-            const esNota = e.target.classList.contains('note-card');
+            const esNota = e.target.closest('.note-card');
             if (esNota) return; 
             if (target) {
                 pressTimer = setTimeout(() => {
@@ -817,11 +1366,13 @@ let audioCtx = null;
 
 // Variables Metrónomo
 let isMetronomeOn = false;
-let isSubdivisionOn = false; // Variable para el botón 1/8
+let isSubdivisionOn = false; // Subdivide the main pulse into two or three clicks.
 let metronomeTimerID = null;
 let nextNoteTime = 0.0;
 let currentBpm = 120;
-let beatsPerMeasure = 4;
+let currentTimeSig = '4/4';
+let metronomeGeneration = 0;
+const clicksProgramados = new Set();
 let currentBeat = 0;
 let scheduleAheadTime = 0.1;
 let lookahead = 25.0;
@@ -843,29 +1394,31 @@ function initAudio() {
 }
 
 // --- LÓGICA DE SUBDIVISIÓN (BOTÓN 1/8) ---
+function actualizarControlesRitmo() {
+    const btn = document.getElementById('btnSubdivision');
+    const division = Ritmo.compases[currentTimeSig].subdivision;
+    btn.classList.toggle('active', isSubdivisionOn);
+    btn.textContent = isSubdivisionOn ? `×${division}` : 'Pulso';
+    btn.setAttribute('aria-pressed', String(isSubdivisionOn));
+    btn.setAttribute('aria-label', `Subdividir cada pulso en ${division} clics`);
+    document.getElementById('metronomeHelp').textContent = Ritmo.descripcion(currentTimeSig);
+}
+function reiniciarMetronomo() {
+    if (isMetronomeOn) { toggleMetronome(); toggleMetronome(); }
+}
 function toggleSubdivision() {
     isSubdivisionOn = !isSubdivisionOn;
-    const btn = document.getElementById('btnSubdivision');
-    
-    if (isSubdivisionOn) {
-        btn.classList.add('active');
-        btn.innerText = "1/8"; // Muestra corcheas
-    } else {
-        btn.classList.remove('active');
-        btn.innerText = "1/4"; // Muestra negras
-    }
-    
-    // Si el metrónomo está prendido, reiniciamos para que el cambio se note al instante
-    if (isMetronomeOn) {
-        toggleMetronome(); // Apaga
-        toggleMetronome(); // Prende
-    }
+    actualizarControlesRitmo();
+    reiniciarMetronomo();
 }
 
 function toggleMetronome() {
     initAudio();
     isMetronomeOn = !isMetronomeOn;
+    metronomeGeneration++;
     const btn = document.getElementById('btnMetronomeDock');
+    btn.setAttribute('aria-label', isMetronomeOn ? 'Detener metrónomo' : 'Iniciar metrónomo');
+    btn.setAttribute('aria-pressed', String(isMetronomeOn));
     if (isMetronomeOn) {
         btn.classList.add('active');
         btn.innerHTML = '<i class="fas fa-stop"></i>';
@@ -876,20 +1429,15 @@ function toggleMetronome() {
         btn.classList.remove('active');
         btn.innerHTML = '<i class="fas fa-play"></i>';
         clearTimeout(metronomeTimerID);
+        clicksProgramados.forEach(osc => { try { osc.stop(); } catch (_) {} });
+        clicksProgramados.clear();
     }
 }
 
 function nextNote() {
-    const secondsPerBeat = 60.0 / currentBpm;
-    // Si está activa la subdivisión, el tiempo avanza la mitad (0.5)
-    const factor = isSubdivisionOn ? 0.5 : 1;
-    
-    nextNoteTime += secondsPerBeat * factor;
-    currentBeat += factor;
-
-    if (currentBeat >= beatsPerMeasure) {
-        currentBeat = 0;
-    }
+    const paso = Ritmo.paso(currentTimeSig, currentBpm, isSubdivisionOn, currentBeat);
+    nextNoteTime += paso.segundos;
+    currentBeat = (currentBeat + 1) % paso.total;
 }
 
 function scheduleNote(time) {
@@ -898,15 +1446,17 @@ function scheduleNote(time) {
     osc.connect(gain);
     gain.connect(audioCtx.destination);
 
+    const paso = Ritmo.paso(currentTimeSig, currentBpm, isSubdivisionOn, currentBeat);
+    const generacion = metronomeGeneration;
     // --- SONIDOS DIFERENTES ---
     // 1. Beat 1 (Fuerte - TIC)
-    if (currentBeat === 0) {
+    if (paso.acento) {
         osc.frequency.value = 1500; 
         gain.gain.value = 1;
     } 
     // 2. Subdivisión (Contratiempo - tuc suave)
-    // Detectamos decimales (ej: 0.5, 1.5)
-    else if (currentBeat % 1 !== 0) {
+    // Integer tick positions prevent drift in compound subdivisions.
+    else if (!paso.principal) {
         osc.frequency.value = 800; 
         osc.type = 'sine'; // Onda suave
         gain.gain.value = 0.3; // Volumen bajo
@@ -923,17 +1473,20 @@ function scheduleNote(time) {
     // Evitar "pop" al final del sonido
     gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
 
+    clicksProgramados.add(osc);
+    osc.onended = () => clicksProgramados.delete(osc);
     osc.start(time);
     osc.stop(time + 0.05);
 
-    // --- LED VISUAL (Solo en tiempos enteros) ---
-    if (currentBeat % 1 === 0) {
+    // LED follows main pulses; capture the scheduled accent before advancing.
+    if (paso.principal) {
         const drawTime = (time - audioCtx.currentTime) * 1000;
         setTimeout(() => {
+            if (!isMetronomeOn || generacion !== metronomeGeneration) return;
             const led = document.getElementById('tempoLed');
             if(led) {
                 led.classList.add('flash');
-                led.style.backgroundColor = currentBeat === 0 ? '#00ff00' : '#444'; // Verde en el 1
+                led.style.backgroundColor = paso.acento ? '#00ff00' : '#444'; // Verde en el 1
                 setTimeout(() => {
                     led.classList.remove('flash');
                     led.style.backgroundColor = '#333';
@@ -951,8 +1504,18 @@ function scheduler() {
     metronomeTimerID = setTimeout(scheduler, lookahead);
 }
 
-function updateBpm(val) { currentBpm = parseInt(val); }
-function updateTimeSig(val) { beatsPerMeasure = parseInt(val); currentBeat = 0; }
+function updateBpm(val) {
+    currentBpm = Ritmo.bpm(val);
+    document.getElementById('bpmInput').value = currentBpm;
+    reiniciarMetronomo();
+}
+function updateTimeSig(val) {
+    currentTimeSig = Ritmo.compas(val);
+    currentBeat = 0;
+    document.getElementById('timeSigInput').value = currentTimeSig;
+    actualizarControlesRitmo();
+    reiniciarMetronomo();
+}
 
 function togglePad() { 
     initAudio(); // ¡Faltaba esto! Es lo que "despierta" el motor de audio
@@ -1087,15 +1650,29 @@ function toggleVolPopup(popupId) {
 }
 
         // --- ACTUALIZAR VISTA CANCION CON INTEGRACIÓN AUDIO ---
-        function actualizarVistaCancion(id) {
-            cancionActual = todasLasCanciones.find(c => c.id === id);
-            semitonos = 0; 
-            
+        function actualizarEncabezadoCancion() {
             document.getElementById('viewTitle').innerText = cancionActual.titulo;
             document.getElementById('viewArtist').innerText = cancionActual.artista;
             document.getElementById('currentToneDisplay').innerText = cancionActual.tonoOriginal;
             document.getElementById('viewBPM').innerText = cancionActual.bpm || '-';
             document.getElementById('viewCompas').innerText = cancionActual.compas || '-';
+
+        }
+        function actualizarVistaCancion(id) {
+            pausarDesplazamientoLetra();
+            if (cancionActual) guardarPreferenciasCancion();
+            lecturaContinua = false;
+            cancionActual = todasLasCanciones.find(c => c.id === id);
+            if (!cancionActual) return;
+            cargarPreferenciasCancion();
+            const paramsRetorno = new URLSearchParams(window.location.search);
+            if (paramsRetorno.get('saved') === '1') {
+                retornoEditorPendiente = ExperienciaLectura.retorno(usuarioActual?.uid, id);
+                if (!retornoEditorPendiente) mostrarToastLector('Canción guardada');
+            }
+            semitonos = 0;
+
+            actualizarEncabezadoCancion();
 
             document.getElementById('btnPrevSong').disabled = (indiceNavegacion <= 0);
             document.getElementById('btnNextSong').disabled = (indiceNavegacion >= listaNavegacionActual.length - 1);
@@ -1106,7 +1683,7 @@ function toggleVolPopup(popupId) {
             cargarNotasYRenderizar();
             
             const btnEdit = document.getElementById('btnDirectEdit');
-            if (usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) btnEdit.style.display = 'flex';
+            if (Permisos.puedeEditar(usuarioActual)) btnEdit.style.display = 'flex';
             else btnEdit.style.display = 'none';
 
 
@@ -1117,21 +1694,10 @@ function toggleVolPopup(popupId) {
             }
             // document.body.classList.remove('audio-dock-open'); <-- Asegúrate de que esta clase de padding no empuje la letra
 
-            // BPM
-            const bpm = cancionActual.bpm ? parseInt(cancionActual.bpm) : 120;
-            currentBpm = bpm; 
-            document.getElementById('bpmInput').value = bpm;
-            
-            // Compás
-            let beats = 4; 
-            if (cancionActual.compas) {
-                const partes = cancionActual.compas.split('/'); 
-                if(partes.length > 0) beats = parseInt(partes[0]);
-            }
-            if (![2, 3, 4, 6].includes(beats)) beats = 4;
-            beatsPerMeasure = beats;
-            currentBeat = 0;         
-            document.getElementById('timeSigInput').value = beats;
+            // Preserve stored BPM values and interpret compound meters by main pulse.
+            currentBpm = Ritmo.bpm(cancionActual.bpm);
+            document.getElementById('bpmInput').value = currentBpm;
+            updateTimeSig(cancionActual.compas);
 
             // Tono Pad
             const tonoPad = cancionActual.tonoOriginal || 'C';
@@ -1153,6 +1719,11 @@ function toggleVolPopup(popupId) {
         }
 
        function volverALista() { 
+            pausarDesplazamientoLetra();
+            guardarPreferenciasCancion();
+            if (modoEnsayo) establecerModoEnsayo(false);
+            if (pantallaCompletaEnsayo && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+            pantallaCompletaEnsayo = false;
             if (isMetronomeOn) toggleMetronome();
             if (isPadOn) togglePad();
             
@@ -1190,11 +1761,13 @@ function toggleVolPopup(popupId) {
         let rolEditandoId = null;
 
        function abrirModalNuevoRol() {
+            if (!Permisos.puedeEditar(usuarioActual)) return;
             rolEditandoId = null; 
             document.getElementById('inputRolFecha').value = "";
             document.getElementById('inputRolC1').value = "";
             document.getElementById('inputRolC2').value = "";
             
+            actualizarDiaRol();
             cambiarModalidadServicio('voces');
             cargarUsuariosEnSelector();
 
@@ -1211,12 +1784,14 @@ function toggleVolPopup(popupId) {
 
        function editarRol(id, f, dEmail, mode, c1, c2, e) {
             e.stopPropagation();
+            if (!Permisos.puedeEditar(usuarioActual)) return;
             rolEditandoId = id;
             
             // 🔥 Aseguramos que pinte la lista antes de asignarle el valor guardado
             cargarUsuariosEnSelector();
             
             document.getElementById('inputRolFecha').value = f;
+            actualizarDiaRol();
             document.getElementById('inputRolDirUser').value = dEmail || "";
             cambiarModalidadServicio(mode || 'voces');
             
@@ -1230,18 +1805,20 @@ function toggleVolPopup(popupId) {
         }
 
         function guardarNuevoRolFirebase() {
+            if (!Permisos.puedeEditar(usuarioActual)) return;
             const f = document.getElementById('inputRolFecha').value;
             const directorEmail = document.getElementById('inputRolDirUser').value;
             const c1 = document.getElementById('inputRolC1').value;
             const c2 = document.getElementById('inputRolC2').value;
 
-            if (!f || !directorEmail) return alert("Por favor selecciona fecha y dirección");
+            if (!Servicios.diaDeFecha(f) || !directorEmail) return alert("Por favor selecciona fecha y dirección");
 
             // Extraemos el nombre visible del correo para el renderizado de la tarjeta
             const nombreDirector = directorEmail.split('@')[0].toUpperCase();
 
             const datos = {
                 fecha: f,
+                diaServicio: Servicios.diaDeFecha(f),
                 direccion: nombreDirector,       // Nombre que se mostrará en la tarjeta
                 directorEmail: directorEmail,   // CRÍTICO: Esto servirá para filtrar su página de inicio después
                 modalidad: modalidadServicioActual,
@@ -1262,77 +1839,90 @@ function toggleVolPopup(popupId) {
                 document.getElementById('modalRol').classList.remove('open');
                 if (window.vibrate) navigator.vibrate(50);
                 rolEditandoId = null;
-            }).catch(e => console.error("Error guardando rol:", e));
+            }).catch(() => Modal.alert("No se pudo guardar", "Tu rol sigue aquí. Revisa la conexión e intenta de nuevo."));
         }
 
         function eliminarRol(id, e) {
             e.stopPropagation();
+            if (!Permisos.puedeEliminar(usuarioActual)) return;
             Modal.confirm("¿Eliminar fecha?", "Se borrará este rol del calendario.", "🗑️").then(conf => {
                 if(conf) db.collection('roles').doc(id).delete();
             });
         }
 
-        // Renderizado con el nuevo diseño minimalista
-        // Renderizado con el nuevo diseño minimalista
-        async function cargarRolServicio() {
-            const container = document.getElementById('rolListaContainer');
-            
-            // CORRECCIÓN: Verifica usando la lista ADMIN_EMAILS
-            if (usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) {
-                document.getElementById('btnNuevoRol').style.display = 'block';
-            }
-
-            const hoy = new Date().toISOString().split('T')[0];
-            
-            db.collection('roles')
-            .where('fecha', '>=', hoy)
-            .orderBy('fecha', 'asc')
-            .onSnapshot(snap => {
-                if (snap.empty) {
-                    container.innerHTML = "<div class='empty-state'><i class='fas fa-calendar-times fa-3x'></i><p>No hay fechas programadas.</p></div>";
-                    return;
-                }
-                
-                let html = '';
-                snap.docs.forEach((doc, index) => {
-                    const d = doc.data();
-                    const f = d.fecha.split('-');
-                    const dateObj = new Date(f[0], f[1]-1, f[2]);
-                    const esProximo = index === 0;
-
-                    // CORRECCIÓN: Verifica usando la lista ADMIN_EMAILS para mostrar lápiz y bote de basura
-                   const opcionesAdmin = (usuarioActual && ADMIN_EMAILS.includes(usuarioActual.email)) ? 
-                    `<div class="admin-actions" style="display:flex; gap:10px;">
-                        <i class="fas fa-pen" style="color:#818cf8; cursor:pointer;" onclick="editarRol('${doc.id}', '${d.fecha}', '${d.directorEmail || ''}', '${d.modalidad || 'voces'}', '${d.coro1}', '${d.coro2}', event)"></i>
-                        <i class="fas fa-trash" style="color:#ef4444; cursor:pointer;" onclick="eliminarRol('${doc.id}', event)"></i>
-                    </div>` : '';
-
-                    html += `
-                        <div class="card rol-minimal-card ${esProximo ? 'proximo-servicio' : ''}">
-                            <div class="rol-minimal-header">
-                                <div class="rol-date">
-                                    <span class="day">${dateObj.getDate()}</span>
-                                    <span class="month">${dateObj.toLocaleDateString('es-MX', {month:'short'}).toUpperCase()}</span>
-                                </div>
-                                ${opcionesAdmin}
-                            </div>
-                            <div class="rol-minimal-body">
-                                <div class="rol-item">
-                                    <i class="fas fa-star"></i> <strong>Dirige:</strong> <span>${d.direccion}</span>
-                                </div>
-                                <div class="rol-item">
-                                    <i class="fas fa-microphone"></i> <strong>Coro 1:</strong> <span>${d.coro1}</span>
-                                </div>
-                                <div class="rol-item">
-                                    <i class="fas fa-microphone"></i> <strong>Coro 2:</strong> <span>${d.coro2}</span>
-                                </div>
-                            </div>
-                        </div>`;
-                });
-                container.innerHTML = html;
+        function actualizarDiaRol() {
+            const dia = Servicios.diaDeFecha(document.getElementById('inputRolFecha').value);
+            document.getElementById('rolDayHint').textContent = !dia
+                ? 'Selecciona una fecha; el día del servicio se detectará automáticamente.'
+                : dia === 'otro' ? 'Este servicio se mostrará en Roles → Otros días.'
+                : `Este servicio se mostrará en ${Servicios.dias[dia].nombre} automáticamente.`;
+        }
+        function filtrarRoles(dia) {
+            filtroRoles = dia;
+            cargarRolServicio();
+        }
+        function crearTarjetaRol(rol, proximo) {
+            const tarjeta = document.createElement('article');
+            tarjeta.className = 'card rol-minimal-card' + (proximo ? ' proximo-servicio' : '');
+            const fecha = document.createElement('h3');
+            fecha.className = 'service-date';
+            fecha.textContent = new Date(rol.fecha + 'T12:00:00').toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long' });
+            tarjeta.append(fecha);
+            const campos = [['Dirige', rol.direccion], ...(rol.modalidad === 'completo' ? [['Equipo', 'Grupo completo']] : [['Coro 1', rol.coro1], ['Coro 2', rol.coro2]])];
+            campos.forEach(([etiqueta, valor]) => {
+                const fila = document.createElement('p');
+                fila.className = 'service-person';
+                const label = document.createElement('strong');
+                label.textContent = etiqueta + ': ';
+                fila.append(label, document.createTextNode(valor || 'Por asignar'));
+                tarjeta.append(fila);
             });
-
-         }
+            if (Permisos.puedeEditar(usuarioActual)) {
+                const acciones = document.createElement('div');
+                acciones.className = 'service-role-actions';
+                const botones = [['Editar', e => editarRol(rol.id, rol.fecha, rol.directorEmail, rol.modalidad, rol.coro1 || '', rol.coro2 || '', e)]];
+                if (Permisos.puedeEliminar(usuarioActual)) botones.push(['Eliminar', e => eliminarRol(rol.id, e)]);
+                botones.forEach(([texto, handler]) => {
+                    const boton = document.createElement('button');
+                    boton.type = 'button'; boton.textContent = texto;
+                    boton.addEventListener('click', handler);
+                    acciones.append(boton);
+                });
+                tarjeta.append(acciones);
+            }
+            return tarjeta;
+        }
+        function cargarRolServicio() {
+            document.getElementById('btnNuevoRol').style.display = Permisos.puedeEditar(usuarioActual) ? 'block' : 'none';
+            document.querySelectorAll('.role-day-filters button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.dia === filtroRoles);
+                btn.setAttribute('aria-pressed', String(btn.dataset.dia === filtroRoles));
+            });
+            const container = document.getElementById('rolListaContainer');
+            container.replaceChildren();
+            // Derive from the date so existing roles work without a migration.
+            const roles = rolesProgramados.filter(rol => filtroRoles === 'todos' || Servicios.diaDeFecha(rol.fecha) === filtroRoles);
+            if (!roles.length || errorRoles) {
+                const vacio = document.createElement('p'); vacio.className = 'empty-state';
+                vacio.textContent = errorRoles ? 'No se pudo cargar el calendario. Revisa tu conexión.' : !rolesCargados ? 'Cargando servicios…' : 'No hay servicios programados para este día.';
+                container.append(vacio);
+            } else roles.forEach((rol, index) => container.append(crearTarjetaRol(rol, index === 0)));
+        }
+        function renderizarResumenServicio() {
+            const container = document.getElementById('serviceRoleSummary');
+            if (!esTabServicio()) return;
+            container.replaceChildren();
+            const encabezado = document.createElement('h2');
+            encabezado.textContent = `Servicio del ${Servicios.dias[servicioActual].nombre.toLowerCase()}`;
+            container.append(encabezado);
+            const rol = rolesProgramados.find(item => Servicios.diaDeFecha(item.fecha) === servicioActual);
+            if (rol) container.append(crearTarjetaRol(rol, true));
+            else {
+                const mensaje = document.createElement('p');
+                mensaje.textContent = errorRoles ? 'No se pudo cargar el rol. Revisa tu conexión.' : !rolesCargados ? 'Cargando próximo servicio…' : 'Aún no hay un rol programado para este día. Puedes preparar sus canciones.';
+                container.append(mensaje);
+            }
+        }
 
         async function precargarTodosLosPads() {
             // 1. Verificamos quién está usando la app
@@ -1386,6 +1976,7 @@ function toggleVolPopup(popupId) {
         });
 
         function eliminarCancionDirecto(id, titulo, event) {
+            if (!Permisos.puedeEliminar(usuarioActual)) return;
             event.stopPropagation(); // Evita que se abra la canción al querer borrarla
             
             Modal.confirm("¿Eliminar canción?", `¿Estás seguro de borrar "${titulo}"? Esta acción no se puede deshacer.`, "🗑️")
@@ -1400,36 +1991,43 @@ function toggleVolPopup(popupId) {
                 }
             });
         }
-        function actualizarIndicadorSync(fromCache) {
-            const icon = document.getElementById('syncIndicator');
-            if (!icon) return;
-
-            if (fromCache) {
-                // Los datos ya están en tu laptop
-                icon.style.color = "#10b981"; // Verde Esmeralda
-                icon.innerHTML = '<i class="fas fa-check-circle"></i>';
-                icon.title = "Sincronizado Offline";
-            } else {
-                // Los datos vienen de internet (sincronizando)
-                icon.style.color = "#6366f1"; // Morado/Indigo
-                icon.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
-                icon.title = "Sincronizando con la nube...";
-            }
-        }
         function verificarEstadoTotal() {
-            const icon = document.getElementById('syncIndicator');
-            if (!icon) return;
-
-            // Solo si AMBAS son verdaderas, pasamos a verde
-            if (cancionesListas && padsListos) {
-                icon.style.color = "#10b981"; // Verde Esmeralda
-                icon.innerHTML = '<i class="fas fa-check-circle"></i>';
-                icon.title = "Todo listo: Letras y Pads offline";
-                console.log("✅ SISTEMA TOTALMENTE SINCRONIZADO");
+            const cola = Object.values(notasLocales.canciones).reduce((total, cancion) => total + Object.keys(cancion.pendientes || {}).length, 0);
+            const pendientes = cola > 0 || Object.values(estadoConexion.pendientes).some(Boolean);
+            const letras = window.persistenciaDisponible && estadoConexion.canciones;
+            const listas = Object.keys(Servicios.dias).every(dia => estadoConexion.listas[dia]);
+            const comentarios = !errorNotas && (notasConsultadas || notasLocales.sincronizadas === true);
+            const preparado = letras && listas && comentarios && estadoConexion.archivos;
+            let texto, tipo;
+            if (pendientes) {
+                texto = navigator.onLine ? 'Cambios pendientes de sincronizar' : 'Sin conexión · cambios pendientes';
+                tipo = 'pending';
+            } else if (!navigator.onLine) {
+                texto = preparado ? 'Sin conexión · letras y comentarios disponibles' : letras ? 'Sin conexión · letras guardadas' : 'Sin conexión · contenido sin preparar';
+                tipo = preparado || letras ? 'ready' : 'pending';
+            } else if (preparado) {
+                texto = 'Listas y comentarios disponibles sin conexión';
+                tipo = 'ready';
+            } else if (errorNotas) {
+                texto = estadoConexion.canciones ? 'Letras disponibles · comentarios por sincronizar' : 'Con conexión · sincronización pendiente';
+                tipo = 'pending';
+            } else if (!window.persistenciaDisponible && window.persistenciaResuelta) {
+                texto = 'Con conexión · almacenamiento local no disponible';
+                tipo = 'pending';
             } else {
-                // Mientras falte alguna, mantenemos el estado de carga
-                icon.style.color = "#6366f1"; 
-                icon.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
+                texto = 'Preparando contenido sin conexión…';
+                tipo = 'loading';
+            }
+            document.querySelectorAll('[data-connection-status]').forEach(el => {
+                if (el.textContent !== texto) el.textContent = texto;
+                el.dataset.state = tipo;
+            });
+            const icon = document.getElementById('syncIndicator');
+            if (icon) {
+                icon.style.color = tipo === 'ready' ? '#34d399' : '#b7a2e8';
+                icon.innerHTML = tipo === 'ready' ? '<i class="fas fa-check-circle" aria-hidden="true"></i>' : '<i class="fas fa-cloud" aria-hidden="true"></i>';
+                icon.title = texto;
+                icon.setAttribute('aria-label', texto);
             }
         }
         // --- NUEVO: CONTROL DEL AUDIO RACK FLOTANTE ---
@@ -1514,6 +2112,9 @@ function toggleVolPopup(popupId) {
             }
         }
 
+        function abrirPlaylistDashboard() {
+            cambiarTab(Servicios.dias[document.getElementById('dashServiceDay').value].tab);
+        }
         function renderizarDashboard() {
             // 1. Cargar Palabra Diaria (RV60)
             cargarVersiculoDiario();
@@ -1523,7 +2124,7 @@ function toggleVolPopup(popupId) {
             const countEl = document.getElementById('dashPlaylistCount');
             
             if (cancionesContainer && countEl) {
-                const cancionesDomingo = idsEnPlaylist.map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c);
+                const cancionesDomingo = playlistsPorDia[document.getElementById('dashServiceDay').value].map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c);
                 countEl.innerText = `${cancionesDomingo.length} canciones listas`;
 
                 if (cancionesDomingo.length === 0) {
@@ -1553,7 +2154,7 @@ function toggleVolPopup(popupId) {
             const fechasContainer = document.getElementById('dashMisFechasContainer');
             if (!fechasContainer) return;
 
-            const hoyStr = new Date().toISOString().split('T')[0];
+            const hoyStr = Servicios.hoy();
 
             db.collection('roles')
             .where('fecha', '>=', hoyStr)
@@ -1589,7 +2190,7 @@ function toggleVolPopup(popupId) {
                                     </div>
                                     <div>
                                         <div style="color: #fbbf24; font-weight: 800; font-size: 12px; letter-spacing: 0.5px;">¡TE TOCA DIRECCIÓN!</div>
-                                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Este domingo (${diaNum} de ${mesStr.toLowerCase()}) estás al frente.</div>
+                                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${dateObj.toLocaleDateString('es-MX', {weekday: 'long'})} (${diaNum} de ${mesStr.toLowerCase()}) estás al frente.</div>
                                     </div>
                                 </div>
                             </div>`;
@@ -1613,3 +2214,23 @@ function toggleVolPopup(popupId) {
                 fechasContainer.innerHTML = html;
             }).catch(err => console.error("Error cargando agenda de inicio:", err));
         }
+// Reader lifecycle: manual scrolling, reconnecting and display changes.
+document.getElementById('readerScrollSpeed').addEventListener('change', guardarPreferenciasCancion);
+document.getElementById('songContent').addEventListener('scroll', programarSeccionVisible, { passive: true });
+window.addEventListener('online', () => { sincronizarNotasPendientes(); comprobarArchivosOffline(); verificarEstadoTotal(); });
+window.addEventListener('offline', verificarEstadoTotal);
+window.addEventListener('alabanza-persistencia', verificarEstadoTotal);
+document.addEventListener('fullscreenchange', () => {
+    if (pantallaCompletaEnsayo && !document.fullscreenElement) {
+        pantallaCompletaEnsayo = false;
+        establecerModoEnsayo(false);
+    }
+});
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && document.getElementById('viewSong').style.display === 'flex') activarPantalla();
+});
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', comprobarArchivosOffline);
+    navigator.serviceWorker.ready.then(comprobarArchivosOffline);
+}
+verificarEstadoTotal();

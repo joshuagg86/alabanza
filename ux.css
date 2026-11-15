@@ -1,0 +1,157 @@
+/* Shared accessibility and responsive improvements. */
+:root { color-scheme: dark; }
+:focus-visible { outline: 3px solid #a5b4fc !important; outline-offset: 4px; }
+button, input, select, textarea { font: inherit; }
+button { touch-action: manipulation; }
+.tab-btn { color: #aeb8cb; min-height: 44px; }
+.tab-btn.active { color: #fff; background: #34356b; }
+#loginModal { overflow-y: auto; padding: 24px 0; }
+.login-card { margin: auto; flex-shrink: 0; }
+#txtPassword { padding-right: 58px !important; }
+button.toggle-pass { background: transparent; border: 0; width: 44px; height: 44px; right: 6px; color: #b3bdd0; }
+#btnToggleAuth { color: #b3bdd0 !important; min-height: 44px; }
+#roleSelectorContainer > p { color: #b3bdd0 !important; }
+#viewDashboard { height: auto !important; gap: 16px; }
+#viewDashboard > .card { flex: auto !important; min-height: 160px !important; margin-bottom: 0 !important; }
+#dashVersiculoTexto { display: block !important; overflow: visible !important; font-size: 16px !important; }
+#dashCancionesLista { min-height: 120px; max-height: 360px; }
+#dashMisFechasContainer { max-height: 280px; }
+.search-summary { color: #adb8cc; font-size: 14px; margin: -12px 0 16px; }
+.empty-state { padding: 40px 20px; text-align: center; border: 1px dashed #454661; border-radius: 18px; color: #b4bfd2; }
+.empty-state > i { font-size: 28px; color: #a5b4fc; }
+.empty-state h3 { color: #f1f5f9; }
+.empty-state p { line-height: 1.6; }
+.empty-state .btn { display: inline-flex; }
+.song-info { min-width: 0; }
+.song-info h3 { overflow-wrap: anywhere; }
+.action-btn, .icon-btn { min-width: 44px; min-height: 44px; }
+button.icon-btn { background: transparent; border: 0; cursor: pointer; }
+#viewSong { height: 100dvh !important; }
+@media (min-width: 900px) {
+    #viewDashboard { display: grid !important; grid-template-columns: 1fr 1fr; }
+    #viewDashboard[style*="display: none"] { display: none !important; }
+    #viewDashboard > .card:last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+    body { padding: 16px; }
+    #viewList > header { gap: 12px; flex-wrap: wrap; }
+    #viewList > header > div:last-child { gap: 8px !important; margin-left: auto; }
+    .tab-btn { padding: 12px 8px; font-size: 13px; }
+    .login-card { padding: 28px 22px; }
+    #viewList > .tabs-wrapper { position: sticky; top: 8px; z-index: 20; background: #131316; }
+    #adminBody header { flex-wrap: wrap; gap: 12px; }
+    #adminBody .form-group > * { min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+/* Reordering: leave transforms to Sortable so neighboring cards move cleanly. */
+#songList .song-item {
+    transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+#songList .song-item:has(.drag-handle):hover { transform: none; }
+.drag-handle {
+    min-width: 44px;
+    min-height: 48px;
+    justify-content: center;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    color: #929bb0;
+    transition: color 180ms ease, background-color 180ms ease;
+    border-radius: 12px;
+}
+.drag-handle:hover { color: #c7d2fe; background: rgba(129, 140, 248, .12); }
+.playlist-chosen {
+    border-color: rgba(165, 180, 252, .7) !important;
+    background: #1c1b32 !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .3);
+}
+.playlist-floating {
+    opacity: 1 !important;
+    background: linear-gradient(120deg, #25223c, #171624) !important;
+    border: 1px solid #a5b4fc !important;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .55), 0 0 0 3px rgba(129, 140, 248, .12) !important;
+    cursor: grabbing !important;
+    pointer-events: none;
+}
+#songList .playlist-placeholder {
+    opacity: 1;
+    background: rgba(99, 102, 241, .08) !important;
+    border: 1px dashed rgba(165, 180, 252, .45) !important;
+    box-shadow: inset 0 0 24px rgba(99, 102, 241, .06);
+}
+#songList .playlist-placeholder:not(.playlist-floating) > * { opacity: 0; }
+.playlist-sorting { cursor: grabbing; }
+.playlist-sorting .song-item { user-select: none; }
+.playlist-sorting .song-item:hover { transform: none; }
+.playlist-chosen .drag-handle { color: #c7d2fe; }
+.playlist-landed { animation: playlist-land 520ms ease-out; }
+@keyframes playlist-land {
+    from { border-color: #c7d2fe; box-shadow: 0 0 0 4px rgba(129, 140, 248, .2), 0 8px 24px rgba(0, 0, 0, .25); }
+    to { border-color: var(--glass-border); box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .playlist-landed { animation: none; }
+}
+
+.rhythm-help { margin: 0; color: #b8c2d6; font-size: 12px; line-height: 1.5; }
+#timeSigInput { min-width: 64px; }
+#btnSubdivision { min-width: 50px; }
+
+#audioDock .bar-section.left { flex-wrap: wrap; gap: 10px !important; }
+#audioDock .bar-inputs { padding: 5px 6px; gap: 4px; }
+#btnSubdivision { margin: 0 3px; min-height: 36px; color: #c7d2fe; }
+
+/* Sunday and Wednesday share the same experience, with independent content. */
+.playlist-destination { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #181725; border: 1px solid #454361; border-radius: 14px; margin-bottom: 16px; }
+.playlist-destination[hidden], .service-role-summary[hidden] { display: none; }
+.playlist-destination label { font-size: 13px; color: #c4cce0; flex: 1; }
+.playlist-destination select { width: auto; min-height: 44px; font-size: 16px; }
+.service-role-summary { margin-bottom: 22px; }
+.service-role-summary > h2 { font-size: 18px; color: #eef2ff; margin: 0 0 12px; }
+.service-role-summary > p { color: #a9b3c9; line-height: 1.6; font-size: 14px; }
+.service-role-summary .card, #rolListaContainer .card { min-height: 0; padding: 18px !important; margin-bottom: 14px; }
+.service-date { color: #c7d2fe; text-transform: capitalize; font-size: 16px; margin: 0 0 14px; }
+.service-person { color: #cbd5e1; font-size: 14px; line-height: 1.5; margin: 6px 0; overflow-wrap: anywhere; }
+.service-person strong { color: #f1f5f9; }
+.service-role-actions { display: flex; gap: 10px; margin-top: 14px; }
+.service-role-actions button, .role-day-filters button { font-family: inherit; min-height: 44px; padding: 10px 14px; border-radius: 12px; background: #ffffff08; border: 1px solid #ffffff1a; color: #c7d2fe; cursor: pointer; }
+.role-day-filters { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 18px; }
+.role-day-filters button { flex-shrink: 0; }
+.role-day-filters button.active { color: #fff; background: #34356b; border-color: #818cf8; }
+#rolDayHint { margin: -4px 0 18px; }
+#dashServiceDay { margin-left: auto; width: auto; min-height: 44px; padding: 8px 26px 8px 10px; font-size: 13px; letter-spacing: 0; }
+@media (max-width: 600px) {
+    #viewList > .tabs-wrapper { overflow-x: auto; gap: 3px; }
+    #viewList > .tabs-wrapper > .tab-btn { flex: 1 0 auto; min-width: 72px; padding: 12px 10px; }
+    .playlist-destination { gap: 8px; }
+    .playlist-destination select { max-width: 155px; padding-left: 10px; }
+}
+
+/* The fallback clone lives on body, outside #songList. Keep all its content
+   visible, even if it inherited a placeholder class during a reorder. */
+body > .song-item.playlist-floating {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 100000 !important;
+    list-style: none;
+    margin: 0 !important;
+    transition: none !important;
+    animation: none !important;
+    will-change: transform;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+}
+body > .playlist-floating > * {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+body > .playlist-floating .song-info { flex: 1; min-width: 0; }
+body > .playlist-floating .song-info h3 { color: #fff; }
+body > .playlist-floating .song-artist { color: #b8c2d6; }
+body.playlist-pointer-held, body.playlist-pointer-held * { cursor: grabbing !important; }
+#songList .song-item:has(.drag-handle) { cursor: grab; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }

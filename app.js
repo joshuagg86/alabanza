@@ -73,6 +73,8 @@ const Modal = {
 // ==========================================
 
 function guardarCancion() {
+    if (!Permisos.puedeEditar(firebase.auth().currentUser)) return;
+    if (document.getElementById('btnSave').disabled) return;
     const tituloInput = document.getElementById('titulo');
     if(!tituloInput) return; 
 
@@ -83,11 +85,32 @@ function guardarCancion() {
     const compas = document.getElementById('compas').value;
     const letra = document.getElementById('letraInput').value;
 
-    if(!titulo || !letra) return Modal.alert('Faltan datos', 'Ingresa Título y Letra.', '📝');
+    const letraInput = document.getElementById('letraInput');
+    const feedback = document.getElementById('editorFeedback');
+    tituloInput.setAttribute('aria-invalid', String(!titulo));
+    letraInput.setAttribute('aria-invalid', String(!letra.trim()));
+    if (!titulo || !letra.trim()) {
+        switchTab('editor');
+        feedback.dataset.error = 'true';
+        feedback.textContent = !titulo ? 'Escribe un título para guardar la canción.' : 'Añade la letra antes de guardar.';
+        (!titulo ? tituloInput : letraInput).focus();
+        return;
+    }
+    const bpmInput = document.getElementById('bpm');
+    if (!bpmInput.checkValidity()) {
+        switchTab('editor');
+        feedback.dataset.error = 'true';
+        feedback.textContent = 'El tempo debe estar entre 1 y 400 BPM.';
+        bpmInput.focus();
+        return;
+    }
+    feedback.dataset.error = 'false';
+    feedback.textContent = 'Guardando canción…';
 
     const btn = document.getElementById('btnSave');
-    const txtOriginal = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> ...';
+    let guardada = false;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin" aria-hidden="true"></i> Guardando…';
+    btn.setAttribute('aria-busy', 'true');
     btn.disabled = true;
 
     const datos = {
@@ -100,26 +123,35 @@ function guardarCancion() {
         busqueda: titulo.toLowerCase() 
     };
 
+    const idEditado = idCancionEditando;
     let promesa;
-    if (idCancionEditando) {
-        promesa = window.db.collection('canciones').doc(idCancionEditando).update(datos);
+    if (idEditado) {
+        promesa = window.db.collection('canciones').doc(idEditado).update(datos);
     } else {
         datos.fechaCreacion = new Date();
         promesa = window.db.collection('canciones').add(datos);
     }
 
     promesa.then(() => {
-        Modal.alert('Éxito', 'Canción guardada correctamente.', '✅');
+        guardada = true;
+        if (idEditado) {
+            window.location.href = 'index.html?song=' + encodeURIComponent(idEditado) + '&saved=1';
+            return;
+        }
         limpiarFormulario();
+        feedback.textContent = 'Canción guardada. Ya está disponible para el equipo.';
     }).catch(e => {
-        Modal.alert('Error', e.message, '❌');
+        feedback.dataset.error = 'true';
+        feedback.textContent = 'No se pudo guardar. Tu contenido sigue aquí; revisa tu conexión e intenta de nuevo.';
     }).finally(() => {
-        btn.innerHTML = txtOriginal; btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-save" aria-hidden="true"></i> ' + (!guardada && idCancionEditando ? 'Actualizar canción' : 'Guardar canción');
+        btn.disabled = false;
+        btn.removeAttribute('aria-busy');
     });
 }
 
 function eliminarCancion() {
-    if (!idCancionEditando) return;
+    if (!idCancionEditando || !Permisos.puedeEliminar(firebase.auth().currentUser)) return;
     Modal.confirm("¿Eliminar?", "Esta acción es irreversible.", "🗑️").then(confirmado => {
         if (confirmado) {
             window.db.collection('canciones').doc(idCancionEditando).delete().then(() => {
@@ -135,37 +167,32 @@ function eliminarCancion() {
 // ==========================================
 
 function buscarParaEditar() {
-    const texto = document.getElementById('searchEdit').value.toLowerCase();
+    const normalizar = valor => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    const texto = normalizar(document.getElementById('searchEdit').value);
     const contenedor = document.getElementById('searchResults');
-    
-    if (!window.todasLasCancionesAdmin || window.todasLasCancionesAdmin.length === 0) {
-        if(texto.length > 2) contenedor.innerHTML = '<div style="padding:10px; color:#666;">Cargando base de datos...</div>';
+    contenedor.replaceChildren();
+    contenedor.style.display = texto ? 'block' : 'none';
+    if (!texto) return;
+    const resultados = window.todasLasCancionesAdmin.filter(c => normalizar(`${c.titulo} ${c.artista || ''}`).includes(texto));
+    if (!resultados.length) {
+        const mensaje = document.createElement('p');
+        mensaje.className = 'search-empty';
+        mensaje.textContent = 'No hay coincidencias. Prueba con otro título o artista.';
+        contenedor.append(mensaje);
         return;
     }
-    
-    if (texto.length < 2) { contenedor.style.display = 'none'; return; }
-
-    const resultados = window.todasLasCancionesAdmin.filter(c => 
-        (c.titulo && c.titulo.toLowerCase().includes(texto)) || 
-        (c.artista && c.artista.toLowerCase().includes(texto))
-    );
-    
-    if (resultados.length > 0) {
-        let html = '';
-        resultados.forEach(c => {
-            const idSeguro = c.id; 
-            html += `<div class="search-result-item" onclick="cargarParaEditar('${idSeguro}')">
-                        <div style="display:flex; justify-content:space-between; width:100%;">
-                            <span><strong>${c.titulo}</strong></span>
-                            <span style="font-size:11px; opacity:0.7;">${c.artista}</span>
-                        </div>
-                     </div>`;
-        });
-        contenedor.innerHTML = html;
-        contenedor.style.display = 'block';
-    } else {
-        contenedor.style.display = 'none';
-    }
+    resultados.forEach(c => {
+        const boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className = 'search-result-item';
+        const titulo = document.createElement('strong');
+        titulo.textContent = c.titulo;
+        const artista = document.createElement('span');
+        artista.textContent = c.artista || 'Sin artista';
+        boton.append(titulo, artista);
+        boton.addEventListener('click', () => cargarParaEditar(c.id));
+        contenedor.append(boton);
+    });
 }
 
 function cargarParaEditar(id) {
@@ -176,20 +203,23 @@ function cargarParaEditar(id) {
     document.getElementById('artista').value = cancion.artista || '';
     document.getElementById('tono').value = cancion.tonoOriginal || '';
     document.getElementById('bpm').value = cancion.bpm || '';
-    document.getElementById('compas').value = cancion.compas || '';
+    document.getElementById('compas').value = Ritmo.compas(cancion.compas);
     document.getElementById('letraInput').value = cancion.letraChordPro || '';
 
     idCancionEditando = id;
     
-    document.getElementById('formTitle').innerHTML = `<i class="fas fa-edit"></i> Editando: ${cancion.titulo}`;
+    document.getElementById('formTitle').textContent = `Editando: ${cancion.titulo}`;
     document.getElementById('btnSave').innerHTML = `<i class="fas fa-sync"></i> Actualizar`;
     
     document.getElementById('btnCancelEdit').style.display = 'block';
-    document.getElementById('btnDelete').style.display = 'block';
+    document.getElementById('btnDelete').style.display = Permisos.puedeEliminar(firebase.auth().currentUser) ? 'block' : 'none';
     
     document.getElementById('searchResults').style.display = 'none';
     document.getElementById('searchEdit').value = '';
 
+    switchTab('editor');
+    document.getElementById('editorFeedback').textContent = 'Editando canción. Guarda cuando termines.';
+    document.getElementById('editorFeedback').dataset.error = 'false';
     actualizarPrevisualizacion(); 
 }
 
@@ -201,7 +231,7 @@ function limpiarFormulario() {
     document.getElementById('artista').value = '';
     document.getElementById('tono').value = '';
     document.getElementById('bpm').value = '';
-    document.getElementById('compas').value = '';
+    document.getElementById('compas').value = '4/4';
     document.getElementById('letraInput').value = '';
     
     document.getElementById('previewArea').innerHTML = '<div style="text-align: center; color: #64748b; margin-top: 100px; opacity: 0.5;"><i class="fas fa-music fa-3x"></i><br><br>Vista previa...</div>';
@@ -211,6 +241,10 @@ function limpiarFormulario() {
     
     document.getElementById('btnCancelEdit').style.display = 'none';
     document.getElementById('btnDelete').style.display = 'none';
+    document.getElementById('editorFeedback').textContent = 'Título y letra son obligatorios.';
+    document.getElementById('editorFeedback').dataset.error = 'false';
+    document.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+    actualizarPrevisualizacion();
 }
 
 // ==========================================
@@ -311,7 +345,7 @@ function convertirLaCuerda() {
 async function procesarPDF() {
     const fileInput = document.getElementById('pdfUpload');
     if (!fileInput.files[0]) return; 
-    const label = document.querySelector('label[for="pdfUpload"]');
+    const label = document.querySelector('.pdf-tool');
     let txtOriginal = "";
     if(label) { txtOriginal = label.innerHTML; label.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; }
     try {
@@ -362,7 +396,17 @@ function fusionarSimple(lines) {
 
 function actualizarPrevisualizacion() {
     const el = document.getElementById('letraInput');
-    if(el) document.getElementById('previewArea').innerHTML = renderizarChordPro(el.value);
+    if (!el) return;
+    document.getElementById('compasHelp').textContent = Ritmo.descripcion(document.getElementById('compas').value);
+    document.getElementById('previewTitle').textContent = document.getElementById('titulo').value.trim() || 'Tu canción';
+    document.getElementById('previewMeta').textContent = [
+        document.getElementById('artista').value.trim(),
+        document.getElementById('tono').value,
+        document.getElementById('bpm').value ? document.getElementById('bpm').value + ' BPM' : '',
+        document.getElementById('compas').value
+    ].filter(Boolean).join(' · ');
+    document.getElementById('previewArea').innerHTML = el.value.trim() ? renderizarChordPro(el.value) :
+        '<div class="preview-empty"><i class="fas fa-music" aria-hidden="true"></i><h3>La música empieza aquí</h3><p>Escribe la letra en el editor para ver los acordes y las secciones.</p><button class="btn btn-secondary" onclick="switchTab(&quot;editor&quot;)">Ir al editor</button></div>';
 }
 
 function detectarSeccionAutomatica(linea) {
@@ -485,3 +529,21 @@ function guardarRol() {
         alert("¡Rol publicado con éxito!");
     }).catch(e => console.error(e));
 }
+// Keep desktop preview in sync with song metadata too.
+['titulo', 'artista', 'tono', 'bpm', 'compas'].forEach(id => {
+    document.getElementById(id).addEventListener('input', actualizarPrevisualizacion);
+});
+document.querySelector('.mobile-tabs').addEventListener('keydown', event => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const preview = event.key === 'End' || (event.key !== 'Home' && event.target.id === 'tabEditor');
+    switchTab(preview ? 'preview' : 'editor');
+    document.getElementById(preview ? 'tabPreview' : 'tabEditor').focus();
+});
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+        document.getElementById('searchResults').style.display = 'none';
+        document.getElementById('visibilityMenu').style.display = 'none';
+        document.querySelector('.toolbar-menu-btn').setAttribute('aria-expanded', 'false');
+    }
+});

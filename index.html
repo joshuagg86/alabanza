@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alabanza ICEGH</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1b355b">
@@ -14,6 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="index-style.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ux.css">
+    <link rel="stylesheet" href="reader.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
@@ -52,10 +54,10 @@
         <div class="login-card" style="opacity: 1 !important; transform: none !important;">
             <img src="logo.png" alt="Logo" style="height: 70px; margin-bottom: 15px;">
             <h2 id="authTitle" style="margin:0; font-size:28px; color:white; font-weight: 700;">Playlist Music</h2>
-            <input type="email" id="txtEmail" placeholder="Correo electrónico" style="margin-top:25px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
+            <input type="email" id="txtEmail" aria-label="Correo electrónico" autocomplete="username" inputmode="email" placeholder="Correo electrónico" style="margin-top:25px; background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
             <div class="pass-wrapper">
-                <input type="password" id="txtPassword" placeholder="Contraseña" style="background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
-                <i class="fas fa-eye toggle-pass" onclick="togglePasswordVisibility()"></i>
+                <input type="password" id="txtPassword" aria-label="Contraseña" autocomplete="current-password" placeholder="Contraseña" style="background:#0a0a0c; border:1px solid #333; padding:15px; width:100%; color:white; border-radius:12px; outline:none;">
+                <button type="button" class="toggle-pass" onclick="togglePasswordVisibility()" aria-label="Mostrar contraseña" aria-pressed="false"><i class="fas fa-eye" aria-hidden="true"></i></button>
             </div>
             <div id="roleSelectorContainer" style="display: none;">
                 <p style="color:#444; font-size:12px; font-weight:700; text-transform:uppercase; margin-top:25px;">Selecciona tu Rol</p>
@@ -66,7 +68,7 @@
                     <div class="role-option" onclick="selectRolTemp('teclado', this)"><i class="fas fa-keyboard fa-2x"></i><br>Teclado</div>
                 </div>
             </div>
-            <div id="loginError" style="color: #ef4444; margin-top: 15px; font-size: 13px; display: none;"></div>
+            <div id="loginError" role="alert" style="color: #ef4444; margin-top: 15px; font-size: 13px; display: none;"></div>
             <button id="btnMainAuth" onclick="procesarAutenticacion()" style="width:100%; padding:18px; margin-top:25px; border-radius:16px; border:none; background: linear-gradient(135deg, #6366f1, #4f46e5); color:white; font-weight:700; cursor:pointer; transition: 0.3s; letter-spacing: 1px;">ENTRAR</button>
             <button id="btnToggleAuth" onclick="alternarModo()" style="background:transparent; border:none; color:#666; margin-top:20px; cursor:pointer; font-size:13px; text-decoration: underline;">¿No tienes cuenta? Regístrate</button>
         </div>
@@ -96,8 +98,9 @@
             <div class="modal-title">Programar Servicio</div>
             <div style="text-align: left; margin-top: 15px;">
                 <label style="font-size: 11px; color: #666; font-weight: 800;">FECHA</label>
-                <input type="date" id="inputRolFecha" class="modal-input-field">
+                <input type="date" id="inputRolFecha" class="modal-input-field" onchange="actualizarDiaRol()" aria-describedby="rolDayHint">
                 
+                <p id="rolDayHint" class="rhythm-help" role="status">Selecciona una fecha; el día del servicio se detectará automáticamente.</p>
                 <label style="font-size: 11px; color: #666; font-weight: 800;">DIRECCIÓN DE ALABANZA</label>
                 <select id="inputRolDirUser" class="modal-input-field" style="background: #0a0a0c; color: white; border: 1px solid #333; padding: 10px; border-radius: 8px; width: 100%; outline: none; margin-bottom: 15px;">
                     <option value="">Selecciona un líder...</option>
@@ -125,13 +128,14 @@
 
     <div class="container">
         <div id="viewList">
+            <div class="connection-status" data-connection-status role="status">Preparando disponibilidad…</div>
             <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; position: relative; min-height: 50px;">
                 <div class="logo-container" style="display: flex; align-items: center; z-index: 10;">
                     <img src="logo.png" alt="Logo" style="height: 45px; width: auto; object-fit: contain;">
                 </div>
                 <div style="position: absolute; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 20px; color: white; letter-spacing: -0.5px; white-space: nowrap;"></div>
                 <div style="display: flex; align-items: center; gap: 15px; z-index: 10;">
-                    <button id="btnAdmin" onclick="location.href='admin.html'" class="btn-studio-glow" style="display: none;">
+                    <button id="btnAdmin" aria-label="Agregar y editar canciones" title="Agregar y editar canciones" onclick="location.href='admin.html'" class="btn-studio-glow" style="display: none;">
                         <i class="fas fa-wand-magic-sparkles"></i>
                     </button>
                     <div id="syncIndicator" title="Estado de Sincronización" style="font-size: 16px; color: #666; transition: 0.3s; margin-right: 5px;">
@@ -140,7 +144,7 @@
                     <div class="user-badge" onclick="mostrarSelectorRol()" style="display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.05); padding: 6px 14px; border-radius: 50px; font-size: 13px; border: 1px solid var(--glass-border); cursor: pointer; transition: 0.2s;">
                         <span id="displayUserBadge"><i class="fas fa-user"></i> ...</span>
                     </div>
-                    <div class="icon-btn danger" onclick="cerrarSesion()" style="color:#ef4444;"><i class="fas fa-power-off"></i></div>
+                    <button class="icon-btn danger" onclick="cerrarSesion()" aria-label="Cerrar sesión" style="color:#ef4444;"><i class="fas fa-power-off" aria-hidden="true"></i></button>
                 </div>
             </header>
 
@@ -148,6 +152,7 @@
                 <button id="tabHome" class="tab-btn active" onclick="cambiarTab('home')">Inicio</button>
                 <button id="tabAll" class="tab-btn" onclick="cambiarTab('all')">Repertorio</button>
                 <button id="tabPlaylist" class="tab-btn" onclick="cambiarTab('playlist')">Domingo</button>
+                <button id="tabWednesday" class="tab-btn" onclick="cambiarTab('wednesday')">Miércoles</button>
                 <button id="tabRol" class="tab-btn" onclick="cambiarTab('rol')">Rol</button>
             </div>
 
@@ -178,7 +183,8 @@
                 <!-- 3. DETALLE REPERTORIO DEL DOMINGO -->
                 <div class="card" style="flex: 1.6; min-height: 0; background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, rgba(10, 10, 14, 0.8) 100%) !important; border: 1px solid rgba(99, 102, 241, 0.2) !important; padding: 18px !important; border-radius: 18px !important; display: flex; flex-direction: column; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); margin: 0 !important;">
                     <div style="color: #818cf8; font-weight: 800; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-bolt"></i> SETLIST DEL DOMINGO
+                        <i class="fas fa-bolt"></i> CANCIONES DEL SERVICIO
+                        <select id="dashServiceDay" aria-label="Día del repertorio de inicio" onchange="renderizarDashboard()"><option value="domingo">Domingo</option><option value="miercoles">Miércoles</option></select>
                     </div>
                     
                     <div id="dashCancionesLista" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; margin-bottom: 12px;">
@@ -187,26 +193,38 @@
 
                     <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 10px;">
                         <span id="dashPlaylistCount" style="font-size: 12px; color: #64748b; font-weight: 500; letter-spacing: 0.3px;">0 canciones</span>
-                        <button onclick="cambiarTab('playlist')" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: white; padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); transition: 0.2s;">
+                        <button onclick="abrirPlaylistDashboard()" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: white; padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); transition: 0.2s;">
                             Ver Playlist <i class="fas fa-chevron-right" style="font-size: 9px;"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
+            <section id="serviceRoleSummary" class="service-role-summary" hidden aria-label="Próximo servicio"></section>
+            <div id="playlistDestination" class="playlist-destination" hidden>
+                <label for="playlistDayTarget">Añadir canciones a</label>
+                <select id="playlistDayTarget" onchange="seleccionarServicio(this.value)"><option value="domingo">Domingo</option><option value="miercoles">Miércoles</option></select>
+            </div>
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" id="searchInput" placeholder="Buscar canción..." onkeyup="renderizarLista()">
+                <input type="text" id="searchInput" aria-label="Buscar por canción o artista" placeholder="Buscar canción o artista…" oninput="renderizarLista()">
             </div>
 
+            <p id="searchSummary" role="status" class="search-summary" hidden></p>
             <ul id="songList" class="song-list" style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">
                 <div style="text-align:center; padding:60px; color:#444;"><i class="fas fa-circle-notch fa-spin fa-2x"></i></div>
             </ul>
             <div id="viewRolContent" style="display: none; margin-top: 20px; padding-bottom: 100px;">
                 <button id="btnNuevoRol" class="btn btn-primary" style="display:none; width:100%; margin-bottom:20px;" onclick="abrirModalNuevoRol()">
-                    <i class="fas fa-plus"></i> Programar Mes
+                    <i class="fas fa-plus"></i> Programar servicio
                 </button>
                 
+                <div class="role-day-filters" aria-label="Filtrar roles por día">
+                    <button class="active" data-dia="todos" onclick="filtrarRoles('todos')">Todos</button>
+                    <button data-dia="domingo" onclick="filtrarRoles('domingo')">Domingo</button>
+                    <button data-dia="miercoles" onclick="filtrarRoles('miercoles')">Miércoles</button>
+                    <button data-dia="otro" onclick="filtrarRoles('otro')">Otros días</button>
+                </div>
                 <div id="rolListaContainer">
                     </div>
             </div>
@@ -216,14 +234,7 @@
             
             <div class="sticky-player-header">    
                 <div class="header-row-top">
-                    <h2 id="viewTitle">Título de la Canción</h2>
-                    <button onclick="volverALista()" class="btn-close-viewer">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-
-                <div class="header-row-bottom">
-                    <div class="info-group">
+                    <div class="reader-heading"><span class="reader-eyebrow">Guía musical</span><h2 id="viewTitle">Título de la Canción</h2>                    <div class="info-group">
                         <span id="viewArtist">Artista</span>
                         <div class="meta-mini">
                             <i class="fas fa-clock"></i> <span id="viewBPM">-</span>
@@ -231,34 +242,62 @@
                             <span id="viewCompas">-</span>
                         </div>
                     </div>
+</div>
+                    <button onclick="volverALista()" class="btn-close-viewer" aria-label="Volver a la lista">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="header-row-bottom">
 
                    <div class="controls-group">
-                        <div class="tone-badge-display">
+                        <div class="tone-badge-display" aria-label="Tono actual"><span class="tone-label">Tono</span>
                             <span id="currentToneDisplay">C</span>
                         </div>
                         <div class="nav-mini-group">
-                            <button id="btnPrevSong" onclick="navegarCancion(-1)"><i class="fas fa-chevron-left"></i></button>
-                            <button id="btnNextSong" onclick="navegarCancion(1)"><i class="fas fa-chevron-right"></i></button>
+                            <button aria-label="Canción anterior" id="btnPrevSong" onclick="navegarCancion(-1)"><i class="fas fa-chevron-left"></i></button>
+                            <button aria-label="Canción siguiente" id="btnNextSong" onclick="navegarCancion(1)"><i class="fas fa-chevron-right"></i></button>
                         </div>
                         
-                        <button id="btnToggleAudio" onclick="toggleAudioRack(event)" class="btn-edit-mini" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; display: flex; align-items: center; justify-content: center; margin-right: 2px;" title="Módulo de Audio">
+                        <button aria-label="Metrónomo y ambiente" id="btnToggleAudio" onclick="toggleAudioRack(event)" class="btn-edit-mini" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; display: flex; align-items: center; justify-content: center; margin-right: 2px;" title="Módulo de Audio">
                             <i class="fas fa-sliders-h"></i>
                         </button>
 
-                        <button id="btnDirectEdit" onclick="editarCancionActual()" class="btn-edit-mini" style="display:none;">
+                        <button aria-label="Editar canción" id="btnDirectEdit" onclick="editarCancionActual()" class="btn-edit-mini" style="display:none;">
                             <i class="fas fa-pen"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div id="songContent" class="lyrics-container"></div>
+            <div class="reader-toolbar" aria-label="Opciones de lectura">
+                <button id="readerRehearsal" class="reader-rehearsal" type="button" onclick="alternarModoEnsayo()" aria-pressed="false" title="Reducir controles y mantener la pantalla encendida"><i class="fas fa-expand" aria-hidden="true"></i><span>Ensayo</span></button>
+                <span class="reader-size-label" id="readerSizeLabel">Tamaño de letra</span>
+                <span id="drumFitStatus" role="status" hidden></span>
+                <button id="readerLayout" class="reader-chords" type="button" onclick="alternarFormatoLectura()" aria-label="Usar lectura vertical" aria-pressed="false" hidden><i class="fas fa-columns" aria-hidden="true"></i></button>
+                <button id="readerChords" class="reader-chords" type="button" onclick="alternarAcordes()" aria-label="Mostrar acordes" aria-pressed="false" title="Mostrar u ocultar acordes"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                <div class="reader-autoscroll" role="group" aria-label="Desplazamiento automático de letra">
+                    <button id="readerPlay" type="button" onclick="alternarDesplazamientoLetra()" aria-label="Iniciar desplazamiento de letra" aria-pressed="false" title="Avanzar aproximadamente una línea por compás según los BPM">
+                        <i class="fas fa-play" aria-hidden="true"></i><span id="readerPlayLabel">Auto</span>
+                    </button>
+                    <select id="readerScrollSpeed" aria-label="Velocidad de desplazamiento de letra" title="Ajustar velocidad de la letra">
+                        <option value="0.5">0.5×</option><option value="0.75">0.75×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option>
+                    </select>
+                </div>
+                <div class="reader-size" role="group" aria-label="Tamaño de letra"><button id="readerSmaller" onclick="cambiarTamanoLectura(-1)" aria-label="Reducir tamaño de letra">A−</button><button id="readerLarger" onclick="cambiarTamanoLectura(1)" aria-label="Aumentar tamaño de letra">A+</button></div>
+            </div>
+            <div class="reader-connection connection-status" data-connection-status role="status">Preparando disponibilidad…</div>
+            <div id="readerToast" class="reader-toast" role="status" hidden></div>
+            <div class="reader-body">
+                <div id="songContent" class="lyrics-container" role="region" aria-label="Letra y anotaciones" tabindex="0"></div>
+                <nav id="songStructure" class="song-structure" aria-label="Estructura de la canción" hidden></nav>
+            </div>
 
             <div class="fab-container" style="position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 200;">
-                <button id="btnToggleChords" class="fab" onclick="alternarAcordes()" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #333; color: white; font-size: 18px; backdrop-filter: blur(10px);">
+                <button aria-label="Mostrar u ocultar acordes" id="btnToggleChords" class="fab" onclick="alternarAcordes()" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #333; color: white; font-size: 18px; backdrop-filter: blur(10px);">
                     <i class="fas fa-eye-slash"></i>
                 </button>
-                <button id="btnTransposerToggle" class="fab" onclick="toggleTransposer(event)" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #f59e0b; color: #f59e0b; font-size: 18px; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);">
+                <button aria-label="Cambiar tono" id="btnTransposerToggle" class="fab" onclick="toggleTransposer(event)" style="width: 55px; height: 55px; border-radius: 20px; background: rgba(30,30,35,0.8); border: 1px solid #f59e0b; color: #f59e0b; font-size: 18px; backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);">
                     <i class="fas fa-music"></i>
                 </button>
             </div>
@@ -277,22 +316,18 @@
                     <span style="font-size: 11px; font-weight: 700; color: #a855f7; letter-spacing: 1px; text-transform: uppercase;"><i class="fas fa-wave-square"></i> Audio Rack</span>
                     <button onclick="toggleAudioRack(event)" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 18px; line-height: 1;">&times;</button>
                 </div>
+                <p id="metronomeHelp" class="rhythm-help">4 pulsos por compás · BPM por negra. Subdivisión: 2 clics por pulso.</p>
                 <div class="bar-section left">
-                    <button id="btnMetronomeDock" class="bar-btn-play" onclick="toggleMetronome()">
+                    <button aria-label="Iniciar metrónomo" aria-pressed="false" id="btnMetronomeDock" class="bar-btn-play" onclick="toggleMetronome()">
                         <i class="fas fa-play"></i>
                     </button>
                     
                     <div class="bar-inputs">
-                        <input type="number" id="bpmInput" class="input-compact" value="120" onchange="updateBpm(this.value)">
-                        <span class="separator">/</span>
-                        <select id="timeSigInput" class="select-compact" onchange="updateTimeSig(this.value)">
-                            <option value="4">4</option>
-                            <option value="3">3</option>
-                            <option value="2">2</option>
-                            <option value="6">6</option>
-                        </select>
+                        <input type="number" aria-label="Pulsos por minuto" min="1" max="400" step="1" id="bpmInput" class="input-compact" value="120" onchange="updateBpm(this.value)">
+                        <span class="separator" aria-hidden="true">·</span>
+                        <select id="timeSigInput" aria-label="Compás del metrónomo" class="select-compact" onchange="updateTimeSig(this.value)"><option value="2/4">2/4</option><option value="3/4">3/4</option><option value="4/4" selected>4/4</option><option value="6/8">6/8</option><option value="12/8">12/8</option></select>
                         
-                        <button id="btnSubdivision" class="btn-subdiv" onclick="toggleSubdivision()">1/4</button>
+                        <button id="btnSubdivision" class="btn-subdiv" aria-pressed="false" aria-label="Subdividir cada pulso en dos clics" onclick="toggleSubdivision()">Pulso</button>
                         
                         <div id="tempoLed" class="tempo-led-bar"></div>
                     </div>
@@ -346,6 +381,11 @@
             </div>
     </div>
     <script src="config.js"></script>
+    <script src="services.js"></script>
+    <script src="rhythm.js"></script>
+    <script src="drummer-reader.js"></script>
+    <script src="reader-experience.js"></script>
+    <script src="permissions.js"></script>
     <script src="index-app.js"></script>
 </body>
 </html>

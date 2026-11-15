@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Studio</title>
+    <title>Editor de canciones</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1b355b">
-    <link rel="apple-touch-icon" href="icono.png">
+    <link rel="apple-touch-icon" href="icono-192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ux.css">
+    <link rel="stylesheet" href="admin-ux.css">
 
     <style>
         /* Toolbar principal con espaciado optimizado */
@@ -179,35 +181,37 @@
         <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--glass-border);">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <img src="logo.png" alt="Logo" style="height: 38px; width: auto;">
-                <h1 style="margin: 0; font-size: 22px; color: white;">Admin Studio</h1>
+                <h1 style="margin: 0; font-size: 22px; color: white;">Editor de canciones</h1>
             </div>
             <button class="btn btn-secondary" onclick="window.location.href='index.html'">
                 <i class="fas fa-arrow-left"></i> Regresar
             </button>
         </header>
 
-        <div class="mobile-tabs">
-            <button id="tabEditor" class="tab-btn active" onclick="switchTab('editor')">✏️ Editor</button>
-            <button id="tabPreview" class="tab-btn" onclick="switchTab('preview')">👁️ Vista Previa</button>
+        <p class="studio-intro">Prepara la canción, añade sus acordes y revisa cómo la verá tu equipo.</p>
+        <div class="mobile-tabs" role="tablist" aria-label="Vista de composición">
+            <button id="tabEditor" role="tab" aria-selected="true" aria-controls="editorPanel" class="tab-btn active" onclick="switchTab('editor')">✏️ Editor</button>
+            <button id="tabPreview" tabindex="-1" role="tab" aria-selected="false" aria-controls="previewPanel" class="tab-btn" onclick="switchTab('preview')">👁️ Vista Previa</button>
         </div>
 
+        <label for="searchEdit" class="field-label">Editar una canción existente</label>
         <div class="search-wrapper">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchEdit" placeholder="Buscar canción para editar..." onkeyup="buscarParaEditar()">
+            <input type="text" id="searchEdit" placeholder="Buscar por título o artista…" autocomplete="off" aria-controls="searchResults" oninput="buscarParaEditar()">
             <div id="searchResults" class="search-results-dropdown"></div>
         </div>
 
         <div class="editor-grid">
-            <div id="editorPanel" class="card">
+            <div id="editorPanel" class="card" role="tabpanel" aria-labelledby="tabEditor">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h2 id="formTitle" style="margin:0; color:white;">Composición</h2>
+                    <h2 id="formTitle" style="margin:0; color:white;">Nueva canción</h2>
                 </div>
 
-                <div class="form-group"><input type="text" id="titulo" placeholder="Título de la canción"></div>
-                <div class="form-group"><input type="text" id="artista" placeholder="Artista / Autor"></div>
+                <div class="form-group"><label for="titulo" class="field-label">Título <span aria-hidden="true">*</span></label><input type="text" id="titulo" required placeholder="Ej. Nuestro Dios" aria-describedby="editorFeedback"></div>
+                <div class="form-group"><label for="artista" class="field-label">Artista o autor <span class="optional">Opcional</span></label><input type="text" id="artista" placeholder="Nombre del artista"></div>
                 
-                <div class="form-group" style="display:flex; gap:10px;">
-                    <select id="tono" style="flex:1;">
+                <div class="music-fields">
+                    <div><label for="tono" class="field-label">Tono</label><select id="tono">
                         <option value="" disabled selected>Tono</option>
                         <option value="C">C</option>
                         <option value="C#">C# / Db</option>
@@ -222,15 +226,16 @@
                         <option value="A#">A# / Bb</option>
                         <option value="B">B</option>
                     </select>
-                    <input type="number" id="bpm" placeholder="BPM" style="flex:1;">
-                    <select id="compas" style="flex:1;"><option value="4/4">4/4</option><option value="6/8">6/8</option></select>
+                    </div><div><label for="bpm" class="field-label">Tempo <span class="optional">BPM</span></label><input type="number" id="bpm" aria-describedby="compasHelp" min="1" max="400" inputmode="numeric" placeholder="Ej. 72"></div>
+                    <div><label for="compas" class="field-label">Compás</label><select id="compas" aria-describedby="compasHelp"><option value="2/4">2/4</option><option value="3/4">3/4</option><option value="4/4" selected>4/4</option><option value="6/8">6/8</option><option value="12/8">12/8</option></select></div>
                 </div>
 
-                <div class="smart-tools-bar">
-                    <label for="pdfUpload" class="tool-btn pdf-tool">
+                <p id="compasHelp" class="field-hint" role="status">4 pulsos por compás · BPM por negra. Subdivisión: 2 clics por pulso.</p>
+                <details class="import-tools"><summary><i class="fas fa-file-import" aria-hidden="true"></i> Importar o dar formato <span>PDF y texto pegado</span></summary><div class="smart-tools-bar">
+                    <button type="button" onclick="document.getElementById('pdfUpload').click()" class="tool-btn pdf-tool">
                         <i class="fas fa-file-pdf"></i>
                         <span>Importar PDF</span>
-                    </label>
+                    </button>
                     <input type="file" id="pdfUpload" accept=".pdf" style="display:none;" onchange="procesarPDF()">
 
                     <button onclick="convertirLaCuerda()" class="tool-btn magic-tool">
@@ -239,11 +244,14 @@
                     </button>
                 </div>
                 
+                </details>
+                <label for="letraInput" class="field-label lyrics-label">Letra y acordes <span aria-hidden="true">*</span></label>
+                <p class="field-hint" id="lyricsHelp">Escribe la letra y toca un acorde para insertarlo donde está el cursor. Ejemplo: [C]Nuestro [G]Dios.</p>
                 <div class="editor-toolbar" style="position: relative; display: flex; flex-direction: column; gap: 8px;">
                     
                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%;">
                         
-                        <div class="toolbar-chips" style="flex: 1;"> 
+                        <div class="toolbar-chips section-chips" aria-label="Insertar sección" style="flex: 1;">
                             <button class="chip-btn" onclick="insertarSeccion('Intro')">Intro</button>
                             <button class="chip-btn" onclick="insertarSeccion('Verso 1')">Verso 1</button>
                             <button class="chip-btn" onclick="insertarSeccion('Verso 2')">Verso 2</button>
@@ -255,7 +263,7 @@
                         </div>
 
                         <div style="position: relative;">
-                            <button class="toolbar-menu-btn" onclick="toggleVisibilityMenu(event)" title="Control de Visibilidad">
+                            <button class="toolbar-menu-btn" onclick="toggleVisibilityMenu(event)" title="Control de Visibilidad" aria-label="Visibilidad por instrumento" aria-expanded="false" aria-controls="visibilityMenu">
                                 <i class="fas fa-eye"></i>
                             </button>
 
@@ -301,30 +309,43 @@
                     </div>
                 </div>
 
-                <textarea id="letraInput" oninput="actualizarPrevisualizacion()" placeholder="Escribe aquí... Usa [C] para acordes."></textarea>
+                <textarea aria-describedby="lyricsHelp editorFeedback" required spellcheck="false" id="letraInput" oninput="actualizarPrevisualizacion()" placeholder="Escribe aquí... Usa [C] para acordes."></textarea>
                 
-                <div style="display:flex; gap:10px; margin-top:20px;">
+            </div>
+            <div id="previewPanel" class="card preview-card mobile-hidden" role="tabpanel" aria-labelledby="tabPreview">
+                <div class="preview-heading"><span class="eyebrow">Así lo verá tu equipo</span><h2 id="previewTitle">Tu canción</h2><p id="previewMeta"></p></div>
+                <div id="previewArea" class="lyrics-container"><div class="preview-empty"><i class="fas fa-music" aria-hidden="true"></i><h3>La música empieza aquí</h3><p>Escribe la letra en el editor para ver los acordes y las secciones.</p><button class="btn btn-secondary" onclick="switchTab('editor')">Ir al editor</button></div></div>
+            </div>
+        </div>
+        <div class="editor-actions-wrap">
+            <p id="editorFeedback" role="status" aria-live="polite">Título y letra son obligatorios.</p>
+            <div class="editor-actions">
                     <button id="btnSave" class="btn btn-primary" style="flex:1;" onclick="guardarCancion()">
-                        <i class="fas fa-save"></i> <span id="btnSaveText">Guardar</span>
+                        <i class="fas fa-save"></i> <span id="btnSaveText">Guardar canción</span>
                     </button>
-                    <button id="btnDelete" class="btn btn-danger" style="display:none; width:50px; justify-content:center;" onclick="eliminarCancion()" title="Eliminar">
+                    <button id="btnDelete" class="btn btn-danger" style="display:none; width:50px; justify-content:center;" onclick="eliminarCancion()" title="Eliminar" aria-label="Eliminar canción">
                         <i class="fas fa-trash"></i>
                     </button>
-                    <button id="btnCancelEdit" class="btn btn-secondary" style="display:none; width:50px; justify-content:center;" onclick="cancelarEdicion()" title="Cancelar">
+                    <button id="btnCancelEdit" class="btn btn-secondary" style="display:none; width:50px; justify-content:center;" onclick="cancelarEdicion()" title="Cancelar" aria-label="Cancelar edición">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-            </div>
-
-            <div id="previewPanel" class="card preview-card mobile-hidden">
-                <div id="previewArea" class="lyrics-container"></div>
-            </div>
         </div>
     </div>
 
+    <div id="customModal" class="custom-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalText">
+        <div class="custom-modal-box">
+            <div id="modalIcon" class="modal-icon" aria-hidden="true"></div>
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <p id="modalText" class="modal-text"></p>
+            <div class="modal-actions"><button id="btnModalCancel" class="btn-modal cancel">Cancelar</button><button id="btnModalConfirm" class="btn-modal confirm">Aceptar</button></div>
+        </div>
+    </div>
+    <script src="rhythm.js"></script>
+    <script src="reader-experience.js"></script>
+    <script src="permissions.js"></script>
     <script src="app.js"></script>
     <script>
-        const ADMIN_EMAILS = ["admin@genesaret.com", "monica@genesaret.com", "joshua@genesaret.com"]; 
 
         function insertarSeccion(nombre) {
             insertarComando(nombre + ":\n");
@@ -370,6 +391,13 @@
         }
 
         function switchTab(tab) {
+            if (tab === 'preview') actualizarPrevisualizacion();
+            ['editor', 'preview'].forEach(nombre => {
+                const boton = document.getElementById(nombre === 'editor' ? 'tabEditor' : 'tabPreview');
+                boton.classList.toggle('active', nombre === tab);
+                boton.setAttribute('aria-selected', String(nombre === tab));
+                boton.tabIndex = nombre === tab ? 0 : -1;
+            });
             const editor = document.getElementById('editorPanel');
             const preview = document.getElementById('previewPanel');
             if (tab === 'editor') {
@@ -382,8 +410,8 @@
         }
 
         firebase.auth().onAuthStateChanged(user => {
-            // AQUÍ ESTÁ LA MAGIA: Verificamos si el correo está en la lista de ADMIN_EMAILS
-            if (!user || !ADMIN_EMAILS.includes(user.email)) {
+            // Every signed-in member can add and edit songs.
+            if (!Permisos.puedeEditar(user)) {
                 window.location.href = 'index.html';
             } else {
                 document.getElementById('adminBody').style.display = 'block';
@@ -404,6 +432,7 @@
         if(e) e.stopPropagation();
         const menu = document.getElementById('visibilityMenu');
         menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        document.querySelector('.toolbar-menu-btn').setAttribute('aria-expanded', String(menu.style.display === 'block'));
     }
 
     // Cerrar el menú si se hace clic fuera
@@ -412,6 +441,7 @@
         const btn = document.querySelector('.toolbar-menu-btn');
         if (menu && menu.style.display === 'block' && !menu.contains(e.target) && !btn.contains(e.target)) {
             menu.style.display = 'none';
+            btn.setAttribute('aria-expanded', 'false');
         }
     });
     </script>

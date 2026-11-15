@@ -16,11 +16,18 @@ if (!firebase.apps.length) {
 window.db = firebase.firestore();
 
 // CONFIGURACIÓN DE PERSISTENCIA (Sincroniza letras y notas para uso offline)
-firebase.firestore().enablePersistence({ synchronizeTabs: true })
+window.persistenciaDisponible = false;
+window.persistenciaResuelta = false;
+window.persistenciaLista = firebase.firestore().enablePersistence({ synchronizeTabs: true })
   .then(() => {
+    window.persistenciaDisponible = true;
+    window.persistenciaResuelta = true;
+    window.dispatchEvent(new Event("alabanza-persistencia"));
     console.log("✅ Persistencia activada: Letras y notas disponibles offline");
   })
   .catch((err) => {
+    window.persistenciaResuelta = true;
+    window.dispatchEvent(new Event('alabanza-persistencia'));
     if (err.code == 'failed-precondition') {
         // Probablemente hay varias pestañas abiertas al mismo tiempo
         console.warn("⚠️ Persistencia fallida: Múltiples pestañas abiertas.");
