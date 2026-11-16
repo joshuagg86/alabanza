@@ -2,6 +2,18 @@
 audio-service/.venv/
 audio-service/.local/
 /Dios poderoso.mp3
+# Future uploads and local dependencies must also stay off GitHub.
+/*.mp3
+/*.wav
+/*.m4a
+/*.flac
+/*.ogg
+node_modules/
+.venv/
+venv/
+*.pth
+*.th
+*.ckpt
 __pycache__/
 *.py[cod]
 .env
