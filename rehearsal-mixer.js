@@ -212,10 +212,11 @@
                             '. Cierra otras pestañas con audio, recarga la página e intenta nuevamente.');
                     }
                     if (status.cloud) {
-                        // Web Audio floors fractional lengths when resampling (e.g. 44.1 -> 48 kHz).
-                        // Use that common boundary for every channel; never shift the start.
+                        // AAC decoders can round the final duration differently. Normalize only
+                        // the tail: permit at most 1 ms missing or the existing AAC padding limit.
+                        // Every channel keeps its start and receives the same exact frame count.
                         const frames = Math.floor(status.frames * buffer.sampleRate / status.sampleRate);
-                        if (buffer.length < frames || buffer.length-frames > Math.ceil(2048*buffer.sampleRate/44100)) throw new Error('La pista comprimida no conserva la duración esperada.');
+                        if (frames-buffer.length > Math.ceil(buffer.sampleRate/1000) || buffer.length-frames > Math.ceil(2048*buffer.sampleRate/44100)) throw new Error('La pista comprimida no conserva la duración esperada.');
                         if (buffer.length !== frames) {
                             const trimmed = activeEngine.context.createBuffer(buffer.numberOfChannels,frames,buffer.sampleRate);
                             for (let i=0;i<buffer.numberOfChannels;i++) trimmed.copyToChannel(buffer.getChannelData(i).subarray(0,frames),i);

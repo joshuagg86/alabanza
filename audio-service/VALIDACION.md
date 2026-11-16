@@ -1,5 +1,18 @@
 # Validación de la Etapa 2 — 16 de noviembre de 2026
 
+## Corrección de duración AAC en la canción de 4:36
+
+Se reprodujo el error con la exportación `ff5f28e23348ef7d439311cbf5847704536ddacc306c5bb4542363d38914084c`:
+Chrome devuelve 12.179.450 muestras a 44.100 Hz para un original de 12.179.456.
+La comprobación anterior rechazaba ese faltante de seis muestras (0,136 ms).
+Ahora se admite como máximo 1 ms de faltante al final, completado con silencio;
+se conserva el límite anterior para recortar el relleno AAC sobrante. El inicio,
+la velocidad y el reloj compartido no cambian. Las pistas se normalizan al mismo
+número de muestras antes de habilitar la reproducción. No se repite la IA ni
+se modifican los audios almacenados. Caché web: v31.
+La prueba de navegador permite seleccionar una exportación y frecuencia de
+salida, y simular una pérdida importante al final para verificar su rechazo.
+
 ## Confirmación inmediata de subida
 
 El mezclador muestra «Subiendo canción… No cierres esta página» en el resumen,
