@@ -10,6 +10,7 @@ root = pathlib.Path(__file__).resolve().parents[1]
 suites = {
     'reader': ['tests/browser-stubs.js', 'reader-experience.js', 'permissions.js', 'rhythm.js', 'drummer-reader.js', 'index-app.js', 'tests/experience.test.js'],
     'editor': ['tests/browser-stubs.js', 'reader-experience.js', 'permissions.js', 'rhythm.js', 'app.js', 'tests/editor.test.js'],
+    'playlists': ['tests/browser-stubs.js', 'reader-experience.js', 'permissions.js', 'rhythm.js', 'drummer-reader.js', 'index-app.js', 'tests/playlists.test.js'],
     'offline': ['tests/sw-stubs.js', 'sw.js', 'tests/sw.test.js'],
 }
 with tempfile.TemporaryDirectory(prefix='alabanza-tests-') as folder:

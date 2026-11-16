@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let rolTemp = null;
         let todasLasCanciones = [];
         const playlistsPorDia = { domingo: [], miercoles: [] };
+        const cancionesAgregandose = new Set();
         let servicioActual = 'domingo';
         let rolesProgramados = [];
         let filtroRoles = 'todos';
@@ -612,21 +613,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             cancionesAMostrar = cancionesAMostrar.filter(c => coincideBusqueda(c, busqueda));
+            const sugerencias = esTabServicio() && busqueda
+                ? todasLasCanciones.filter(c => !playlistActual().includes(c.id) && coincideBusqueda(c, busqueda)) : [];
             const resumen = document.getElementById('searchSummary');
             resumen.hidden = !['all', 'playlist', 'wednesday'].includes(tabActual);
             resumen.textContent = `${cancionesAMostrar.length} ${cancionesAMostrar.length === 1 ? 'canción' : 'canciones'}${busqueda ? ' encontradas' : ''}`;
+            if (esTabServicio() && busqueda) resumen.textContent = `${cancionesAMostrar.length} en la lista · ${sugerencias.length} del repertorio para agregar`;
+            if (inputBusqueda) inputBusqueda.placeholder = esTabServicio() ? 'Buscar en la lista y en el repertorio…' : 'Buscar canción o artista…';
 
-            if (cancionesAMostrar.length === 0) { 
+            if (cancionesAMostrar.length === 0 && sugerencias.length === 0) {
                 lista.innerHTML = `<li class="empty-state"><i class="fas fa-music" aria-hidden="true"></i><h3>${busqueda ? 'Sin coincidencias' : esTabServicio() ? `El ${Servicios.dias[servicioActual].nombre.toLowerCase()} aún no tiene canciones` : 'Tu repertorio está por comenzar'}</h3><p>${busqueda ? 'Prueba con otro título o con el nombre del artista.' : esTabServicio() ? 'Explora el repertorio y usa + para añadir canciones.' : 'Las canciones aparecerán aquí cuando se agreguen.'}</p>${busqueda ? '<button class="btn btn-secondary" onclick="limpiarBusqueda()">Limpiar búsqueda</button>' : esTabServicio() ? '<button class="btn btn-primary" onclick="cambiarTab(&quot;all&quot;)">Explorar repertorio</button>' : ''}</li>`;
                 return; 
             }
 
-            cancionesAMostrar.forEach(c => {
+            [...cancionesAMostrar, ...sugerencias].forEach((c, indice) => {
                 const enPlaylist = playlistActual().includes(c.id);
+                const sugerida = esTabServicio() && !enPlaylist;
+                if (sugerida && indice === cancionesAMostrar.length) html += '<li class="song-search-heading">Del repertorio · Agregar a ' + Servicios.dias[servicioActual].nombre + '</li>';
                 
                 let btnAccion = tabActual === 'all' ? 
                     (enPlaylist ? `<div class="action-btn btn-add added" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-check"></i></div>` : `<div class="action-btn btn-add" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-plus"></i></div>`) :
                     `<div class="action-btn btn-remove" onclick="togglePlaylist('${c.id}', event)"><i class="fas fa-minus"></i></div>`;
+                if (sugerida) {
+                    const agregando = cancionesAgregandose.has(servicioActual + ':' + c.id);
+                    btnAccion = `<button type="button" class="action-btn btn-add song-add-to-service" ${agregando ? 'disabled' : ''} onclick="agregarALista('${c.id}', event)"><i class="fas fa-${agregando ? 'spinner fa-spin' : 'plus'}" aria-hidden="true"></i> ${agregando ? 'Agregando…' : 'Agregar a ' + Servicios.dias[servicioActual].nombre}</button>`;
+                }
 
                 let btnEliminarAdmin = '';
                 if (tabActual === 'all' && Permisos.puedeEliminar(usuarioActual)) {
@@ -637,10 +648,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>`;
                 }
 
-                const dragHandle = esTabServicio() ? `<div class="drag-handle"><i class="fas fa-grip-lines"></i></div>` : '';
+                const dragHandle = esTabServicio() && enPlaylist ? `<div class="drag-handle"><i class="fas fa-grip-lines"></i></div>` : '';
 
                 html += `
-                <li class="song-item" data-id="${c.id}" onclick="abrirCancion('${c.id}')">
+                <li class="song-item${sugerida ? ' song-suggestion' : ''}" data-id="${c.id}" onclick="abrirCancion('${c.id}')">
                     ${dragHandle} 
                     <div class="song-info">
                         <h3>${c.titulo}</h3>
@@ -655,6 +666,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             lista.innerHTML = html;
             if (esTabServicio()) inicializarArrastre();
+        }
+
+        function agregarALista(id, event) {
+            event.stopPropagation();
+            if (!Permisos.puedeEditar(usuarioActual) || !esTabServicio() || playlistActual().includes(id)
+                || !todasLasCanciones.some(c => c.id === id)) return;
+            const dia = servicioActual, clave = dia + ':' + id;
+            if (cancionesAgregandose.has(clave)) return;
+            cancionesAgregandose.add(clave);
+            renderizarLista();
+            return db.collection('configuracion').doc(Servicios.dias[dia].documento)
+                .set({ canciones: firebase.firestore.FieldValue.arrayUnion(id) }, { merge: true })
+                .catch(() => Modal.alert('No se agregó la canción', 'Revisa tu conexión y los permisos de la lista e intenta de nuevo.'))
+                .finally(() => { cancionesAgregandose.delete(clave); renderizarLista(); });
         }
 
         function togglePlaylist(id, event) {
@@ -680,6 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if(busqueda) {
                 contextoCanciones = contextoCanciones.filter(c => coincideBusqueda(c, busqueda));
+                if (esTabServicio()) contextoCanciones.push(...todasLasCanciones.filter(c => !playlistActual().includes(c.id) && coincideBusqueda(c, busqueda)));
             }
 
             const regreso = new URLSearchParams(window.location.search).get('saved') === '1' ? ExperienciaLectura.retorno(usuarioActual?.uid, id) : null;
@@ -914,7 +940,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function detectarSeccionAutomatica(linea) {
             const texto = linea.trim();
-            const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?$/i;
+            const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro(?=\s*(?:\d+\s*)?(?:x\d+\s*)?[:\.]?$)|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?$/i;
             const match = texto.match(regexInicio);
             if (match) {
                 let clase = 'tag-verso'; 
@@ -1242,7 +1268,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const diaArrastre = servicioActual;
             const movimientoReducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             sortableInstance = Sortable.create(el, {
-                draggable: '.song-item',
+                draggable: '.song-item:not(.song-suggestion)',
                 // The full card can be picked up; action buttons keep their own clicks.
                 filter: '.action-btn, button, a, input, select',
                 preventOnFilter: false,
@@ -1277,7 +1303,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const cambio = evento.oldDraggableIndex !== evento.newDraggableIndex;
                     if (cambio) {
                         evento.item.classList.add('playlist-landed');
-                        const visibles = Array.from(el.querySelectorAll('.song-item')).map(item => item.dataset.id);
+                        const visibles = Array.from(el.querySelectorAll('.song-item:not(.song-suggestion)')).map(item => item.dataset.id);
 
                         // Searching must never remove songs hidden by the filter.
                         const nuevoOrden = Servicios.reordenar(playlistsPorDia[diaArrastre], visibles);

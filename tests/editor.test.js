@@ -3,6 +3,14 @@ function assert(v, message) { if (!v) throw Error(message); }
 async function settle() { for (let i = 0; i < 12; i++) await Promise.resolve(); }
 function switchTab() {}
 const testPromise = (async () => {
+    for (const lyric of ['Coronado con poder', 'Coronados', 'Coro de ángeles canta']) {
+        assert(detectarSeccionAutomatica(lyric) === null, 'Lyric incorrectly becomes a section: ' + lyric);
+    }
+    for (const heading of ['Coro', 'CORO:', 'Coro 2', 'Coro x2', 'Pre-coro', 'Verso 1']) {
+        assert(detectarSeccionAutomatica(heading), 'Section no longer recognized: ' + heading);
+    }
+    const preview = renderizarChordPro('Coro\nVestido en majestad\nCoronado con poder');
+    assert((preview.match(/struct-btn/g) || []).length === 1 && preview.includes('Coronado con poder'), 'Editor preview lost lyric or added section');
     let finishSave, rejectSave, saveCalls = 0;
     window.db = { collection() { return {
         doc(id) { assert(id === 'song-edited', 'Saving the wrong song'); return {
