@@ -1,0 +1,4 @@
+# The Edge Function verifies Firebase JWTs itself (issuer, audience and signature).
+# Supabase JWT verification cannot validate a Firebase-issued token at the gateway.
+[functions.rehearsal-audio]
+verify_jwt = false

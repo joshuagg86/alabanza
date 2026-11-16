@@ -412,6 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Repeated notifications must not reset navigation or duplicate listeners.
             if (user && usuarioActual && usuarioActual.uid === user.uid) return;
             const version = ++versionSesion;
+            window.EnsayoMusical?.cerrar();
             const mostrarBienvenida = Boolean(user && inicioSesionManual);
             inicioSesionManual = false;
             if (detenerNotas) { detenerNotas(); detenerNotas = null; }
@@ -1664,6 +1665,7 @@ function toggleVolPopup(popupId) {
             lecturaContinua = false;
             cancionActual = todasLasCanciones.find(c => c.id === id);
             if (!cancionActual) return;
+            window.EnsayoMusical?.abrir(cancionActual, usuarioActual);
             cargarPreferenciasCancion();
             const paramsRetorno = new URLSearchParams(window.location.search);
             if (paramsRetorno.get('saved') === '1') {
@@ -1719,6 +1721,7 @@ function toggleVolPopup(popupId) {
         }
 
        function volverALista() { 
+            window.EnsayoMusical?.cerrar();
             pausarDesplazamientoLetra();
             guardarPreferenciasCancion();
             if (modoEnsayo) establecerModoEnsayo(false);

@@ -1,0 +1,7 @@
+# Validated baseline: native macOS ARM64, Python 3.9.6. CPU first.
+demucs==4.0.1
+torch==2.0.1
+torchaudio==2.0.2
+numpy==1.26.4
+soundfile==0.13.1
+imageio-ffmpeg==0.6.0
