@@ -37,6 +37,8 @@ def main():
     cloud = "--cloud" in sys.argv
     cloud_url = "https://pkwiklslewgzcyiiyjek.supabase.co"
     export = ROOT/"audio-service/.local/exports/6df5fe836fb3eac4f33559841721f3f1ae3719a8e0df21db629fcdfd45331fb9"
+    if '--export' in sys.argv:
+        export = Path(sys.argv[sys.argv.index('--export')+1]).resolve()
     if cloud:
         manifest = json.loads((export/"web-manifest.json").read_text())
         STATE.update({"duration":manifest["duration"],"frames":manifest["frames"],"sampleRate":44100,"cloud":True,"expiresAt":int(time.time()*1000)+900000,
@@ -48,19 +50,36 @@ def main():
         page = context.new_page()
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
+        if '--sample-rate' in sys.argv:
+            rate = int(sys.argv[sys.argv.index('--sample-rate')+1])
+            page.add_init_script('''{
+                const NativeAudioContext=window.AudioContext;
+                window.AudioContext=class extends NativeAudioContext {
+                    constructor(options){super({...options,sampleRate:RATE});}
+                };
+            }'''.replace('RATE', str(rate)))
+        if '--truncate-end-frames' in sys.argv:
+            removed = int(sys.argv[sys.argv.index('--truncate-end-frames')+1])
+            page.add_init_script('window.qaTrimEndFrames='+str(removed))
         page.add_init_script("""
             window.qaStarts=[];
             window.qaDecoded=[];
+            window.qaBufferLengths=[];
             const decode=AudioContext.prototype.decodeAudioData;
             AudioContext.prototype.decodeAudioData=async function(bytes){
-                const buffer=await decode.call(this,bytes);
+                let buffer=await decode.call(this,bytes);
+                if(window.qaTrimEndFrames){
+                    const trimmed=this.createBuffer(buffer.numberOfChannels,buffer.length-qaTrimEndFrames,buffer.sampleRate);
+                    for(let i=0;i<buffer.numberOfChannels;i++) trimmed.copyToChannel(buffer.getChannelData(i).subarray(0,trimmed.length),i);
+                    buffer=trimmed;
+                }
                 qaDecoded.push({length:buffer.length,sampleRate:buffer.sampleRate,duration:buffer.duration});
                 return buffer;
             };
             const createSource=AudioContext.prototype.createBufferSource;
             AudioContext.prototype.createBufferSource=function(){
                 const source=createSource.call(this), start=source.start.bind(source);
-                source.start=(when,offset)=>{window.qaStarts.push([when,offset]);start(when,offset)};
+                source.start=(when,offset)=>{window.qaStarts.push([when,offset]);window.qaBufferLengths.push(source.buffer.length);start(when,offset)};
                 return source;
             };
         """)
@@ -111,6 +130,13 @@ def main():
         page.get_by_role('button', name='Ensayar', exact=True).click()
         page.wait_for_function("!document.getElementById('rehearsalPlay').disabled")
         page.get_by_role('button', name='Cargar y reproducir', exact=True).click()
+        if '--truncate-end-frames' in sys.argv:
+            page.wait_for_function("document.getElementById('rehearsalMessage').textContent.includes('no conserva la duración')")
+            assert page.evaluate('qaStarts.length===0')
+            assert not errors, errors
+            print('PASS: pista con pérdida significativa rechazada antes de reproducir; sin errores JavaScript.')
+            browser.close()
+            return
         try:
             page.get_by_role('button', name='Pausar', exact=True).wait_for()
         except Exception:
@@ -118,6 +144,9 @@ def main():
             print('Decoded buffers:',page.evaluate('qaDecoded'),'Expected frames:',STATE['frames'])
             raise
         assert page.evaluate('qaStarts.length===6 && qaStarts.every(s=>s[0]===qaStarts[0][0] && s[1]===0)')
+        if cloud:
+            expected = page.evaluate('Math.floor('+str(STATE['frames'])+'*qaDecoded[0].sampleRate/44100)')
+            assert page.evaluate('qaBufferLengths.every(length=>length==='+str(expected)+')')
         page.wait_for_function("Number(document.getElementById('rehearsalTimeline').value)>0.1")
         page.get_by_role('button', name='Pausar', exact=True).click()
         before = page.locator('#rehearsalTimeline').input_value()
@@ -180,7 +209,7 @@ def main():
         assert page.locator('#mix-channel-guitar').is_hidden()
         assert page.locator('#mix-channel-piano').is_hidden()
         assert not errors, errors
-        print('PASS: Chrome desktop/mobile, '+('AAC real de Dios poderoso con servicio Mac desconectado' if cloud else 'WAV local')+', play/pause/seek, Mute/Solo, presets y compatibilidad anterior; identidad/API simuladas')
+        print('PASS: Chrome desktop/mobile, '+('AAC real con servicio Mac desconectado' if cloud else 'WAV local')+', play/pause/seek, Mute/Solo, presets y compatibilidad anterior; identidad/API simuladas')
         browser.close()
 
 
