@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alabanza-v24'; // Subimos versión para forzar actualización
+const CACHE_NAME = 'alabanza-v30';
 
 // Generamos la lista de pads automáticamente
 const PADS = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'].map(t => `./pads/${t}.mp3`);
@@ -9,6 +9,10 @@ const urlsToCache = [
   './style.css',
   './ux.css',
   './reader.css',
+  './rehearsal-mixer.css',
+  './audio-engine.js',
+  './rehearsal-mixer.js',
+  './rehearsal-cloud-config.js',
   './drummer-reader.js',
   './reader-experience.js',
   './permissions.js',
@@ -55,6 +59,8 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
+  // Private audio is always authenticated and never stored in the PWA cache.
+  if (request.headers?.has('Authorization') || url.port === '8765' || url.hostname.endsWith('.supabase.co')) return;
   const interfaz = url.origin === self.location.origin && (
     request.mode === 'navigate' || /\.(?:html|js|css)$/.test(url.pathname)
   );

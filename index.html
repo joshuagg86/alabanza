@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ux.css">
     <link rel="stylesheet" href="reader.css">
+    <link rel="stylesheet" href="rehearsal-mixer.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
@@ -287,10 +288,29 @@
                 <div class="reader-size" role="group" aria-label="Tamaño de letra"><button id="readerSmaller" onclick="cambiarTamanoLectura(-1)" aria-label="Reducir tamaño de letra">A−</button><button id="readerLarger" onclick="cambiarTamanoLectura(1)" aria-label="Aumentar tamaño de letra">A+</button></div>
             </div>
             <div class="reader-connection connection-status" data-connection-status role="status">Preparando disponibilidad…</div>
+            <div id="rehearsalEntry" class="rehearsal-entry" hidden>
+                <div class="rehearsal-entry-info"><i class="fas fa-headphones" aria-hidden="true"></i><div><strong>Audio de ensayo</strong><span id="rehearsalSummary" role="status">Audio de ensayo</span></div></div>
+                <div class="rehearsal-entry-actions"><button id="rehearsalUpload" type="button" hidden>Subir MP3 o WAV</button><button id="rehearsalToggle" class="rehearsal-primary" type="button" aria-expanded="false" aria-controls="rehearsalPanel"><i class="fas fa-sliders-h" aria-hidden="true"></i> Ensayar</button></div>
+                <input id="rehearsalFile" type="file" accept=".mp3,.wav,audio/mpeg,audio/wav" hidden>
+            </div>
             <div id="readerToast" class="reader-toast" role="status" hidden></div>
             <div class="reader-body">
                 <div id="songContent" class="lyrics-container" role="region" aria-label="Letra y anotaciones" tabindex="0"></div>
                 <nav id="songStructure" class="song-structure" aria-label="Estructura de la canción" hidden></nav>
+                <aside id="rehearsalPanel" class="rehearsal-panel" aria-label="Mezclador de ensayo" hidden>
+                    <div class="rehearsal-heading"><div><span class="rehearsal-eyebrow">TU ESPACIO DE ENSAYO</span><h3>Escucha tu instrumento</h3></div><button id="rehearsalClose" type="button" aria-label="Cerrar mezclador"><i class="fas fa-times" aria-hidden="true"></i></button></div>
+                    <p id="rehearsalMessage" class="rehearsal-message" role="status">Prepara tu mezcla y ensaya con la letra a la vista.</p>
+                    <div class="rehearsal-connection"><span><span class="rehearsal-dot"></span> <span id="rehearsalLocation">Prueba local · este Mac</span></span><button id="rehearsalRefresh" type="button">Actualizar</button></div>
+                    <button id="rehearsalPublish" type="button" hidden>Reintentar subida a la nube</button>
+                    <div class="rehearsal-transport"><button id="rehearsalBack" type="button" aria-label="Retroceder diez segundos" disabled>−10 s</button><button id="rehearsalPlay" class="rehearsal-primary" type="button" disabled>Cargar y reproducir</button><button id="rehearsalForward" type="button" aria-label="Adelantar diez segundos" disabled>+10 s</button></div>
+                    <label class="mix-slider-label" for="rehearsalTimeline">Posición de reproducción</label><input id="rehearsalTimeline" type="range" min="0" max="1" step="0.1" value="0" disabled>
+                    <div class="rehearsal-times"><span id="rehearsalElapsed">0:00</span><span id="rehearsalDuration">0:00</span></div>
+                    <label class="rehearsal-preset-label" for="rehearsalPreset">¿Qué quieres ensayar?</label>
+                    <select id="rehearsalPreset" disabled><option value="full">Mezcla completa</option><option value="without:vocals">Cantar · quitar voz original</option><option value="highlight:vocals">Aprender · destacar voz</option><option value="without:drums">Tocar batería · quitar batería</option><option value="highlight:drums">Aprender · destacar batería</option><option value="without:bass">Tocar bajo · quitar bajo</option><option value="highlight:bass">Aprender · destacar bajo</option><option value="without:guitar">Tocar guitarra · quitar guitarra</option><option value="highlight:guitar">Aprender · destacar guitarra</option><option value="without:piano">Tocar teclado · quitar piano</option><option value="highlight:piano">Aprender · destacar piano</option><option value="custom">Mezcla personalizada</option></select>
+                    <fieldset id="rehearsalChannels" class="rehearsal-channels" disabled><legend>Instrumentos</legend></fieldset>
+                    <button id="rehearsalReset" class="rehearsal-reset" type="button" disabled><i class="fas fa-undo" aria-hidden="true"></i> Restablecer mezcla</button>
+                    <p class="rehearsal-footnote">Teclado detecta principalmente piano; pads y sintetizadores pueden quedar en Otros. Las canciones compartidas se reproducen desde la nube.</p>
+                </aside>
             </div>
 
             <div class="fab-container" style="position: fixed; bottom: 30px; right: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 200;">
@@ -386,6 +406,9 @@
     <script src="drummer-reader.js"></script>
     <script src="reader-experience.js"></script>
     <script src="permissions.js"></script>
+    <script src="audio-engine.js"></script>
+    <script src="rehearsal-cloud-config.js"></script>
+    <script src="rehearsal-mixer.js"></script>
     <script src="index-app.js"></script>
 </body>
 </html>
