@@ -411,7 +411,7 @@ function actualizarPrevisualizacion() {
 
 function detectarSeccionAutomatica(linea) {
     const texto = linea.trim();
-    const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?$/i;
+    const regexInicio = /^(intro|verso|estrofa|pre-?coro|coro(?=\s*(?:\d+\s*)?(?:x\d+\s*)?[:\.]?$)|puente|intermedio|instrumental|final|salida|outro)[\s\w\d\.]*(x\d+)?[:\.]?$/i;
     const match = texto.match(regexInicio);
 
     if (match) {

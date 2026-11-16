@@ -6,6 +6,12 @@ function snapshot(docs, fromCache = false) {
     return { metadata: { fromCache, hasPendingWrites: false }, forEach(fn) { docs.forEach(([id, data]) => fn({ id, data: () => data })); } };
 }
 const testPromise = (async () => {
+    assert(detectarSeccionAutomatica('Coronado con poder') === null, 'Coronado became a reader section');
+    assert(detectarSeccionAutomatica('Coro de voces') === null, 'Coro lyric became a reader section');
+    for (const heading of ['Coro', 'CORO:', 'Coro 2', 'Coro x2', 'Pre-coro', 'Verso 1']) {
+        assert(detectarSeccionAutomatica(heading), 'Reader lost section: ' + heading);
+    }
+    passed.push('Coro completo sin confundir Coronado con una sección');
     assert(Permisos.puedeEditar({ uid: 'ordinary', email: 'ordinary@example.test' }), 'Ordinary user cannot collaborate');
     assert(!Permisos.puedeEditar(null), 'Guest can edit');
     assert(!Permisos.puedeEliminar({ uid: 'ordinary', email: 'ordinary@example.test' }), 'Deletion privileges expanded');

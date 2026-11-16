@@ -8,3 +8,9 @@ editor return position, rehearsal mode, auto-scroll and offline cache behavior.
 
 These checks do not validate deployed Firebase rules, real account data, browser
 fullscreen permissions or the visual layout on physical devices.
+
+Service-list checks also cover repertoire search from Sunday/Wednesday, atomic
+additions, repeated clicks, errors and unchanged authorization. Section checks
+cover Coro headings and lyrics such as “Coronado con poder” in reader and editor.
+Optional Chrome smoke test: `audio-service/.venv/bin/python tests/service-search.browser.py`
+(requires Playwright and the existing macOS Chrome installation; Firebase is mocked).
