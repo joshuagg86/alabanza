@@ -169,3 +169,48 @@
 }
 
 #readerLayout[hidden] { display: none; }
+
+/* Keep the navigation toggle available even when its sidebar is collapsed. */
+#readerSections[hidden] { display: none; }
+#readerSections[aria-expanded="true"] { color: #b8c1ff; border-color: #a5b4fc77; }
+@media (max-width: 600px) {
+    #viewSong .sticky-player-header { padding: max(10px, env(safe-area-inset-top)) 16px 8px !important; gap: 8px; }
+    .reader-eyebrow { display: none; }
+    #viewSong #viewTitle { font-size: 22px !important; }
+    #viewSong .info-group { margin-top: 4px; }
+    .reader-toolbar { padding: 6px 12px; gap: 6px; }
+    #viewSong #readerSizeLabel { display: none; }
+    .reader-size { margin-left: 0; }
+    .reader-size button { width: 44px; }
+    #viewSong #songContent { padding-top: 16px !important; }
+    #songContent .section-block { padding-left: 4px; padding-right: 4px; margin-bottom: 22px !important; padding-bottom: 16px; }
+    #songContent .song-line, #songContent .lyric { line-height: 1.4 !important; }
+    #songContent .struct-btn { margin-bottom: 12px !important; }
+    #viewSong .rehearsal-entry { padding: 6px 16px; gap: 8px; }
+    #viewSong .rehearsal-entry-info span { display: none; }
+    #viewSong .rehearsal-entry-info strong { font-size: 12px; }
+    #viewSong.rehearsal-mode .sticky-player-header { flex-direction: row !important; }
+    #viewSong.rehearsal-mode .header-row-top { flex: 1; min-width: 0; }
+    #viewSong.rehearsal-mode .header-row-bottom { width: auto; }
+    #viewSong.rehearsal-mode .nav-mini-group { display: none; }
+    #viewSong.rehearsal-mode #viewTitle { font-size: 18px !important; }
+}
+
+/* One row of reading controls leaves the remaining height for lyrics. */
+#viewSong .reader-toolbar {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 6px;
+    overflow-x: auto;
+}
+#viewSong .reader-size-label { display: none; }
+#viewSong .reader-autoscroll { flex-shrink: 0; margin-left: auto; }
+#viewSong .reader-size { margin-left: 0; }
+#viewSong .reader-size button { width: 44px; height: 44px; }
+@media (max-width: 420px) {
+    #viewSong .reader-toolbar { padding-left: 8px; padding-right: 8px; gap: 4px; }
+    #readerRehearsal span, #readerSections span, #readerPlayLabel { display: none; }
+    #viewSong .reader-rehearsal, #viewSong .reader-chords { width: 44px; min-height: 44px; padding: 0; }
+    #viewSong .reader-autoscroll button { justify-content: center; min-width: 44px; min-height: 44px; padding: 8px; }
+    #viewSong .reader-autoscroll select { min-height: 44px; padding: 4px; }
+}

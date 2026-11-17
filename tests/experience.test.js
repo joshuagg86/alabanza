@@ -131,6 +131,20 @@ const testPromise = (async () => {
     assert(seccionesLectura[1].boton.hasAttribute('aria-current') && !seccionesLectura[0].boton.hasAttribute('aria-current'), 'Section failed to follow scroll');
     passed.push('seguimiento de secciones');
 
+    actualizarVisibilidadSecciones();
+    assert(!nav.hidden, 'Sections should start visible');
+    alternarSeccionesLectura();
+    assert(nav.hidden && document.getElementById('readerSections').getAttribute('aria-expanded') === 'false', 'Sections did not collapse');
+    actualizarVisibilidadSecciones();
+    assert(nav.hidden, 'Re-render forgot collapsed navigation');
+    alternarSeccionesLectura();
+    assert(!nav.hidden && document.getElementById('readerSections').getAttribute('aria-expanded') === 'true', 'Cannot restore navigation');
+    const savedSections = seccionesLectura;
+    seccionesLectura = []; actualizarVisibilidadSecciones();
+    assert(nav.hidden && document.getElementById('readerSections').hidden, 'Empty section navigation remains visible');
+    seccionesLectura = savedSections; actualizarVisibilidadSecciones();
+    passed.push('ocultar y restaurar navegación por secciones');
+
     // Restore position by lyric anchor, then consume the return exactly once.
     const anchor = testElement(); anchor.dataset.index = '12';
     anchor.getBoundingClientRect = () => ({ top: 240, bottom: 280 });
