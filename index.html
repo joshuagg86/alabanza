@@ -272,7 +272,8 @@
             </div>
 
             <div class="reader-toolbar" aria-label="Opciones de lectura">
-                <button id="readerRehearsal" class="reader-rehearsal" type="button" onclick="alternarModoEnsayo()" aria-pressed="false" title="Reducir controles y mantener la pantalla encendida"><i class="fas fa-expand" aria-hidden="true"></i><span>Ensayo</span></button>
+                <button id="readerRehearsal" aria-label="Modo ensayo" class="reader-rehearsal" type="button" onclick="alternarModoEnsayo()" aria-pressed="false" title="Reducir controles y mantener la pantalla encendida"><i class="fas fa-expand" aria-hidden="true"></i><span>Ensayo</span></button>
+                <button id="readerSections" class="reader-chords" type="button" onclick="alternarSeccionesLectura()" aria-controls="songStructure" aria-expanded="false" title="Mostrar u ocultar navegación por secciones"><i class="fas fa-list" aria-hidden="true"></i><span>Secciones</span></button>
                 <span class="reader-size-label" id="readerSizeLabel">Tamaño de letra</span>
                 <span id="drumFitStatus" role="status" hidden></span>
                 <button id="readerLayout" class="reader-chords" type="button" onclick="alternarFormatoLectura()" aria-label="Usar lectura vertical" aria-pressed="false" hidden><i class="fas fa-columns" aria-hidden="true"></i></button>

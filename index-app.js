@@ -1075,6 +1075,21 @@ document.addEventListener('DOMContentLoaded', () => {
             container.style.width = '';
             aplicarTamanoLectura();
         }
+        function actualizarVisibilidadSecciones() {
+            const ocultas = ExperienciaLectura.leer('alabanza_ocultar_secciones', false) === true;
+            const disponible = seccionesLectura.length > 0;
+            document.getElementById('songStructure').hidden = ocultas || !disponible;
+            const boton = document.getElementById('readerSections');
+            boton.hidden = !disponible;
+            boton.setAttribute('aria-expanded', String(disponible && !ocultas));
+            boton.setAttribute('aria-label', ocultas ? 'Mostrar secciones' : 'Ocultar secciones');
+        }
+        function alternarSeccionesLectura() {
+            const ocultar = !document.getElementById('songStructure').hidden;
+            ExperienciaLectura.guardar('alabanza_ocultar_secciones', ocultar);
+            actualizarVisibilidadSecciones();
+            solicitarAjusteBateria();
+        }
         function actualizarEstructuraCancion() {
             const nav = document.getElementById('songStructure');
             const titulos = document.querySelectorAll('#songContent .struct-btn');
@@ -1097,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 nav.append(boton);
                 seccionesLectura.push({ linea, boton });
             });
-            nav.hidden = titulos.length === 0;
+            actualizarVisibilidadSecciones();
         }
         function irASeccionCancion(id, boton) {
             pausarDesplazamientoLetra();
