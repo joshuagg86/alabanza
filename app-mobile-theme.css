@@ -1,0 +1,63 @@
+/* Android redesign foundation — isolated from the live main branch. */
+:root {
+  --app-gradient: linear-gradient(125deg,#38bdf8,#2563eb);
+  --primary-glow: #2563eb;
+  --accent-glow: #38bdf8;
+  color-scheme: dark;
+}
+html[data-app-theme="dark"] {
+  --bg-deep:#081525;
+  --glass-surface:#14283d;
+  --glass-border:rgba(125,180,235,.16);
+  --text-main:#f2f8ff;
+  --text-muted:#a1b9d0;
+  color-scheme:dark;
+}
+html[data-app-theme="light"] {
+  --bg-deep:#f5f9ff;
+  --glass-surface:#ffffff;
+  --glass-border:rgba(30,75,135,.13);
+  --text-main:#102b49;
+  --text-muted:#617a95;
+  color-scheme:light;
+}
+html[data-app-theme] body {
+  color:var(--text-main);
+  background:var(--bg-deep) !important;
+}
+html[data-app-theme="dark"] body {
+  background:radial-gradient(circle at 10% 0%,#153656,#081525 55%) !important;
+}
+html[data-app-theme="light"] body {
+  background:radial-gradient(circle at 10% 0%,#e0f2ff,#f5f9ff 55%) !important;
+}
+html[data-app-theme] .card {
+  background:var(--glass-surface);
+  border-color:var(--glass-border);
+  box-shadow:0 10px 34px rgba(14,42,84,.09);
+}
+html[data-app-theme] .login-card {
+  border-color:var(--glass-border);
+}
+html[data-app-theme="light"] .card h2,
+html[data-app-theme="light"] h2 {color:var(--text-main)}
+html[data-app-theme="light"] input,
+html[data-app-theme="light"] select,
+html[data-app-theme="light"] textarea {
+  color:var(--text-main);
+  background:#edf5ff;
+}
+.app-theme-toggle {
+  position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;
+  z-index:10001;display:flex;gap:6px;align-items:center;
+  padding:10px 14px;border:1px solid var(--glass-border);
+  border-radius:999px;background:var(--glass-surface);
+  color:var(--text-main);font:600 13px Outfit,system-ui,sans-serif;
+  box-shadow:0 7px 25px rgba(0,0,0,.12);cursor:pointer;
+}
+.app-theme-toggle:focus-visible{outline:3px solid #38bdf8;outline-offset:2px}
+@media (max-width:768px){
+  html[data-app-theme] body{padding:calc(env(safe-area-inset-top,0px) + 64px) 14px calc(env(safe-area-inset-bottom,0px) + 18px)}
+  html[data-app-theme] .card{border-radius:24px}
+  html[data-app-theme] button{touch-action:manipulation}
+}
