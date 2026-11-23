@@ -78,7 +78,11 @@
        await remove(id);await renderList();notice('Descarga eliminada.');
      }
      if(button.dataset.action==='read'){
-       const entry=await saved(id);if(entry)readLyrics(entry);
+       const entry=await saved(id);
+       if(entry){
+         p.hidden=true;
+         window.dispatchEvent(new CustomEvent('alabanza:open-saved-song',{detail:{song:entry}}));
+       }
      }
    });
    return p;
@@ -96,26 +100,11 @@
        const title=document.createElement('strong');title.textContent=x.titulo;
        const subtitle=document.createElement('small');subtitle.textContent=[x.artista,x.tonoOriginal].filter(Boolean).join(' · ');
        meta.append(title,subtitle);
-       const read=document.createElement('button');read.type='button';read.dataset.action='read';read.dataset.id=x.id;read.textContent='Leer';
+       const read=document.createElement('button');read.type='button';read.dataset.action='read';read.dataset.id=x.id;read.textContent='Ver';
        const del=document.createElement('button');del.type='button';del.dataset.action='delete';del.dataset.id=x.id;del.textContent='Eliminar';del.setAttribute('aria-label','Eliminar '+x.titulo);
        item.append(meta,read,del);list.appendChild(item);
      }
    }catch(_){list.textContent='No se pudo abrir el almacenamiento local.';}
- }
- function readLyrics(entry){
-   const panel=getPanel();panel.hidden=false;
-   let reader=document.getElementById('offlineLyricsReader');
-   if(!reader){
-     reader=document.createElement('div');reader.id='offlineLyricsReader';reader.className='offline-lyrics-reader';
-     reader.innerHTML='<button type="button" id="offlineLyricsBack">← Mis descargas</button><h3></h3><p></p><pre></pre>';
-     panel.appendChild(reader);
-     document.getElementById('offlineLyricsBack').addEventListener('click',()=>{reader.hidden=true;document.getElementById('offlineLyricsList').hidden=false;});
-   }
-   document.getElementById('offlineLyricsList').hidden=true;
-   reader.hidden=false;
-   reader.querySelector('h3').textContent=entry.titulo;
-   reader.querySelector('p').textContent=[entry.artista,entry.tonoOriginal].filter(Boolean).join(' · ');
-   reader.querySelector('pre').textContent=entry.letraChordPro;
  }
  async function show(){
    const panel=getPanel();panel.hidden=false;
