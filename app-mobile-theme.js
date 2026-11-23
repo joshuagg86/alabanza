@@ -11,6 +11,12 @@
     const pref=preference();
     const actual=pref==='system'?(media.matches?'dark':'light'):pref;
     document.documentElement.dataset.appTheme=actual;
+    const logo=document.getElementById('alabanzaHeaderLogo');
+    if(logo){
+      const hasLightLogo=logo.dataset.lightAvailable==='yes';
+      const target=actual==='light' && hasLightLogo ? 'logo_claro.png' : 'logo.png';
+      if(logo.getAttribute('src')!==target)logo.setAttribute('src',target);
+    }
     const btn=document.getElementById('appThemeToggle');
     if(btn){
       btn.textContent=({light:'☀ Claro',dark:'☾ Oscuro',system:'◐ Sistema'})[pref];
@@ -32,6 +38,23 @@
     const button=document.createElement('button');
     button.type='button';button.id='appThemeToggle';button.className='app-theme-toggle';
     button.addEventListener('click',cycle);
-    document.body.appendChild(button);apply();
+    const header=document.querySelector('#viewList > header');
+    const logoWrap=header?.querySelector('.logo-container');
+    const logo=logoWrap?.querySelector('img');
+    if(logo){
+      logo.id='alabanzaHeaderLogo';
+      logo.dataset.lightAvailable='unknown';
+      // Check whether logo_claro.png exists before changing the current working logo.
+      const probe=new Image();
+      probe.onload=()=>{logo.dataset.lightAvailable='yes';apply();};
+      probe.onerror=()=>{logo.dataset.lightAvailable='no';apply();};
+      probe.src='logo_claro.png';
+    }
+    if(logoWrap){
+      logoWrap.appendChild(button);
+    }else{
+      document.body.appendChild(button);
+    }
+    apply();
   });
 })();
