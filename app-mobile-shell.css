@@ -74,3 +74,153 @@
   .alabanza-bottom-nav button:focus-visible {outline:3px solid #38bdf8;outline-offset:-2px}
 }
 @media (min-width:768px){.alabanza-bottom-nav{display:none !important}}
+
+/* Phase 2: cohesive blue design across preview, including desktop inspection. */
+html[data-app-theme] {
+  --primary-glow:#2563eb;
+  --accent-glow:#38bdf8;
+}
+html[data-app-theme="light"] {
+  --card-ink:#17324f;
+  --card-muted:#5b7896;
+  --dashboard-border:rgba(43,104,183,.13);
+  --dashboard-shadow:0 12px 35px rgba(29,78,130,.07);
+}
+html[data-app-theme="dark"] {
+  --card-ink:#edf7ff;
+  --card-muted:#9db7d0;
+  --dashboard-border:rgba(116,190,255,.16);
+  --dashboard-shadow:0 14px 34px rgba(0,0,0,.18);
+}
+html[data-app-theme] #viewList > header {
+  border-bottom:1px solid var(--dashboard-border);
+}
+html[data-app-theme] #viewList > .tabs-wrapper {
+  background:var(--glass-surface) !important;
+  border:1px solid var(--dashboard-border) !important;
+  box-shadow:var(--dashboard-shadow);
+}
+html[data-app-theme] #viewList > .tabs-wrapper .tab-btn {
+  color:var(--card-muted);
+}
+html[data-app-theme] #viewList > .tabs-wrapper .tab-btn.active {
+  color:white;background:linear-gradient(125deg,#38bdf8,#2563eb);
+  border:0;box-shadow:0 5px 15px rgba(37,99,235,.18);
+}
+html[data-app-theme] #viewDashboard {
+  gap:18px;
+}
+html[data-app-theme] #viewDashboard > .card {
+  min-width:0;
+  border-radius:26px !important;
+  border:1px solid var(--dashboard-border) !important;
+  background:var(--glass-surface) !important;
+  box-shadow:var(--dashboard-shadow) !important;
+  padding:24px !important;
+}
+html[data-app-theme] #viewDashboard > .card:first-child {
+  background:linear-gradient(125deg,#2563eb 0%,#138edc 65%,#38bdf8 100%) !important;
+  border:0 !important;
+}
+html[data-app-theme] #viewDashboard > .card:first-child,
+html[data-app-theme] #viewDashboard > .card:first-child *,
+html[data-app-theme] #viewDashboard > .card:first-child #dashVersiculoTexto {
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+}
+html[data-app-theme] #viewDashboard > .card:first-child > div:first-child {
+  color:rgba(255,255,255,.86) !important;
+}
+html[data-app-theme] #viewDashboard > .card:not(:first-child),
+html[data-app-theme] #viewDashboard > .card:not(:first-child) p,
+html[data-app-theme] #viewDashboard > .card:not(:first-child) span,
+html[data-app-theme] #viewDashboard > .card:not(:first-child) h3 {
+  color:var(--card-ink) !important;
+  -webkit-text-fill-color:var(--card-ink) !important;
+}
+html[data-app-theme] #viewDashboard > .card:not(:first-child) > div:first-child,
+html[data-app-theme] #viewDashboard > .card:not(:first-child) > div:first-child i {
+  color:#2873cb !important;
+  -webkit-text-fill-color:#2873cb !important;
+}
+html[data-app-theme] #dashCancionesLista > * {
+  background:rgba(100,160,223,.08) !important;
+  border-color:var(--dashboard-border) !important;
+}
+html[data-app-theme] #dashCancionesLista .song-info,
+html[data-app-theme] #dashCancionesLista .song-info *,
+html[data-app-theme] #dashMisFechasContainer * {
+  color:var(--card-ink) !important;
+  -webkit-text-fill-color:var(--card-ink) !important;
+}
+html[data-app-theme] #dashServiceDay {
+  background:var(--glass-surface) !important;
+  color:var(--card-ink) !important;
+  border:1px solid var(--dashboard-border) !important;
+  border-radius:13px;
+}
+html[data-app-theme] #viewDashboard button[onclick="abrirPlaylistDashboard()"],
+html[data-app-theme] #btnMainAuth {
+  background:linear-gradient(125deg,#38bdf8,#2563eb) !important;
+  color:#fff !important;
+  box-shadow:0 6px 17px rgba(37,99,235,.19) !important;
+}
+html[data-app-theme] #songList .song-item,
+html[data-app-theme] #songList .song-suggestion {
+  border-color:var(--dashboard-border) !important;
+  background:var(--glass-surface) !important;
+  color:var(--card-ink);
+  border-radius:20px;
+}
+html[data-app-theme] #songList .song-item h3,
+html[data-app-theme] #songList .song-suggestion h3,
+html[data-app-theme] #songList .song-item .song-info {
+  color:var(--card-ink) !important;
+}
+html[data-app-theme] #searchInput {
+  color:var(--card-ink) !important;
+  background:var(--glass-surface) !important;
+  border-color:var(--dashboard-border) !important;
+}
+html[data-app-theme="light"] .search-summary,
+html[data-app-theme="light"] #dashPlaylistCount {
+  color:#57728f !important;
+}
+html[data-app-theme] #loginModal {
+  background:var(--bg-deep) !important;
+}
+html[data-app-theme] #loginModal .login-card {
+  background:var(--glass-surface);
+  border-color:var(--dashboard-border);
+  box-shadow:var(--dashboard-shadow);
+}
+html[data-app-theme] #loginModal h2 {
+  color:var(--card-ink) !important;
+}
+html[data-app-theme="light"] #loginModal input {
+  color:#17324f !important;
+  background:#edf5ff !important;
+  border-color:#c9dcef !important;
+}
+@media(max-width:767px) {
+  html[data-app-theme] #viewList > .tabs-wrapper {
+    position:static;overflow-x:auto;
+  }
+  html[data-app-theme] #viewDashboard {
+    display:flex !important;
+    flex-direction:column !important;
+    height:auto !important;
+    gap:14px;
+  }
+  html[data-app-theme] #viewDashboard[style*="display: none"] {display:none !important}
+  html[data-app-theme] #viewDashboard > .card {
+    flex:none !important;min-height:115px !important;
+    padding:20px !important;
+  }
+  html[data-app-theme] #viewDashboard > .card:last-child{
+    min-height:260px !important;
+  }
+  html[data-app-theme] #viewList > header > div:last-child{
+    flex-wrap:wrap;justify-content:flex-end;
+  }
+}
