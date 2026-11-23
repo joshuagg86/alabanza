@@ -1,0 +1,21 @@
+/* Offline lyrics viewer — browser preview. */
+.offline-save-button{display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border:0;border-radius:999px;background:linear-gradient(125deg,#38bdf8,#2563eb);color:white;font:600 12px Outfit,system-ui,sans-serif;cursor:pointer}
+.offline-lyrics-panel[hidden],.offline-lyrics-reader[hidden]{display:none!important}
+.offline-lyrics-panel{position:fixed;inset:0;z-index:12000;overflow:auto;background:var(--bg-deep,#081525);color:var(--text-main,#fff);padding:calc(env(safe-area-inset-top,0px) + 24px) max(18px,calc((100vw - 850px)/2)) calc(env(safe-area-inset-bottom,0px) + 32px)}
+.offline-lyrics-head{display:flex;justify-content:space-between;align-items:start;gap:20px;margin:15px 0 22px}
+.offline-lyrics-head small{letter-spacing:2px;color:#2c9de8;font-weight:700}
+.offline-lyrics-head h2{font-size:32px;margin:6px 0 8px;color:var(--text-main,#fff)}
+.offline-lyrics-head p{color:var(--text-muted,#9bb5ce);margin:0;line-height:1.5}
+#offlineLyricsClose{background:var(--glass-surface,#14283d);color:var(--text-main,#fff);border:1px solid var(--glass-border);border-radius:50%;width:44px;height:44px;font-size:20px;cursor:pointer;flex-shrink:0}
+#offlineLyricsStatus{min-height:20px;color:#2380d7;margin-bottom:10px;font-size:13px}
+.offline-lyrics-item{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:10px;border-radius:18px;background:var(--glass-surface,#14283d);border:1px solid var(--glass-border)}
+.offline-lyrics-item div{flex:1;min-width:0;display:grid;gap:4px}
+.offline-lyrics-item strong{font-size:15px}
+.offline-lyrics-item small{color:var(--text-muted,#9bb5ce);font-size:12px}
+.offline-lyrics-item button,#offlineLyricsBack{border:1px solid var(--glass-border);background:transparent;color:var(--text-main,#fff);border-radius:12px;padding:10px 12px;font:600 12px Outfit,system-ui;cursor:pointer}
+.offline-lyrics-item button[data-action="read"]{background:linear-gradient(125deg,#38bdf8,#2563eb);color:white;border:0}
+.offline-empty{padding:34px 20px;color:var(--text-muted,#9bb5ce);text-align:center;border:1px dashed var(--glass-border);border-radius:18px}
+.offline-lyrics-reader h3{font-size:26px;color:var(--text-main)}
+.offline-lyrics-reader p{color:var(--text-muted)}
+.offline-lyrics-reader pre{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.9;font:500 16px/1.9 Outfit,system-ui;color:var(--text-main)}
+@media(max-width:600px){.offline-lyrics-item{flex-wrap:wrap}.offline-lyrics-item div{flex-basis:100%}}
