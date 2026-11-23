@@ -1,0 +1,11 @@
+{
+  "appId": "mx.icegh.alabanza.preview",
+  "appName": "Alabanza ICEGH",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
