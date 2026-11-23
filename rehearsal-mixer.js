@@ -114,7 +114,7 @@
         el('rehearsalReset').disabled = !engine || loading;
         el('rehearsalPublish').hidden = !local || !admin() || !status?.ready || status?.cloud || !['error','sin_configurar'].includes(status?.cloudState);
         const cloudLabels = {pendiente:'Preparando subida automática…',subiendo:'Subiendo a la nube…',publicado:'Disponible para el grupo',error:'Audio local listo · subida pendiente'};
-        el('rehearsalLocation').textContent = status?.localOffline ? 'Descargado · sin conexión' : status?.cloud ? 'Audio compartido · nube' : cloudLabels[status?.cloudState] || 'Prueba local · este Mac';
+        el('rehearsalLocation').textContent = status?.localOffline ? 'Descargado · sin conexión' : status?.cloud ? 'Audio compartido · nube' : status?.cloudState ? (cloudLabels[status.cloudState] || 'Audio pendiente') : cloudEnabled() && !local ? 'Audio privado · esperando conexión' : 'Prueba local · este Mac';
         names.forEach(([name]) => { el('mix-channel-' + name).hidden = Boolean(status?.ready && !available().includes(name)); });
         Array.from(el('rehearsalPreset').options).forEach(option => {
             const instrument = option.value.split(':')[1];
@@ -146,7 +146,7 @@
             if (current !== generation || uploading) return;
             message(error.message, true);
             paint();
-            el('rehearsalSummary').textContent = local ? 'Servicio local sin conectar' : 'Disponible en pruebas locales';
+            el('rehearsalSummary').textContent = local ? 'Servicio local sin conectar' : 'No se pudo consultar el audio en la nube';
         }
     }
     function releaseAudio() {
