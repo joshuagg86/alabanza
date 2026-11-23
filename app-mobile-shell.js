@@ -10,7 +10,7 @@ function showPads(){
   panel=document.createElement('section');panel.id='mobilePadsScreen';panel.className='mobile-pads-screen';
   panel.hidden=true;
   panel.innerHTML='<div class="mobile-pads-head"><span class="mobile-eyebrow">AMBIENTE DE ALABANZA</span><h1>Pads</h1><p>Selecciona un tono, reproduce y descarga tus pads para usarlos sin conexión.</p></div><div class="mobile-pad-main"><div class="mobile-pad-note" id="mobilePadNote">C</div><div id="mobilePadState" role="status">Selecciona un tono para comenzar.</div><button type="button" id="mobilePadPlay" class="mobile-pad-primary"><i class="fas fa-play" aria-hidden="true"></i> Reproducir pad</button><button type="button" id="mobilePadDownload" class="mobile-pad-secondary"><i class="fas fa-download" aria-hidden="true"></i> Descargar este tono</button></div><div class="mobile-pad-grid" id="mobilePadGrid" role="group" aria-label="Tonos disponibles"></div>';
-  document.querySelector('.container')?.appendChild(panel);
+  document.getElementById('viewList')?.appendChild(panel);
   for(const key of TONES){
     const button=document.createElement('button');
     button.type='button';button.dataset.tone=key;button.textContent=key;
@@ -105,11 +105,13 @@ function init(){
     const isPads=tab==='pads';
     if(!isPads){
       $('mobilePadsScreen').hidden=true;
+      list.classList.remove('mobile-show-pads');
       list.hidden=false;list.style.display='block';
       const id={home:'tabHome',all:'tabAll',playlist:'tabPlaylist',wednesday:'tabWednesday',rol:'tabRol'}[tab];
       $(id)?.click();
     }else{
-      list.style.display='none';
+      list.style.display='block';
+      list.classList.add('mobile-show-pads');
       $('mobilePadsScreen').hidden=false;
     }
     if(!isPads)stopPad();
