@@ -5,7 +5,7 @@
     --bg-deep: #050505;
     --glass-surface: rgba(20, 20, 25, 0.7);
     --glass-border: rgba(255, 255, 255, 0.08);
-    --primary-glow: #6366f1; /* Indigo Neon */
+    --primary-glow: #2563eb; /* Indigo Neon */
     --accent-glow: #f59e0b; /* Amber Neon */
     --danger-glow: #ef4444;
     --text-main: #ffffff;
@@ -159,7 +159,7 @@ textarea:focus { border-color: #555; }
     display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-family: 'Outfit', sans-serif;
 }
 .btn:active { transform: scale(0.98); }
-.btn-primary { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+.btn-primary { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
 .btn-primary:hover { box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5); transform: translateY(-1px); }
 .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
 .btn-danger:hover { box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5); transform: translateY(-1px); }
@@ -187,8 +187,8 @@ textarea:focus { border-color: #555; }
 .tag-intro { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-color: rgba(59, 130, 246, 0.3); }
 .tag-verso { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3); }
 .tag-coro { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); }
-.tag-precoro { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border-color: rgba(139, 92, 246, 0.3); }
-.tag-puente { background: rgba(139, 92, 246, 0.15); color: #c084fc; border-color: rgba(139, 92, 246, 0.3); }
+.tag-precoro { background: rgba(139, 92, 246, 0.15); color: #60a5fa; border-color: rgba(139, 92, 246, 0.3); }
+.tag-puente { background: rgba(139, 92, 246, 0.15); color: #7dd3fc; border-color: rgba(139, 92, 246, 0.3); }
 .tag-final { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3); }
 
 .preview-card {
@@ -283,12 +283,12 @@ textarea:focus { border-color: #555; }
 .modal-title { font-size: 20px; font-weight: 700; color: white; margin-bottom: 10px; font-family: 'Outfit', sans-serif; }
 .modal-text { font-size: 15px; color: #94a3b8; margin-bottom: 25px; font-family: 'Outfit', sans-serif; }
 .modal-input-field { width: 100%; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 12px; color: white; font-family: 'Outfit', sans-serif; margin-bottom: 20px; outline: none; }
-.modal-input-field:focus { border-color: #6366f1; background: rgba(255,255,255,0.08); }
+.modal-input-field:focus { border-color: #2563eb; background: rgba(255,255,255,0.08); }
 .modal-actions { display: flex; gap: 10px; justify-content: center; }
 .btn-modal { flex: 1; padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer; border: none; font-size: 14px; transition: 0.2s; font-family: 'Outfit', sans-serif; }
 .btn-modal.cancel { background: rgba(255,255,255,0.05); color: #ccc; }
 .btn-modal.cancel:hover { background: rgba(255,255,255,0.1); color: white; }
-.btn-modal.confirm { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
+.btn-modal.confirm { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); }
 .btn-modal.confirm:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
 
 /* --- RESPONSIVE (MÓVIL) --- */
@@ -350,7 +350,7 @@ textarea:focus { border-color: #555; }
     align-items: center;
     justify-content: center;
     background: rgba(99, 102, 241, 0.15); 
-    color: #a5b4fc;
+    color: #7dc8ff;
     padding: 2px 8px;
     border-radius: 6px;
     font-size: 12px;
@@ -655,7 +655,7 @@ body.hide-chords .song-line {
 
 /* --- BOTÓN STUDIO (ADMIN) RENOVADO --- */
 .btn-studio-glow {
-    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #1686dc 100%);
     border: none;
     padding: 8px 16px;
     border-radius: 50px;
@@ -679,7 +679,7 @@ body.hide-chords .song-line {
 .btn-studio-glow:hover {
     transform: translateY(-2px) scale(1.05);
     box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
-    background: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #9333ea 100%);
 }
 
 .btn-studio-glow:active { transform: scale(0.95); }
@@ -814,7 +814,7 @@ body.hide-chords .song-line {
 .btn-edit-mini {
     background: rgba(99, 102, 241, 0.2);
     border: 1px solid rgba(99, 102, 241, 0.4);
-    color: #818cf8;
+    color: #60a5fa;
     width: 32px;
     height: 32px;
     border-radius: 8px;
@@ -892,7 +892,7 @@ body.hide-chords .song-line {
     border-radius: 10px;
     border: none;
     background: rgba(99, 102, 241, 0.2);
-    color: #818cf8;
+    color: #60a5fa;
     font-weight: 600;
     font-size: 13px;
     cursor: pointer;
@@ -1016,7 +1016,7 @@ body.hide-chords .song-line {
 /* Botón de Menú (Visibilidad) */
 .toolbar-menu-btn {
     background: rgba(99, 102, 241, 0.15);
-    color: #818cf8;
+    color: #60a5fa;
     border: 1px solid rgba(99, 102, 241, 0.3);
     width: 36px;
     height: 36px;
@@ -1067,7 +1067,7 @@ body.hide-chords .song-line {
 .vis-item i { width: 15px; text-align: center; }
 
 /* Colores para iconos de visibilidad */
-.vis-gt { color: #818cf8; } /* Indigo */
+.vis-gt { color: #60a5fa; } /* Indigo */
 .vis-bv { color: #f59e0b; } /* Ambar */
 
 /* Indicador sutil de que la línea es "tocable" */
@@ -1432,7 +1432,7 @@ body:not(.hide-chords) .song-line {
     transition: color 0.2s;
 }
 .bar-btn-icon:hover { color: white; }
-.bar-btn-icon.active { color: #a855f7; } /* Morado cuando está abierto el popup */
+.bar-btn-icon.active { color: #1686dc; } /* Morado cuando está abierto el popup */
 
 /* El Popup Vertical Oculto */
 .vol-popup {
@@ -1472,24 +1472,24 @@ body:not(.hide-chords) .song-line {
 }
 .vertical-slider::-webkit-slider-thumb {
     -webkit-appearance: none; width: 18px; height: 18px;
-    background: #a855f7; /* Pulgar Morado */
+    background: #1686dc; /* Pulgar Morado */
     border-radius: 50%; margin-top: -6px; box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
 }
 
 /* --- Controles Pad Derecha --- */
 .pad-key-display {
-    font-weight: 800; color: #a855f7; font-size: 20px; margin: 0 10px;
+    font-weight: 800; color: #1686dc; font-size: 20px; margin: 0 10px;
 }
 
 .bar-btn-pad {
     padding: 10px 20px; border-radius: 8px;
-    border: 2px solid #a855f7; /* Borde Morado */
+    border: 2px solid #1686dc; /* Borde Morado */
     background: rgba(44, 11, 56, 0.5); /* Fondo morado oscuro transparente */
     color: white; font-weight: 700; cursor: pointer; transition: 0.3s;
     white-space: nowrap; /* Que no salte de línea */
 }
 .bar-btn-pad.active {
-    background: #a855f7; color: black; box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+    background: #1686dc; color: black; box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
 }
 
 /* Espacio extra para la letra para que la barra no la tape */
@@ -1508,7 +1508,7 @@ body:not(.hide-chords) .song-line {
     background: transparent;
     border: none;
     font-weight: 800;
-    color: #a855f7; /* Morado Neon */
+    color: #1686dc; /* Morado Neon */
     font-size: 20px;
     padding-right: 15px;
     cursor: pointer;
@@ -1545,7 +1545,7 @@ body:not(.hide-chords) .song-line {
 /* Estado ENCENDIDO (Morado Neon) */
 .pad-capsule.active {
     background: rgba(168, 85, 247, 0.15); /* Fondo morado tenue */
-    border-color: #a855f7;
+    border-color: #1686dc;
     box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
 }
 
@@ -1564,7 +1564,7 @@ body:not(.hide-chords) .song-line {
 
 /* El botón Power se llena de color al activarse */
 .pad-capsule.active .pad-power-btn {
-    background: #a855f7;
+    background: #1686dc;
     color: white;
     box-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
 }
@@ -1601,7 +1601,7 @@ body:not(.hide-chords) .song-line {
     position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
     font-size: 10px; color: #555; pointer-events: none;
 }
-.pad-capsule.active .tiny-arrow { color: #a855f7; }
+.pad-capsule.active .tiny-arrow { color: #1686dc; }
 
 /* --- NUEVA CÁPSULA SPLIT (Solución de espacio) --- */
 .pad-split-capsule {
@@ -1618,7 +1618,7 @@ body:not(.hide-chords) .song-line {
 
 /* Estado ENCENDIDO (Borde y Brillo Morado) */
 .pad-split-capsule.active {
-    border-color: #a855f7;
+    border-color: #1686dc;
     background: rgba(168, 85, 247, 0.1); /* Fondo morado muy suave */
     box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
 }
@@ -1639,7 +1639,7 @@ body:not(.hide-chords) .song-line {
 
 /* Letra Morada Brillante cuando está ON */
 .pad-split-capsule.active .pad-text-btn {
-    color: #a855f7;
+    color: #1686dc;
     text-shadow: 0 0 10px rgba(168, 85, 247, 0.8);
 }
 
@@ -1667,7 +1667,7 @@ body:not(.hide-chords) .song-line {
 }
 
 .pad-split-capsule.active .pad-select-zone i {
-    color: #a855f7; /* Flecha morada si está activo */
+    color: #1686dc; /* Flecha morada si está activo */
 }
 
 /* El select invisible encima de la flecha */
@@ -1756,7 +1756,7 @@ body:not(.hide-chords) .song-line {
 
 /* Acento MORADO para el próximo servicio */
 .rol-minimal-card.proximo-servicio::before {
-    background: #a855f7; /* Morado vibrante */
+    background: #1686dc; /* Morado vibrante */
     box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
 }
 
@@ -1768,7 +1768,7 @@ body:not(.hide-chords) .song-line {
 
 .rol-date { display: flex; align-items: baseline; gap: 5px; }
 .rol-date .day { font-size: 28px; font-weight: 800; color: white; line-height: 1; }
-.rol-date .month { font-size: 13px; font-weight: 700; color: #a855f7; letter-spacing: 1px; }
+.rol-date .month { font-size: 13px; font-weight: 700; color: #1686dc; letter-spacing: 1px; }
 
 /* Cuerpo compacto */
 .rol-minimal-body { 
