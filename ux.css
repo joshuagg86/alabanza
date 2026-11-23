@@ -1,7 +1,7 @@
 /* Shared accessibility and responsive improvements. */
 .song-search-heading { list-style: none; color: #b9c3e7; font-size: 14px; padding: 16px 4px 4px; }
-#songList .song-suggestion { cursor: pointer; border-color: #818cf840; }
-.song-add-to-service { width: auto; height: auto; min-height: 44px; padding: 10px 14px; gap: 8px; font: inherit; font-size: 13px; color: #c7d2fe; background: #6366f11a; border: 1px solid #818cf850; cursor: pointer; }
+#songList .song-suggestion { cursor: pointer; border-color: #60a5fa40; }
+.song-add-to-service { width: auto; height: auto; min-height: 44px; padding: 10px 14px; gap: 8px; font: inherit; font-size: 13px; color: #b9e0ff; background: #2563eb1a; border: 1px solid #60a5fa50; cursor: pointer; }
 .song-add-to-service:disabled { opacity: .65; cursor: wait; }
 @media (max-width: 600px) {
     #songList .song-suggestion { flex-wrap: wrap; gap: 12px; }
@@ -9,7 +9,7 @@
     .song-add-to-service { white-space: normal; }
 }
 :root { color-scheme: dark; }
-:focus-visible { outline: 3px solid #a5b4fc !important; outline-offset: 4px; }
+:focus-visible { outline: 3px solid #7dc8ff !important; outline-offset: 4px; }
 button, input, select, textarea { font: inherit; }
 button { touch-action: manipulation; }
 .tab-btn { color: #aeb8cb; min-height: 44px; }
@@ -27,7 +27,7 @@ button.toggle-pass { background: transparent; border: 0; width: 44px; height: 44
 #dashMisFechasContainer { max-height: 280px; }
 .search-summary { color: #adb8cc; font-size: 14px; margin: -12px 0 16px; }
 .empty-state { padding: 40px 20px; text-align: center; border: 1px dashed #454661; border-radius: 18px; color: #b4bfd2; }
-.empty-state > i { font-size: 28px; color: #a5b4fc; }
+.empty-state > i { font-size: 28px; color: #7dc8ff; }
 .empty-state h3 { color: #f1f5f9; }
 .empty-state p { line-height: 1.6; }
 .empty-state .btn { display: inline-flex; }
@@ -71,7 +71,7 @@ button.icon-btn { background: transparent; border: 0; cursor: pointer; }
     transition: color 180ms ease, background-color 180ms ease;
     border-radius: 12px;
 }
-.drag-handle:hover { color: #c7d2fe; background: rgba(129, 140, 248, .12); }
+.drag-handle:hover { color: #b9e0ff; background: rgba(129, 140, 248, .12); }
 .playlist-chosen {
     border-color: rgba(165, 180, 252, .7) !important;
     background: #1c1b32 !important;
@@ -80,7 +80,7 @@ button.icon-btn { background: transparent; border: 0; cursor: pointer; }
 .playlist-floating {
     opacity: 1 !important;
     background: linear-gradient(120deg, #25223c, #171624) !important;
-    border: 1px solid #a5b4fc !important;
+    border: 1px solid #7dc8ff !important;
     box-shadow: 0 24px 60px rgba(0, 0, 0, .55), 0 0 0 3px rgba(129, 140, 248, .12) !important;
     cursor: grabbing !important;
     pointer-events: none;
@@ -95,10 +95,10 @@ button.icon-btn { background: transparent; border: 0; cursor: pointer; }
 .playlist-sorting { cursor: grabbing; }
 .playlist-sorting .song-item { user-select: none; }
 .playlist-sorting .song-item:hover { transform: none; }
-.playlist-chosen .drag-handle { color: #c7d2fe; }
+.playlist-chosen .drag-handle { color: #b9e0ff; }
 .playlist-landed { animation: playlist-land 520ms ease-out; }
 @keyframes playlist-land {
-    from { border-color: #c7d2fe; box-shadow: 0 0 0 4px rgba(129, 140, 248, .2), 0 8px 24px rgba(0, 0, 0, .25); }
+    from { border-color: #b9e0ff; box-shadow: 0 0 0 4px rgba(129, 140, 248, .2), 0 8px 24px rgba(0, 0, 0, .25); }
     to { border-color: var(--glass-border); box-shadow: 0 0 0 0 transparent; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -111,7 +111,7 @@ button.icon-btn { background: transparent; border: 0; cursor: pointer; }
 
 #audioDock .bar-section.left { flex-wrap: wrap; gap: 10px !important; }
 #audioDock .bar-inputs { padding: 5px 6px; gap: 4px; }
-#btnSubdivision { margin: 0 3px; min-height: 36px; color: #c7d2fe; }
+#btnSubdivision { margin: 0 3px; min-height: 36px; color: #b9e0ff; }
 
 /* Sunday and Wednesday share the same experience, with independent content. */
 .playlist-destination { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #181725; border: 1px solid #454361; border-radius: 14px; margin-bottom: 16px; }
@@ -122,14 +122,14 @@ button.icon-btn { background: transparent; border: 0; cursor: pointer; }
 .service-role-summary > h2 { font-size: 18px; color: #eef2ff; margin: 0 0 12px; }
 .service-role-summary > p { color: #a9b3c9; line-height: 1.6; font-size: 14px; }
 .service-role-summary .card, #rolListaContainer .card { min-height: 0; padding: 18px !important; margin-bottom: 14px; }
-.service-date { color: #c7d2fe; text-transform: capitalize; font-size: 16px; margin: 0 0 14px; }
+.service-date { color: #b9e0ff; text-transform: capitalize; font-size: 16px; margin: 0 0 14px; }
 .service-person { color: #cbd5e1; font-size: 14px; line-height: 1.5; margin: 6px 0; overflow-wrap: anywhere; }
 .service-person strong { color: #f1f5f9; }
 .service-role-actions { display: flex; gap: 10px; margin-top: 14px; }
-.service-role-actions button, .role-day-filters button { font-family: inherit; min-height: 44px; padding: 10px 14px; border-radius: 12px; background: #ffffff08; border: 1px solid #ffffff1a; color: #c7d2fe; cursor: pointer; }
+.service-role-actions button, .role-day-filters button { font-family: inherit; min-height: 44px; padding: 10px 14px; border-radius: 12px; background: #ffffff08; border: 1px solid #ffffff1a; color: #b9e0ff; cursor: pointer; }
 .role-day-filters { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 18px; }
 .role-day-filters button { flex-shrink: 0; }
-.role-day-filters button.active { color: #fff; background: #34356b; border-color: #818cf8; }
+.role-day-filters button.active { color: #fff; background: #34356b; border-color: #60a5fa; }
 #rolDayHint { margin: -4px 0 18px; }
 #dashServiceDay { margin-left: auto; width: auto; min-height: 44px; padding: 8px 26px 8px 10px; font-size: 13px; letter-spacing: 0; }
 @media (max-width: 600px) {
