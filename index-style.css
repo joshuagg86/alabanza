@@ -23,7 +23,7 @@
             position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
             color: #444; cursor: pointer; transition: 0.2s;
         }
-        .toggle-pass:hover { color: #6366f1; }
+        .toggle-pass:hover { color: #2563eb; }
         .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .role-option { padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 2px solid transparent; cursor: pointer; color: #888; transition: 0.3s; }
         .role-option.selected { background: rgba(99, 102, 241, 0.1); border-color: var(--primary-glow); color: white; }
@@ -157,7 +157,7 @@
             transition: color 0.2s;
         }
         .bar-btn-icon:hover { color: white; }
-        .bar-btn-icon.active { color: #a855f7; }
+        .bar-btn-icon.active { color: #1686dc; }
 
         .vol-popup {
             position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
@@ -176,7 +176,7 @@
         }
         .vertical-slider::-webkit-slider-runnable-track { background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; }
         .vertical-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 18px; height: 18px; background: #a855f7;
+            -webkit-appearance: none; width: 18px; height: 18px; background: #1686dc;
             border-radius: 50%; margin-top: -6px; box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
         }
 
@@ -184,18 +184,18 @@
         .key-select-wrapper { position: relative; margin: 0 5px; }
         .pad-key-select {
             appearance: none; background: transparent; border: none;
-            font-weight: 800; color: #a855f7; font-size: 20px; padding-right: 15px;
+            font-weight: 800; color: #1686dc; font-size: 20px; padding-right: 15px;
             cursor: pointer; text-align: center; width: auto; font-family: 'Outfit', sans-serif;
         }
         .pad-key-select option { background: #131316; color: white; }
         .tiny-arrow { position: absolute; right: 0; top: 50%; transform: translateY(-50%); font-size: 10px; color: #666; pointer-events: none; }
 
         .bar-btn-pad {
-            padding: 10px 15px; border-radius: 8px; border: 2px solid #a855f7;
+            padding: 10px 15px; border-radius: 8px; border: 2px solid #1686dc;
             background: rgba(44, 11, 56, 0.5); color: white; font-weight: 700;
             cursor: pointer; transition: 0.3s; white-space: nowrap; font-size: 13px;
         }
-        .bar-btn-pad.active { background: #a855f7; color: black; box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
+        .bar-btn-pad.active { background: #1686dc; color: black; box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
 
         /* Ajuste para que la barra no tape la letra */
         .audio-dock-open .lyrics-container { padding-bottom: 90px !important; }
