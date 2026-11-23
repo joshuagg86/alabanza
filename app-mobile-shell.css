@@ -365,3 +365,180 @@ html[data-app-theme="light"] #loginModal input {
     color:#f87171!important;line-height:1.6;
   }
 }
+
+/* Header compactness and readable light theme — November mobile QA. */
+@media(max-width:767px){
+  html[data-app-theme] body{
+    padding-top:calc(env(safe-area-inset-top,0px) + 8px)!important;
+  }
+  html[data-app-theme] #viewList > .connection-status,
+  html[data-app-theme] #viewList > [data-connection-status],
+  html[data-app-theme] .container > [data-connection-status]{
+    display:none!important;
+  }
+  html[data-app-theme] #viewList > header {
+    padding:4px 0 10px!important;
+    min-height:52px!important;
+    margin-bottom:12px!important;
+    gap:8px!important;
+    flex-wrap:nowrap!important;
+  }
+  html[data-app-theme] #viewList > header .logo-container{
+    flex:0 1 auto;
+    min-width:0;
+    gap:8px!important;
+    display:flex!important;
+    align-items:center!important;
+  }
+  html[data-app-theme] #viewList > header .logo-container img{
+    height:39px!important;
+    width:auto!important;
+    max-width:48px;
+    object-fit:contain;
+    flex:0 0 auto;
+  }
+  html[data-app-theme] #viewList > header .app-theme-toggle {
+    position:static!important;
+    display:inline-flex!important;
+    flex:0 0 auto;
+    margin:0!important;
+    padding:8px 9px!important;
+    font-size:11px!important;
+    line-height:1!important;
+    box-shadow:none!important;
+    min-height:35px;
+    white-space:nowrap;
+  }
+  html[data-app-theme] #viewList > header > div:last-child{
+    flex:0 1 auto!important;
+    gap:5px!important;
+    min-width:0;
+    margin-left:auto!important;
+    flex-wrap:nowrap!important;
+  }
+  html[data-app-theme] #viewList > header #syncIndicator{
+    display:none!important;
+  }
+  html[data-app-theme] #viewList > header .user-badge{
+    font-size:10px!important;
+    padding:7px 8px!important;
+    max-width:96px!important;
+    min-height:36px;
+    box-sizing:border-box;
+  }
+  html[data-app-theme] #viewList > header #displayUserBadge{
+    display:block;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  html[data-app-theme] #viewList > header .icon-btn.danger{
+    min-width:34px!important;
+    min-height:38px!important;
+    padding:5px!important;
+  }
+  html[data-app-theme] #viewList > header #btnAdmin{
+    min-width:32px!important;
+    min-height:36px!important;
+    padding:7px!important;
+    border-radius:12px!important;
+  }
+  html[data-app-theme] .mobile-pads-screen{
+    padding-top:12px!important;
+    min-height:auto!important;
+  }
+  html[data-app-theme] .mobile-pads-head h1{color:var(--text-main)!important;-webkit-text-fill-color:var(--text-main)!important}
+  html[data-app-theme] .mobile-pads-head p{color:var(--text-muted)!important}
+  html[data-app-theme] .mobile-pad-note,
+  html[data-app-theme] #mobilePadState{
+    color:white!important;-webkit-text-fill-color:white!important;
+  }
+  html[data-app-theme] #mobilePadPlay{
+    color:#145db0!important;-webkit-text-fill-color:#145db0!important;
+  }
+  html[data-app-theme] #mobilePadDownload{
+    color:white!important;-webkit-text-fill-color:white!important;
+  }
+  html[data-app-theme] #mobilePadGrid button:not([aria-pressed="true"]){
+    color:var(--text-main)!important;-webkit-text-fill-color:var(--text-main)!important;
+  }
+  html[data-app-theme] #mobilePadGrid button[aria-pressed="true"]{
+    color:white!important;-webkit-text-fill-color:white!important;
+  }
+}
+/* Light-mode contrast tokens: never inherit white text from dark-only cards. */
+html[data-app-theme="light"]{
+  --primary-color:#1d4ed8;
+  --accent-color:#0284c7;
+  --text-color:#102b49;
+}
+html[data-app-theme="light"] #viewList,
+html[data-app-theme="light"] #viewList h1,
+html[data-app-theme="light"] #viewList h2,
+html[data-app-theme="light"] #viewList h3,
+html[data-app-theme="light"] #viewList label,
+html[data-app-theme="light"] #viewList .song-info h3,
+html[data-app-theme="light"] #viewList .song-info p,
+html[data-app-theme="light"] .mobile-pads-screen h1,
+html[data-app-theme="light"] .mobile-service-switch h2{
+  color:#102b49!important;
+  -webkit-text-fill-color:#102b49!important;
+}
+html[data-app-theme="light"] #viewDashboard > .card:first-child h2,
+html[data-app-theme="light"] #viewDashboard > .card:first-child p,
+html[data-app-theme="light"] #viewDashboard > .card:first-child div,
+html[data-app-theme="light"] #viewDashboard > .card:first-child span {
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+html[data-app-theme="light"] .mobile-pads-screen .mobile-eyebrow {
+  color:#0369a1!important;-webkit-text-fill-color:#0369a1!important;
+}
+html[data-app-theme="light"] .mobile-service-options button[aria-pressed="true"],
+html[data-app-theme="light"] .alabanza-bottom-nav button[aria-current="page"],
+html[data-app-theme="light"] #viewList .tabs-wrapper .tab-btn.active {
+  color:#fff!important;-webkit-text-fill-color:#fff!important;
+}
+html[data-app-theme="light"] #viewList button.btn-studio-glow,
+html[data-app-theme="light"] #viewList .btn-tool,
+html[data-app-theme="light"] #viewList .action-btn:not(.danger){
+  border-color:#b6d1e9!important;
+}
+html[data-app-theme="light"] #viewList .search-container input,
+html[data-app-theme="light"] #viewList #searchInput {
+  background:#fff!important;color:#102b49!important;
+}
+html[data-app-theme="light"] #viewSong .sticky-player-header,
+html[data-app-theme="light"] #viewSong .reader-toolbar,
+html[data-app-theme="light"] #viewSong #songContent,
+html[data-app-theme="light"] #viewSong .reader-body {
+  background:#f5f9ff!important;
+}
+html[data-app-theme="light"] #viewSong #viewTitle,
+html[data-app-theme="light"] #viewSong .reader-size button,
+html[data-app-theme="light"] #viewSong .lyric,
+html[data-app-theme="light"] #viewSong .song-line,
+html[data-app-theme="light"] #viewSong .tone-badge-display,
+html[data-app-theme="light"] #viewSong #songContent{
+  color:#102b49!important;-webkit-text-fill-color:#102b49!important;
+}
+html[data-app-theme="light"] #viewSong .chord{
+  color:#075aa9!important;-webkit-text-fill-color:#075aa9!important;
+}
+html[data-app-theme="light"] .offline-lyrics-panel,
+html[data-app-theme="light"] .offline-lyrics-panel h2,
+html[data-app-theme="light"] .offline-lyrics-panel h3{
+  color:#102b49!important;
+}
+html[data-app-theme="light"] #viewSong .reader-toolbar button,
+html[data-app-theme="light"] #viewSong .controls-group button:not(.active){
+  color:#173b5a!important;
+}
+html[data-app-theme="light"] #viewSong .rehearsal-panel,
+html[data-app-theme="light"] #viewSong .mix-channel,
+html[data-app-theme="light"] #viewSong #rehearsalEntry {
+  color:#102b49!important;
+  background:#fff!important;
+}
+html[data-app-theme="light"] #viewSong #rehearsalMessage{
+  color:#29577e!important;
+}
