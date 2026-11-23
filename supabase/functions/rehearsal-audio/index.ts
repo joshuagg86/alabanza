@@ -7,9 +7,10 @@ const keys = createRemoteJWKSet(new URL(
   'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com'));
 const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   { auth: { persistSession: false, autoRefreshToken: false } });
-// Explicit origins: fail closed until the actual published web origin is supplied.
+// Explicit origins: GitHub Pages and the Capacitor Android WebView (https://localhost).
+// ALABANZA_ALLOWED_ORIGINS, when set in Supabase, overrides these defaults; add https://localhost to that secret and redeploy.
 const origins = new Set((Deno.env.get('ALABANZA_ALLOWED_ORIGINS') ||
-  'http://127.0.0.1:5500,http://localhost:5500,https://joshuagg86.github.io').split(',').map(s => s.trim()));
+  'http://127.0.0.1:5500,http://localhost:5500,https://joshuagg86.github.io,https://localhost').split(',').map(s => s.trim()));
 const permittedStems = new Set(['vocals','guitar','bass','piano','drums','other']);
 type Manifest = {version:string;recipe:string;model:string;frames:number;decodedFrames:number;
   sampleRate:number;duration:number;totalBytes:number;
