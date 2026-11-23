@@ -691,6 +691,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(() => Modal.alert('No se guardó el cambio', 'Revisa tu conexión y los permisos de la lista e intenta de nuevo.'));
         }
 
+        // Open a downloaded song in the same full reader used for online repertoire.
+        // Saved ChordPro remains readable even if Firestore is unavailable.
+        window.addEventListener('alabanza:open-saved-song', event => {
+            const stored=event.detail?.song;
+            if(!stored?.id || typeof stored.letraChordPro!=='string')return;
+            const id=String(stored.id);
+            const index=todasLasCanciones.findIndex(item=>String(item.id)===id);
+            if(index<0)todasLasCanciones.push({...stored,id});
+            else if(!todasLasCanciones[index].letraChordPro)todasLasCanciones[index]={...todasLasCanciones[index],...stored,id};
+            window.AlabanzaMobile?.selectTab('all');
+            abrirCancion(id);
+        });
         function abrirCancion(id) {
             const busqueda = normalizarBusqueda(document.getElementById('searchInput').value);
             let contextoCanciones = [];
