@@ -1608,9 +1608,17 @@ async function playPadFile(key) {
         if (padBufferCache[key]) {
             audioBuffer = padBufferCache[key];
         } else {
-            const response = await fetch(fileName);
-            if (!response.ok) throw new Error("No pad: " + fileName);
-            const arrayBuffer = await response.arrayBuffer();
+            const offline = await window.AlabanzaAudioOffline?.getPad(key);
+            let arrayBuffer;
+            if (offline?.blob) {
+                arrayBuffer = await offline.blob.arrayBuffer();
+            } else {
+                const preview = location.pathname.startsWith('/alabanza-preview/');
+                const source = preview ? 'https://joshuagg86.github.io/alabanza/' + fileName : fileName;
+                const response = await fetch(source);
+                if (!response.ok) throw new Error("No pad: " + fileName);
+                arrayBuffer = await response.arrayBuffer();
+            }
             audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
             padBufferCache[key] = audioBuffer;
         }
