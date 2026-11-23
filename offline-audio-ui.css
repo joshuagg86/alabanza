@@ -1,0 +1,8 @@
+
+#downloadSelectedPad {margin:9px;flex:0 0 auto;}
+#offlineAudioLibrary {margin:28px 0 0;padding-top:22px;border-top:1px solid var(--glass-border);}
+#offlineAudioLibrary h3 {color:var(--text-main);font-size:19px;font-weight:700;margin:0 0 16px;}
+#offlineAudioItems {color:var(--text-muted);font-size:14px;}
+#rehearsalOfflineDownload {margin:8px 0;}
+#rehearsalOfflineDownload[hidden]{display:none!important}
+.offline-save-button:disabled{opacity:.55;cursor:progress}
