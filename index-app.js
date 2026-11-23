@@ -2062,7 +2062,8 @@ function toggleVolPopup(popupId) {
             const letras = window.persistenciaDisponible && estadoConexion.canciones;
             const listas = Object.keys(Servicios.dias).every(dia => estadoConexion.listas[dia]);
             const comentarios = !errorNotas && (notasConsultadas || notasLocales.sincronizadas === true);
-            const preparado = letras && listas && comentarios && estadoConexion.archivos;
+            const nativeApp = Boolean(window.Capacitor?.isNativePlatform?.());
+            const preparado = letras && listas && comentarios && (nativeApp || estadoConexion.archivos);
             let texto, tipo;
             if (pendientes) {
                 texto = navigator.onLine ? 'Cambios pendientes de sincronizar' : 'Sin conexión · cambios pendientes';
@@ -2076,6 +2077,9 @@ function toggleVolPopup(popupId) {
             } else if (errorNotas) {
                 texto = estadoConexion.canciones ? 'Letras disponibles · comentarios por sincronizar' : 'Con conexión · sincronización pendiente';
                 tipo = 'pending';
+            } else if (nativeApp && estadoConexion.canciones) {
+                texto = 'Canciones sincronizadas · descargas individuales disponibles';
+                tipo = 'ready';
             } else if (!window.persistenciaDisponible && window.persistenciaResuelta) {
                 texto = 'Con conexión · almacenamiento local no disponible';
                 tipo = 'pending';
