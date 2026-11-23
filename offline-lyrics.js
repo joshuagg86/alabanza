@@ -122,6 +122,7 @@
    document.getElementById('offlineLyricsList').hidden=false;
    document.getElementById('offlineLyricsReader')?.setAttribute('hidden','');
    await renderList();
+   await window.AlabanzaAudioOfflineUI?.render();
  }
  function init(){
    const reader=document.getElementById('viewSong');
