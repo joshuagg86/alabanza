@@ -10,7 +10,7 @@
       ['all','Biblioteca','fa-music'],
       ['playlist','Servicios','fa-calendar-days'],
       ['pads','Pads','fa-wave-square'],
-      ['settings','Ajustes','fa-gear']
+      ['downloads','Descargas','fa-download']
     ];
     const nav=document.createElement('nav');
     nav.id='alabanzaBottomNav';
@@ -35,8 +35,8 @@
             const native=document.getElementById('btnToggleAudio');
             if(native)native.click();
           }
-        }else if(key==='settings'){
-          document.getElementById('appThemeToggle')?.click();
+        }else if(key==='downloads'){
+          window.AlabanzaOffline?.showDownloads();
         }else {
           const original=document.getElementById(({home:'tabHome',all:'tabAll',playlist:'tabPlaylist'})[key]);
           original?.click();
@@ -53,7 +53,7 @@
       const visibleReader=reader && getComputedStyle(reader).display!=='none' && !reader.hidden;
       const visibleList=getComputedStyle(list).display!=='none' && !list.hidden;
       nav.hidden=Boolean(visibleLogin||visibleReader||!visibleList);
-      const active=entries.find(([key])=>key!=='pads'&&key!=='settings'&&
+      const active=entries.find(([key])=>key!=='pads'&&key!=='downloads'&&
         document.getElementById(({home:'tabHome',all:'tabAll',playlist:'tabPlaylist'})[key])?.classList.contains('active'))?.[0]||'home';
       buttons.forEach((button,key)=>{
         if(key===active)button.setAttribute('aria-current','page');
