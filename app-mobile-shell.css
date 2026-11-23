@@ -286,3 +286,82 @@ html[data-app-theme="light"] #loginModal input {
   }
 }
 @media(min-width:768px){.mobile-service-switch,.mobile-pads-screen{display:none!important}}
+
+/* Unified song reader styling: remove remaining purple and avoid clipped controls. */
+@media(max-width:767px){
+  html[data-app-theme] #viewSong {
+    background:var(--bg-deep)!important;
+    width:100%;max-width:100vw;
+  }
+  html[data-app-theme] #viewSong .sticky-player-header,
+  html[data-app-theme] #viewSong .reader-toolbar,
+  html[data-app-theme] #viewSong .reader-body,
+  html[data-app-theme] #viewSong #songContent {
+    background:var(--bg-deep)!important;
+    color:var(--text-main);
+  }
+  html[data-app-theme] #viewSong .sticky-player-header{
+    padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 10px!important;
+    gap:10px!important;
+    position:relative;
+  }
+  html[data-app-theme] #viewSong .header-row-top,
+  html[data-app-theme] #viewSong .header-row-bottom{
+    width:100%;min-width:0;
+  }
+  html[data-app-theme] #viewSong #viewTitle{font-size:25px!important;line-height:1.15!important}
+  html[data-app-theme] #viewSong #viewArtist,
+  html[data-app-theme] #viewSong .meta-mini,
+  html[data-app-theme] #viewSong .reader-eyebrow {color:var(--text-muted)!important}
+  html[data-app-theme] #viewSong .btn-close-viewer {
+    min-width:48px;min-height:48px;display:flex;align-items:center;justify-content:center;
+    position:relative;z-index:5;background:var(--glass-surface)!important;
+    border:1px solid var(--glass-border)!important;color:var(--text-main)!important;
+  }
+  html[data-app-theme] #viewSong .controls-group {flex-wrap:wrap;gap:7px}
+  html[data-app-theme] #viewSong .controls-group button,
+  html[data-app-theme] #viewSong .reader-toolbar button{
+    touch-action:manipulation;
+    border-color:var(--glass-border)!important;
+  }
+  html[data-app-theme] #viewSong .reader-toolbar{
+    padding:9px 12px!important;gap:7px;border-bottom:1px solid var(--glass-border);
+  }
+  html[data-app-theme] #viewSong .reader-toolbar > *{min-width:0}
+  html[data-app-theme] #viewSong .reader-size button{min-width:40px}
+  html[data-app-theme] #viewSong #songContent{padding:24px 15px 115px!important}
+  html[data-app-theme] #songContent .lyric{color:var(--text-main)!important;line-height:1.6!important}
+  html[data-app-theme] #songContent .chord{color:#4ba8ef!important}
+  html[data-app-theme] #viewSong .tone-badge-display,
+  html[data-app-theme] #viewSong .btn-edit-mini,
+  html[data-app-theme] #viewSong .reader-size {
+    background:var(--glass-surface)!important;
+    color:var(--text-main)!important;border-color:var(--glass-border)!important
+  }
+  html[data-app-theme] #viewSong .reader-rehearsal,
+  html[data-app-theme] #viewSong .rehearsal-panel {
+    background:var(--glass-surface)!important;
+    border-color:var(--glass-border)!important;
+    color:var(--text-main)!important;
+  }
+  html[data-app-theme] #viewSong #audioDock.show-rack{
+    background:var(--glass-surface)!important;
+    border:1px solid var(--glass-border)!important;
+    border-radius:22px!important;
+  }
+  html[data-app-theme] #viewSong #audioDock .bar-section,
+  html[data-app-theme] #viewSong #audioDock .bar-inputs {
+    min-width:0;
+  }
+  html[data-app-theme] #viewSong .reader-heading .offline-save-button {
+    max-width:100%;margin-top:8px;
+  }
+  html[data-app-theme] #viewSong button[aria-pressed="true"]{
+    border-color:#4ba8ef!important;
+  }
+  html[data-app-theme] #viewSong .rehearsal-header,
+  html[data-app-theme] #viewSong .mix-channel{border-color:var(--glass-border)!important}
+  html[data-app-theme] #viewSong #rehearsalMessage[data-error="true"]{
+    color:#f87171!important;line-height:1.6;
+  }
+}
