@@ -1706,6 +1706,7 @@ function toggleVolPopup(popupId) {
             lecturaContinua = false;
             cancionActual = todasLasCanciones.find(c => c.id === id);
             if (!cancionActual) return;
+            window.dispatchEvent(new CustomEvent('alabanza:song-opened', {detail:{song:cancionActual}}));
             window.EnsayoMusical?.abrir(cancionActual, usuarioActual);
             cargarPreferenciasCancion();
             const paramsRetorno = new URLSearchParams(window.location.search);
