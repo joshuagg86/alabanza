@@ -41,7 +41,15 @@
                 if (result.ready || !cloudEnabled()) return result;
             } catch (error) { if (!cloudEnabled()) throw error; }
         }
-        if (cloudEnabled()) return cloudStatus(identifier);
+        if (cloudEnabled()) {
+            try { return await cloudStatus(identifier); }
+            catch (error) {
+                const cached = await window.AlabanzaAudioOffline?.getSong(firebase.auth().currentUser?.uid, identifier);
+                if (cached) return { ready:true,state:'listo',cloud:false,localOffline:true,
+                    version:cached.version,stems:cached.stems,frames:cached.frames,sampleRate:cached.sampleRate };
+                throw error;
+            }
+        }
         throw new Error('El audio compartido aún no está configurado.');
     }
     function message(text, error = false) {
@@ -82,6 +90,8 @@
         el('rehearsalUpload').textContent = uploading ? 'Subiendo canción…' : ['pendiente', 'procesando'].includes(status?.state) ? 'Separando instrumentos…' : status?.ready ? 'Reemplazar audio' : 'Subir y separar';
         el('rehearsalEntry').setAttribute('aria-busy', String(busy));
         el('rehearsalRefresh').disabled = uploading;
+        const download=el('rehearsalOfflineDownload');
+        if(download) download.hidden = !song || !cloudEnabled();
         el('rehearsalPlay').disabled = !status?.ready || loading;
         el('rehearsalPlay').textContent = engine?.playing ? 'Pausar' : engine ? 'Reproducir' : 'Cargar y reproducir';
         el('rehearsalChannels').disabled = !engine || loading;
@@ -92,7 +102,7 @@
         el('rehearsalReset').disabled = !engine || loading;
         el('rehearsalPublish').hidden = !local || !admin() || !status?.ready || status?.cloud || !['error','sin_configurar'].includes(status?.cloudState);
         const cloudLabels = {pendiente:'Preparando subida automática…',subiendo:'Subiendo a la nube…',publicado:'Disponible para el grupo',error:'Audio local listo · subida pendiente'};
-        el('rehearsalLocation').textContent = status?.cloud ? 'Audio compartido · nube' : cloudLabels[status?.cloudState] || 'Prueba local · este Mac';
+        el('rehearsalLocation').textContent = status?.localOffline ? 'Descargado · sin conexión' : status?.cloud ? 'Audio compartido · nube' : cloudLabels[status?.cloudState] || 'Prueba local · este Mac';
         names.forEach(([name]) => { el('mix-channel-' + name).hidden = Boolean(status?.ready && !available().includes(name)); });
         Array.from(el('rehearsalPreset').options).forEach(option => {
             const instrument = option.value.split(':')[1];
@@ -185,7 +195,11 @@
                 for (const [name, label] of activeNames) {
                     message('Cargando ' + label.toLowerCase() + '… ' + (buffers.length + 1) + ' de ' + activeNames.length);
                     let response;
-                    if (status.cloud) {
+                    if (status.localOffline) {
+                        const entry = await window.AlabanzaAudioOffline?.getSong(firebase.auth().currentUser?.uid,activeSong);
+                        if (!entry || entry.version !== version || !entry.tracks?.[name]) throw new Error('La pista local no está disponible.');
+                        response = new Response(entry.tracks[name]);
+                    } else if (status.cloud) {
                         const address = new URL(status.files[name]);
                         if (address.origin !== cloudConfig().url || !address.pathname.startsWith('/storage/v1/object/sign/')) throw new Error('Referencia de audio no válida.');
                         response = await fetch(address.href,{signal:controller.signal,cache:'no-store'});
@@ -291,6 +305,29 @@
         try { await request('/songs/'+encodeURIComponent(song.id)+'/publish',{method:'POST'}); await refresh(); }
         catch (error) { message(error.message,true); }
     });
+    const downloadButton=document.createElement('button');
+    downloadButton.type='button';downloadButton.id='rehearsalOfflineDownload';
+    downloadButton.textContent='Descargar pistas';
+    downloadButton.className='offline-save-button';
+    downloadButton.addEventListener('click',async()=>{
+        if(!song || !window.AlabanzaAudioOffline)return;
+        if(downloadButton.disabled)return;
+        downloadButton.disabled=true;
+        const id=song.id, current=generation;
+        try {
+            if(!navigator.onLine)throw new Error('Conéctate a internet para descargar.');
+            message('Preparando descarga de audio…');
+            const fresh=await cloudStatus(id);
+            if(current!==generation||id!==song?.id)return;
+            await window.AlabanzaAudioOffline.downloadSong(song,fresh,cloudConfig(),text=>{
+                if(current===generation)message(text);
+            });
+            if(current===generation)message('Pistas guardadas. Puedes utilizarlas sin conexión.');
+        }catch(error){if(current===generation)message(error.message||'Error al descargar pistas.',true);}
+        finally{downloadButton.disabled=false;}
+    });
+    const reference=el('rehearsalRefresh');
+    reference?.parentElement?.append(downloadButton);
     el('rehearsalPlay').addEventListener('click', play);
     el('rehearsalUpload').addEventListener('click', () => { openPanel(true); el('rehearsalFile').click(); });
     el('rehearsalFile').addEventListener('change', event => upload(event.target.files[0]));
