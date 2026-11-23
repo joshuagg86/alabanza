@@ -19,8 +19,16 @@
         const activeUser = firebase.auth().currentUser;
         if (!activeUser) throw new Error('Inicia sesión para acceder al audio.');
         const token = await activeUser.getIdToken();
-        const response = await fetch(cloudConfig().url + '/functions/v1/rehearsal-audio?song=' + encodeURIComponent(identifier), {
-            cache:'no-store', headers:{Authorization:'Bearer '+token, apikey:cloudConfig().publishableKey || ''} });
+        let response;
+        try {
+            response = await fetch(cloudConfig().url + '/functions/v1/rehearsal-audio?song=' + encodeURIComponent(identifier), {
+                cache:'no-store', headers:{Authorization:'Bearer '+token, apikey:cloudConfig().publishableKey || ''} });
+        } catch (error) {
+            if (window.Capacitor?.isNativePlatform?.()) {
+                throw new Error('No se pudo conectar al audio. Android necesita autorizar https://localhost en Supabase. Las pistas descargadas seguirán funcionando.');
+            }
+            throw new Error('No se pudo conectar con Supabase. Comprueba tu conexión y los permisos del servidor.');
+        }
         if (!response.ok) {
             const body = await response.json().catch(() => ({}));
             throw new Error(body.detail || 'No se pudo cargar el audio compartido.');
@@ -42,6 +50,10 @@
             } catch (error) { if (!cloudEnabled()) throw error; }
         }
         if (cloudEnabled()) {
+            const saved = await window.AlabanzaAudioOffline?.getSong(firebase.auth().currentUser?.uid, identifier);
+            if (saved && (!navigator.onLine || window.Capacitor?.isNativePlatform?.()))
+                return { ready:true,state:'listo',cloud:false,localOffline:true,
+                    version:saved.version,stems:saved.stems,frames:saved.frames,sampleRate:saved.sampleRate };
             try { return await cloudStatus(identifier); }
             catch (error) {
                 const cached = await window.AlabanzaAudioOffline?.getSong(firebase.auth().currentUser?.uid, identifier);
