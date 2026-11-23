@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alabanza-v34';
+const CACHE_NAME = 'alabanza-v35';
 
 // Generamos la lista de pads automáticamente
 const PADS = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'].map(t => `./pads/${t}.mp3`);
@@ -6,6 +6,12 @@ const PADS = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'].map(t => `./
 const urlsToCache = [
   './',
   './index.html',
+  './app-mobile-theme.css',
+  './app-mobile-theme.js',
+  './app-mobile-shell.css',
+  './app-mobile-shell.js',
+  './offline-lyrics.css',
+  './offline-lyrics.js',
   './style.css',
   './ux.css',
   './reader.css',
