@@ -28,10 +28,18 @@
  const padKey=key=>'pad:'+key;
  const getSong=(uid,id)=>op('readonly',s=>s.get(songKey(uid,id)));
  const getPad=key=>op('readonly',s=>s.get(padKey(key)));
- const deleteSong=(uid,id)=>op('readwrite',s=>s.delete(songKey(uid,id)));
- const deletePad=key=>op('readwrite',s=>s.delete(padKey(key)));
+ const changed=()=>global.dispatchEvent(new Event('alabanza:audio-library-changed'));
+ const deleteSong=async(uid,id)=>{await op('readwrite',s=>s.delete(songKey(uid,id)));changed();};
+ const deletePad=async key=>{await op('readwrite',s=>s.delete(padKey(key)));changed();};
  async function entries(uid){
    return (await op('readonly',s=>s.getAll())).filter(x=>x.kind==='pad'||(x.kind==='song'&&x.uid===uid));
+ }
+ async function storageInfo(uid){
+   const data=await entries(uid);
+   const bytes=data.reduce((sum,x)=>sum+(Number(x.bytes)||0),0);
+   let quota=null,usage=null;
+   try{const estimate=await global.navigator.storage?.estimate?.();quota=estimate?.quota??null;usage=estimate?.usage??null;}catch(_){}
+   return {count:data.length,bytes,quota,usage};
  }
  const ensureStemUrl=(value,origin)=>{
    const url=new URL(value);
@@ -66,6 +74,7 @@
      tracks,bytes,savedAt:Date.now()
    };
    await op('readwrite',s=>s.put(entry));
+   changed();
    report?.('Canción descargada · '+Math.round(bytes/1048576)+' MB');
    return entry;
  }
@@ -82,8 +91,9 @@
    if(!blob.size||blob.size>30000000)throw new Error('El archivo del pad no es válido.');
    const record={key:padKey(key),kind:'pad',tone:key,blob,bytes:blob.size,savedAt:Date.now()};
    await op('readwrite',s=>s.put(record));
+   changed();
    report?.('Pad '+key+' guardado · '+Math.round(blob.size/1048576)+' MB');
    return record;
  }
- global.AlabanzaAudioOffline={getSong,getPad,deleteSong,deletePad,downloadSong,downloadPad,entries};
+ global.AlabanzaAudioOffline={getSong,getPad,deleteSong,deletePad,downloadSong,downloadPad,entries,storageInfo};
 })(window);
