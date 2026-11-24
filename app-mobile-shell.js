@@ -4,6 +4,7 @@
 const $=id=>document.getElementById(id);
 const TONES=['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
 let currentTab='home',padKey='C',padSource=null,padGain=null,padContext=null,padPlaying=false;
+const padDecoded=new Map();const padPending=new Map();let padSequence=0;
 function showPads(){
   let panel=$('mobilePadsScreen');
   if(panel)return panel;
@@ -14,7 +15,7 @@ function showPads(){
   for(const key of TONES){
     const button=document.createElement('button');
     button.type='button';button.dataset.tone=key;button.textContent=key;
-    button.addEventListener('click',()=>{padKey=key;updatePad();if(padPlaying)startPad().catch(e=>message(e.message));});
+    button.addEventListener('click',()=>{padKey=key;updatePad();void warmPad(key).catch(()=>{});if(padPlaying)startPad().catch(e=>message(e.message));});
     $('mobilePadGrid').appendChild(button);
   }
   $('mobilePadPlay').addEventListener('click',async()=>{
@@ -28,41 +29,59 @@ function showPads(){
       await window.AlabanzaAudioOffline.downloadPad(padKey,message);
       message('Pad '+padKey+' guardado en este dispositivo.');
       await updatePad();
+      void warmPad(padKey,true).catch(()=>{});
     }catch(e){message(e.message||'No se pudo descargar.');}
     finally{button.disabled=false;}
   });
-  updatePad();return panel;
+  updatePad();void warmPad(padKey).catch(()=>{});return panel;
 }
 function message(text){const p=$('mobilePadState');if(p)p.textContent=text;}
-function stopPad(){
+function stopPad(cancel=true){
+  if(cancel)padSequence++;
   if(padSource){try{padSource.stop();}catch(_){}padSource.disconnect();padSource=null;}
   if(padGain){padGain.disconnect();padGain=null;}
   padPlaying=false;updatePad();
 }
+async function warmPad(key,refresh=false){
+  if(refresh)padDecoded.delete(key);
+  if(padDecoded.has(key))return padDecoded.get(key);
+  if(padPending.has(key))return padPending.get(key);
+  const promise=(async()=>{
+    const saved=await window.AlabanzaAudioOffline?.getPad(key);
+    let bytes;
+    if(saved?.blob)bytes=await saved.blob.arrayBuffer();
+    else {
+      if(!navigator.onLine)throw new Error('Descarga este pad para usarlo sin internet.');
+      const response=await fetch('https://joshuagg86.github.io/alabanza/pads/'+encodeURIComponent(key)+'.mp3');
+      if(!response.ok)throw new Error('No se pudo abrir el pad.');
+      bytes=await response.arrayBuffer();
+    }
+    padContext ||=new (window.AudioContext||window.webkitAudioContext)();
+    const buffer=await padContext.decodeAudioData(bytes);
+    // Keep no more than two decoded pads in RAM; compressed files remain on disk.
+    padDecoded.delete(key);padDecoded.set(key,buffer);
+    while(padDecoded.size>2)padDecoded.delete(padDecoded.keys().next().value);
+    return buffer;
+  })();
+  padPending.set(key,promise);
+  try{return await promise;}finally{padPending.delete(key)}
+}
 async function startPad(){
-  stopPad();
-  message('Preparando audio…');
-  const current=padKey;
-  let bytes;
-  const saved=await window.AlabanzaAudioOffline?.getPad(current);
-  if(saved?.blob) bytes=await saved.blob.arrayBuffer();
-  else {
-    if(!navigator.onLine)throw new Error('Descarga el pad primero para usarlo sin conexión.');
-    const url='https://joshuagg86.github.io/alabanza/pads/'+encodeURIComponent(current)+'.mp3';
-    const res=await fetch(url);
-    if(!res.ok)throw new Error('No se pudo abrir el pad.');
-    bytes=await res.arrayBuffer();
-  }
+  const request=++padSequence;
+  const key=padKey;
+  const ready=padDecoded.has(key);
+  if(!ready)message('Preparando pad '+key+' por primera vez…');
+  const buffer=await warmPad(key);
+  if(request!==padSequence||key!==padKey)return;
   padContext ||=new (window.AudioContext||window.webkitAudioContext)();
   await padContext.resume();
-  const buffer=await padContext.decodeAudioData(bytes);
-  if(current!==padKey)return;
-  const source=padContext.createBufferSource();
-  const gain=padContext.createGain();
+  if(request!==padSequence)return;
+  stopPad(false);
+  const source=padContext.createBufferSource(),gain=padContext.createGain();
   source.buffer=buffer;source.loop=true;gain.gain.value=.55;
   source.connect(gain);gain.connect(padContext.destination);source.start();
   padSource=source;padGain=gain;padPlaying=true;
-  updatePad();message('Reproduciendo pad '+current);
+  updatePad();message('Reproduciendo pad '+key);
 }
 async function updatePad(){
   if(!$('mobilePadNote'))return;
@@ -115,6 +134,7 @@ function init(){
       $('mobilePadsScreen').hidden=false;
     }
     if(!isPads)stopPad();
+    else void warmPad(padKey).catch(()=>{});
     currentTab=tab;sync();window.scrollTo({top:0,behavior:'instant'});
   }
   const sync=()=>{
