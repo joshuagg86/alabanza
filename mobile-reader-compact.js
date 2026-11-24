@@ -80,10 +80,8 @@
    }
    add($('readerChords'),'Mostrar acordes');
    add(reader.querySelector('.reader-size'),'Tamaño de letra');
-   add($('btnToggleAudio'),'Metrónomo y pads');
    add($('btnDirectEdit'),'Editar canción');
    add($('readerScrollSpeed'),'Velocidad de lectura');
-   add($('readerLayout'),'Distribución');
    const rehearsal=$('readerRehearsal');
    rehearsal?.setAttribute('aria-hidden','true');
    if(reader.classList.contains('rehearsal-mode')){
