@@ -416,6 +416,15 @@
         }catch(error){if(current===generation)message(!navigator.onLine?'Sin conexión. Conéctate a internet para descargar pistas.':error.message||'Error al descargar pistas.',true);}
         finally{delete downloadButton.dataset.downloading;paint();}
     });
+    window.addEventListener('alabanza:audio-library-changed',()=>{
+        const activeSong=song?.id,activeUid=firebase.auth().currentUser?.uid;
+        if(!activeSong||!activeUid)return;
+        void window.AlabanzaAudioOffline.getSong(activeUid,activeSong).then(saved=>{
+            if(song?.id!==activeSong)return;
+            downloadButton.dataset.saved=String(Boolean(saved));
+            paint();
+        }).catch(()=>{});
+    });
     const reference=el('rehearsalRefresh');
     reference?.parentElement?.append(downloadButton);
     el('rehearsalPlay').addEventListener('click', play);
