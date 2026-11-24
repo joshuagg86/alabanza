@@ -1,0 +1,134 @@
+/* Compact song reader on phones only. Tablet and desktop are unchanged. */
+@media(max-width:767px){
+  #viewSong.reader-phone-compact{
+    width:100vw!important;max-width:100vw!important;
+    height:100dvh!important;min-width:0!important;
+  }
+  #viewSong.reader-phone-compact .sticky-player-header{
+    box-sizing:border-box!important;
+    display:flex!important;flex-direction:column!important;
+    width:100%!important;min-width:0!important;
+    padding:calc(env(safe-area-inset-top,0px) + 6px) 12px 6px!important;
+    gap:5px!important;
+  }
+  #viewSong.reader-phone-compact .header-row-top{
+    box-sizing:border-box!important;
+    display:flex!important;flex-direction:row!important;
+    align-items:flex-start!important;
+    width:100%!important;min-width:0!important;gap:10px!important;
+  }
+  #viewSong.reader-phone-compact .reader-heading{
+    flex:1 1 auto!important;width:auto!important;
+    min-width:0!important;max-width:calc(100% - 58px)!important;
+    padding:0!important;margin:0!important;
+  }
+  #viewSong.reader-phone-compact #viewTitle{
+    font-size:clamp(19px,5.6vw,25px)!important;
+    line-height:1.15!important;letter-spacing:-.3px!important;
+    white-space:normal!important;word-break:normal!important;
+    overflow-wrap:break-word!important;
+    margin:0!important;max-width:100%!important;
+  }
+  #viewSong.reader-phone-compact .reader-eyebrow{display:none!important}
+  #viewSong.reader-phone-compact .info-group{
+    display:flex!important;flex-wrap:wrap!important;
+    gap:4px 9px!important;margin-top:3px!important;
+    font-size:11px!important;
+  }
+  #viewSong.reader-phone-compact #viewArtist{font-size:12px!important}
+  #viewSong.reader-phone-compact .meta-mini{font-size:11px!important}
+  #viewSong.reader-phone-compact .btn-close-viewer{
+    flex:0 0 43px!important;min-width:43px!important;
+    width:43px!important;height:43px!important;
+    min-height:43px!important;border-radius:13px!important;
+  }
+  #viewSong.reader-phone-compact .header-row-bottom{
+    box-sizing:border-box!important;width:100%!important;
+    min-width:0!important;
+  }
+  #viewSong.reader-phone-compact .controls-group{
+    display:flex!important;flex-wrap:nowrap!important;
+    width:100%!important;align-items:center!important;gap:6px!important;
+  }
+  #viewSong.reader-phone-compact .tone-badge-display{
+    height:35px!important;min-width:0!important;
+    padding:0 10px!important;border-radius:11px!important;
+  }
+  #viewSong.reader-phone-compact .nav-mini-group{
+    display:flex!important;margin-left:auto!important;
+    border-radius:10px!important;flex:none!important;
+  }
+  #viewSong.reader-phone-compact .nav-mini-group button{
+    width:38px!important;height:35px!important;
+  }
+  #viewSong.reader-phone-compact .reader-toolbar{
+    box-sizing:border-box!important;
+    display:flex!important;align-items:center!important;
+    flex-wrap:nowrap!important;justify-content:space-between!important;
+    padding:5px 12px!important;gap:6px!important;
+    min-height:47px!important;
+    position:relative!important;z-index:200!important;
+  }
+  #viewSong.reader-phone-compact #readerRehearsal,
+  #viewSong.reader-phone-compact #rehearsalEntry,
+  #viewSong.reader-phone-compact #rehearsalPanel,
+  #viewSong.reader-phone-compact #rehearsalBackdrop,
+  body > #rehearsalPanel,body > #rehearsalBackdrop{
+    display:none!important;
+  }
+  #viewSong.reader-phone-compact #readerSections{
+    min-width:40px!important;height:36px!important;padding:7px 9px!important;
+  }
+  #viewSong.reader-phone-compact .reader-autoscroll{
+    margin:0!important;min-width:0!important;flex:0 1 auto!important;
+  }
+  #viewSong.reader-phone-compact #readerPlay{
+    min-width:44px!important;height:36px!important;padding:6px 10px!important;
+  }
+  #viewSong.reader-phone-compact .reader-more-button{
+    display:inline-flex;align-items:center;justify-content:center;
+    gap:7px;height:36px;min-width:62px;padding:6px 10px;
+    border-radius:11px;border:1px solid #38516b;
+    background:#152c43;color:#e5f3ff;font:600 12px Outfit,system-ui;
+  }
+  #viewSong.reader-phone-compact .reader-more-menu[hidden]{display:none!important}
+  #viewSong.reader-phone-compact .reader-more-menu{
+    position:absolute!important;z-index:401!important;
+    top:calc(100% + 5px)!important;right:10px!important;
+    width:min(290px,calc(100vw - 20px))!important;max-height:65dvh;
+    overflow-y:auto;padding:12px!important;box-sizing:border-box!important;
+    border:1px solid #38516b;border-radius:17px;
+    box-shadow:0 18px 38px #000b;background:#11243a!important;
+    display:flex!important;flex-direction:column!important;gap:10px!important;
+  }
+  #viewSong.reader-phone-compact .reader-more-item{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:8px;min-height:38px;
+    padding-bottom:6px;border-bottom:1px solid #ffffff14;
+  }
+  #viewSong.reader-phone-compact .reader-more-item small{
+    flex:1 1 auto;color:#c3d7e9;font:500 12px Outfit,system-ui;
+  }
+  #viewSong.reader-phone-compact .reader-more-item #btnToggleAudio,
+  #viewSong.reader-phone-compact .reader-more-item #btnDirectEdit{
+    display:flex;align-items:center;justify-content:center;
+    width:38px!important;height:35px!important;margin:0!important;flex:none;
+  }
+  #viewSong.reader-phone-compact .reader-more-item #btnDirectEdit[style*="display:none"],
+  #viewSong.reader-phone-compact .reader-more-item #readerLayout[hidden]{
+    display:none!important;
+  }
+  #viewSong.reader-phone-compact .reader-more-item .reader-size{
+    display:flex!important;flex:none!important;
+  }
+  #viewSong.reader-phone-compact .reader-more-item .reader-size button{
+    width:38px!important;height:34px!important;
+  }
+  #viewSong.reader-phone-compact .reader-more-item #readerScrollSpeed{
+    min-width:88px;height:36px;flex:none!important;
+  }
+  #viewSong.reader-phone-compact #songContent{
+    min-width:0!important;width:100%!important;
+    padding-top:12px!important;padding-bottom:56px!important;
+  }
+}
