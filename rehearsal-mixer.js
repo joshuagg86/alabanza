@@ -105,6 +105,7 @@
         const download=el('rehearsalOfflineDownload');
         if(download){
             download.hidden=!song||!cloudEnabled();
+            download.disabled=download.dataset.saved==='true'||download.dataset.downloading==='true';
             if(download.dataset.saved==='true'){
                 download.textContent='✓ Pistas descargadas';
                 download.setAttribute('aria-label','Pistas guardadas sin conexión');
@@ -278,6 +279,8 @@
                 el('rehearsalDuration').textContent = format(engine.duration);
                 mix();
                 tick();
+                message('Pistas listas para reproducir.');
+                paint();
 
         })().catch(error=>{
             if(current===generation){
@@ -290,6 +293,7 @@
         return preparePromise;
     }
     async function play(){
+        const current=generation;
         try{
             if(engine?.playing){engine.pause();paint();return;}
             if(!engine){
@@ -297,8 +301,9 @@
                 if(!preparePromise)void prepareAudio();
                 if(preparePromise)await preparePromise;
             }
-            if(!engine)return;
+            if(!engine||current!==generation)return;
             await engine.play();
+            if(current!==generation)return;
             message('Las pistas se reproducen juntas. Ajusta tu mezcla.');
             paint();
         }catch(error){
@@ -360,6 +365,7 @@
     downloadButton.addEventListener('click',async()=>{
         if(!song || !window.AlabanzaAudioOffline)return;
         if(downloadButton.disabled)return;
+        downloadButton.dataset.downloading='true';
         downloadButton.disabled=true;
         const id=song.id, current=generation;
         try {
@@ -382,7 +388,7 @@
                 }
             }
         }catch(error){if(current===generation)message(error.message||'Error al descargar pistas.',true);}
-        finally{downloadButton.disabled=false;paint();}
+        finally{delete downloadButton.dataset.downloading;paint();}
     });
     const reference=el('rehearsalRefresh');
     reference?.parentElement?.append(downloadButton);
