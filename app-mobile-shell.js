@@ -33,7 +33,7 @@ function showPads(){
     }catch(e){message(e.message||'No se pudo descargar.');}
     finally{button.disabled=false;}
   });
-  updatePad();void warmPad(padKey).catch(()=>{});return panel;
+  updatePad();return panel;
 }
 function message(text){const p=$('mobilePadState');if(p)p.textContent=text;}
 function stopPad(cancel=true){
