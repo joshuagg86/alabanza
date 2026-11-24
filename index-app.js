@@ -492,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const recibidas = [];
                 snap.forEach(doc => { recibidas.push({ id: doc.id, ...doc.data() }); });
                 // A partial/empty Firestore cache must not overwrite the complete saved catalog.
-                if(!snap.metadata.fromCache || navigator.onLine || recibidas.length > todasLasCanciones.length){
+                if(!snap.metadata.fromCache || !todasLasCanciones.length || recibidas.length > todasLasCanciones.length){
                     todasLasCanciones=recibidas;
                 }
                 if(!snap.metadata.fromCache && usuarioActual?.uid && todasLasCanciones.length){
