@@ -8,7 +8,7 @@
   const pending=new Map();
   function nativeFilesystem(){
     if(!window.Capacitor?.isNativePlatform?.())return null;
-    const fs=window.Capacitor?.Plugins?.Filesystem;
+    const fs=window.Capacitor?.Plugins?.Filesystem || window.Capacitor?.registerPlugin?.('Filesystem');
     if(!fs)throw new Error('Almacenamiento nativo no disponible. Instala la APK actualizada.');
     return fs;
   }
