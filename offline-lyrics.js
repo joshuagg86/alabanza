@@ -24,6 +24,7 @@
  }
  const saved=id=>query('readonly',s=>s.get(id));
  const all=()=>query('readonly',s=>s.getAll());
+ async function listSavedIds(uid){if(!uid)return [];return (await all()).filter(x=>x.uid===uid).map(x=>String(x.id));}
  const remove=id=>query('readwrite',s=>s.delete(id));
  function notice(msg){
    const el=document.getElementById('offlineLyricsStatus');
@@ -46,7 +47,7 @@
    try{
      await query('readwrite',s=>s.put(entry));
      notice('Letra guardada en este dispositivo.');
-     refreshBtn();renderList();
+     refreshBtn();renderList();window.dispatchEvent(new Event('alabanza:offline-lyrics-changed'));
    }catch(e){notice('No se pudo guardar. Revisa el espacio disponible.');}
  }
  async function refreshBtn(){
@@ -75,7 +76,7 @@
      if(!button)return;
      const id=button.dataset.id;
      if(button.dataset.action==='delete'){
-       await remove(id);await renderList();notice('Descarga eliminada.');
+       await remove(id);await renderList();notice('Descarga eliminada.');window.dispatchEvent(new Event('alabanza:offline-lyrics-changed'));
      }
      if(button.dataset.action==='read'){
        const entry=await saved(id);
@@ -122,7 +123,7 @@
      head.appendChild(btn);
    }
    window.addEventListener('alabanza:song-opened',e=>{current=e.detail?.song||null;refreshBtn();});
-   window.AlabanzaOffline={showDownloads:show};
+   window.AlabanzaOffline={showDownloads:show,listSavedIds};
    getPanel();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
