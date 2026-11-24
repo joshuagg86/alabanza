@@ -20,14 +20,14 @@
         if (!activeUser) throw new Error('Inicia sesión para acceder al audio.');
         const token = await activeUser.getIdToken();
         let response;
+        if(!navigator.onLine)throw new Error('Sin conexión');
         try {
             response = await fetch(cloudConfig().url + '/functions/v1/rehearsal-audio?song=' + encodeURIComponent(identifier), {
                 cache:'no-store', headers:{Authorization:'Bearer '+token, apikey:cloudConfig().publishableKey || ''} });
-        } catch (error) {
-            if (window.Capacitor?.isNativePlatform?.()) {
-                throw new Error('No se pudo conectar al audio. Android necesita autorizar https://localhost en Supabase. Las pistas descargadas seguirán funcionando.');
-            }
-            throw new Error('No se pudo conectar con Supabase. Comprueba tu conexión y los permisos del servidor.');
+        } catch(error) {
+            if(!navigator.onLine || /Failed to fetch|NetworkError|fetch failed/i.test(String(error.message||error)))
+                throw new Error('Sin conexión');
+            throw new Error('No se pudo conectar con el servicio de audio.');
         }
         if (!response.ok) {
             const body = await response.json().catch(() => ({}));
@@ -164,7 +164,7 @@
             if (['pendiente', 'procesando'].includes(next.state) || ['pendiente','subiendo'].includes(next.cloudState)) timer = setTimeout(refresh, 2500);
         } catch (error) {
             if (current !== generation || uploading) return;
-            message(error.message, true);
+            message(!navigator.onLine?'Sin conexión':error.message, true);
             paint();
             el('rehearsalSummary').textContent = local ? 'Servicio local sin conectar' : 'No se pudo consultar el audio en la nube';
         }
@@ -369,7 +369,7 @@
         downloadButton.disabled=true;
         const id=song.id, current=generation;
         try {
-            if(!navigator.onLine)throw new Error('Conéctate a internet para descargar.');
+            if(!navigator.onLine)throw new Error('Sin conexión. Conéctate a internet para descargar pistas.');
             message('Preparando descarga de audio…');
             const fresh=await cloudStatus(id);
             if(current!==generation||id!==song?.id)return;
@@ -387,7 +387,7 @@
                     if(!engine)void prepareAudio().catch(()=>{});
                 }
             }
-        }catch(error){if(current===generation)message(error.message||'Error al descargar pistas.',true);}
+        }catch(error){if(current===generation)message(!navigator.onLine?'Sin conexión. Conéctate a internet para descargar pistas.':error.message||'Error al descargar pistas.',true);}
         finally{delete downloadButton.dataset.downloading;paint();}
     });
     const reference=el('rehearsalRefresh');
