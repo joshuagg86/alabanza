@@ -99,10 +99,23 @@
             backdrop.addEventListener('click',()=>openPanel(false));
             document.body.appendChild(backdrop);
         }
+        // Moving the modal to body avoids the reader's stacking context blurring it.
+        // Reattach to reader when closed so the desktop split layout remains unchanged.
+        const mobile=window.matchMedia('(max-width:767px)').matches;
+        if(value&&mobile&&!sheet.dataset.modalMounted){
+            sheet._originalParent=sheet.parentNode;
+            sheet._originalNext=sheet.nextSibling;
+            document.body.appendChild(sheet);
+            sheet.dataset.modalMounted='true';
+        }
         sheet.hidden=!value;
         backdrop.hidden=!value;
+        if(!value&&sheet.dataset.modalMounted){
+            if(sheet._originalParent)sheet._originalParent.insertBefore(sheet,sheet._originalNext);
+            delete sheet.dataset.modalMounted;
+        }
         el('rehearsalToggle').setAttribute('aria-expanded', String(value));
-        el('viewSong').classList.toggle('mixer-open', value);
+        el('viewSong').classList.toggle('mixer-open', value&&!mobile);
         document.body.classList.toggle('rehearsal-modal-open',value);
         // Closing the sheet never pauses or disposes the music.
         if(value){paint();if(!status?.ready)refresh();}
