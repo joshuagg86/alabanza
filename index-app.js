@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try{
                 const uid=usuarioActual?.uid;
                 letrasOfflineIDs=new Set(await window.AlabanzaOffline?.listSavedIds(uid)||[]);
-                if(usuarioActual?.uid===uid)renderizarLista();
+                if(usuarioActual?.uid===uid){renderizarLista();renderizarDashboard();}
             }catch(error){console.warn('No se pudo consultar el índice offline.',error.name);}
         }
         window.addEventListener('alabanza:offline-lyrics-changed',()=>{void actualizarLetrasOffline();});
@@ -2241,7 +2241,7 @@ function toggleVolPopup(popupId) {
             const countEl = document.getElementById('dashPlaylistCount');
             
             if (cancionesContainer && countEl) {
-                const cancionesDomingo = playlistsPorDia[document.getElementById('dashServiceDay').value].map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c);
+                const cancionesDomingo = playlistsPorDia[document.getElementById('dashServiceDay').value].map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c && (navigator.onLine || letrasOfflineIDs.has(String(c.id))));
                 countEl.innerText = `${cancionesDomingo.length} canciones listas`;
 
                 if (cancionesDomingo.length === 0) {
