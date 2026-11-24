@@ -29,19 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let rolActual = localStorage.getItem('alabanza_rol') || 'voz';
         let rolTemp = null;
         let todasLasCanciones = [];
-        // Firestore may cache the entire catalog; only explicit user downloads count as offline.
-        let letrasOfflineIDs=new Set();
-        async function actualizarLetrasOffline(){
-            try{
-                const uid=usuarioActual?.uid;
-                letrasOfflineIDs=new Set(await window.AlabanzaOffline?.listSavedIds(uid)||[]);
-                if(usuarioActual?.uid===uid){renderizarLista();renderizarDashboard();}
-            }catch(error){console.warn('No se pudo consultar el índice offline.',error.name);}
-        }
-        window.addEventListener('alabanza:offline-lyrics-changed',()=>{void actualizarLetrasOffline();});
-        window.addEventListener('online',()=>{renderizarLista();});
-        window.addEventListener('offline',()=>{void actualizarLetrasOffline();});
-
+        // Offline lyrics are synchronized automatically to native internal storage.
+        // Audio is the only content the user downloads manually.
         const playlistsPorDia = { domingo: [], miercoles: [] };
         const cancionesAgregandose = new Set();
         let servicioActual = 'domingo';
@@ -446,7 +435,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnAdmin = document.getElementById('btnAdmin');
             if (btnAdmin) btnAdmin.style.display = Permisos.puedeEditar(user) ? 'flex' : 'none';
             if (!user) return;
-            void actualizarLetrasOffline();
+            try{
+                const localSongs=await window.AlabanzaLyricsStore?.restore(user.uid)||[];
+                if(version!==versionSesion)return;
+                if(localSongs.length){todasLasCanciones=localSongs;renderizarLista();renderizarDashboard();}
+            }catch(error){console.warn('No se pudieron restaurar las letras locales.',error);}
 
             if (mostrarBienvenida) {
                 const splash = document.getElementById('splashScreen');
@@ -498,6 +491,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 todasLasCanciones = [];
                 snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
+                if(!snap.metadata.fromCache && usuarioActual?.uid && todasLasCanciones.length){
+                    void window.AlabanzaLyricsStore?.save(usuarioActual.uid,todasLasCanciones).catch(error=>console.warn('No se pudieron guardar las letras:',error));
+                }
                 renderizarLista();
                 if (tabActual === 'home') renderizarDashboard();
                 if (cancionActual) {
@@ -626,10 +622,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 cancionesAMostrar = playlistActual().map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c);
             }
             
-            if(!navigator.onLine)cancionesAMostrar=cancionesAMostrar.filter(c=>letrasOfflineIDs.has(String(c.id)));
             cancionesAMostrar = cancionesAMostrar.filter(c => coincideBusqueda(c, busqueda));
             const sugerencias = esTabServicio() && busqueda
-                ? todasLasCanciones.filter(c => (navigator.onLine||letrasOfflineIDs.has(String(c.id))) && !playlistActual().includes(c.id) && coincideBusqueda(c, busqueda)) : [];
+                ? todasLasCanciones.filter(c => !playlistActual().includes(c.id) && coincideBusqueda(c, busqueda)) : [];
             const resumen = document.getElementById('searchSummary');
             resumen.hidden = !['all', 'playlist', 'wednesday'].includes(tabActual);
             resumen.textContent = `${cancionesAMostrar.length} ${cancionesAMostrar.length === 1 ? 'canción' : 'canciones'}${busqueda ? ' encontradas' : ''}`;
@@ -706,23 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(() => Modal.alert('No se guardó el cambio', 'Revisa tu conexión y los permisos de la lista e intenta de nuevo.'));
         }
 
-        // Open a downloaded song in the same full reader used for online repertoire.
-        // Saved ChordPro remains readable even if Firestore is unavailable.
-        window.addEventListener('alabanza:open-saved-song', event => {
-            const stored=event.detail?.song;
-            if(!stored?.id || typeof stored.letraChordPro!=='string')return;
-            const id=String(stored.id);
-            const index=todasLasCanciones.findIndex(item=>String(item.id)===id);
-            if(index<0)todasLasCanciones.push({...stored,id});
-            else if(!todasLasCanciones[index].letraChordPro)todasLasCanciones[index]={...todasLasCanciones[index],...stored,id};
-            window.AlabanzaMobile?.selectTab('all');
-            abrirCancion(id);
-        });
         function abrirCancion(id) {
-            if(!navigator.onLine && !letrasOfflineIDs.has(String(id))){
-                mostrarToastLector?.('Sin conexión. Descarga primero esta letra.');
-                return;
-            }
             const busqueda = normalizarBusqueda(document.getElementById('searchInput').value);
             let contextoCanciones = [];
 
@@ -2241,7 +2220,7 @@ function toggleVolPopup(popupId) {
             const countEl = document.getElementById('dashPlaylistCount');
             
             if (cancionesContainer && countEl) {
-                const cancionesDomingo = playlistsPorDia[document.getElementById('dashServiceDay').value].map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c && (navigator.onLine || letrasOfflineIDs.has(String(c.id))));
+                const cancionesDomingo = playlistsPorDia[document.getElementById('dashServiceDay').value].map(id => todasLasCanciones.find(c => c.id === id)).filter(c => c);
                 countEl.innerText = `${cancionesDomingo.length} canciones listas`;
 
                 if (cancionesDomingo.length === 0) {
