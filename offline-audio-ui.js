@@ -6,7 +6,7 @@
    let p=$('offlineAudioPanel');if(p)return p;
    p=document.createElement('section');p.id='offlineAudioPanel';
    p.className='offline-lyrics-panel';p.hidden=true;p.setAttribute('aria-label','Descargas de audio');
-   p.innerHTML='<div class="offline-lyrics-head"><div><small>DISPONIBLE SIN CONEXIÓN</small><h2>Mis descargas</h2><p>Gestiona tus pads y pistas de ensayo guardados en este celular.</p></div><button type="button" id="offlineAudioClose" aria-label="Cerrar descargas">✕</button></div><div id="offlineAudioStatus" role="status"></div><section id="offlineAudioLibrary"><h3>Pads y canciones</h3><div id="offlineAudioItems"></div></section>';
+   p.innerHTML='<div class="offline-lyrics-head"><div><small>DISPONIBLE SIN CONEXIÓN</small><h2>Mis descargas</h2><p>Gestiona tus pads y pistas de ensayo guardados en este celular.</p></div><button type="button" id="offlineAudioClose" aria-label="Cerrar descargas">✕</button></div><div id="offlineAudioStatus" role="status"></div><section id="offlineAudioLibrary"><h3>Pads y canciones</h3><p id="offlineStorageUsage" aria-live="polite"></p><div id="offlineAudioItems"></div></section>';
    document.body.appendChild(p);
    $('offlineAudioClose').addEventListener('click',()=>p.hidden=true);
    return p;
@@ -18,6 +18,9 @@
    try{
      const uid=window.firebase?.auth?.().currentUser?.uid;
      const entries=await window.AlabanzaAudioOffline.entries(uid);
+     const info=await window.AlabanzaAudioOffline.storageInfo(uid);
+     const sizes=bytes=>bytes>=1073741824?(bytes/1073741824).toFixed(2)+' GB':(bytes/1048576).toFixed(1)+' MB';
+     $('offlineStorageUsage').textContent=entries.length+' archivos · '+sizes(info.bytes)+' de audio descargado'+(info.quota?' · Espacio disponible aproximado: '+sizes(Math.max(0,info.quota-(info.usage||0))):'');
      container.replaceChildren();
      if(!entries.length){
        const empty=document.createElement('p');empty.className='offline-empty';
@@ -34,6 +37,7 @@
        const remove=document.createElement('button');remove.type='button';remove.textContent='Eliminar';
        remove.setAttribute('aria-label','Eliminar '+title.textContent);
        remove.addEventListener('click',async()=>{
+         if(!window.confirm('¿Eliminar '+title.textContent+' del celular? Después tendrás que descargarlo de nuevo.'))return;
          remove.disabled=true;
          try{
            if(entry.kind==='pad')await window.AlabanzaAudioOffline.deletePad(entry.tone);
@@ -66,6 +70,9 @@
      pad.parentElement?.appendChild(button);
    }
    window.AlabanzaAudioOfflineUI={render,showDownloads};
+   window.addEventListener('alabanza:audio-library-changed',()=>{
+     if(!$('offlineAudioPanel')?.hidden)void render();
+   });
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
