@@ -489,8 +489,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 estadoConexion.pendientes.canciones = snap.metadata.hasPendingWrites;
                 verificarEstadoTotal();
 
-                todasLasCanciones = [];
-                snap.forEach(doc => { todasLasCanciones.push({ id: doc.id, ...doc.data() }); });
+                const recibidas = [];
+                snap.forEach(doc => { recibidas.push({ id: doc.id, ...doc.data() }); });
+                // A partial/empty Firestore cache must not overwrite the complete saved catalog.
+                if(!snap.metadata.fromCache || navigator.onLine || recibidas.length > todasLasCanciones.length){
+                    todasLasCanciones=recibidas;
+                }
                 if(!snap.metadata.fromCache && usuarioActual?.uid && todasLasCanciones.length){
                     void window.AlabanzaLyricsStore?.save(usuarioActual.uid,todasLasCanciones).catch(error=>console.warn('No se pudieron guardar las letras:',error));
                 }
