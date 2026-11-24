@@ -103,9 +103,23 @@
         el('rehearsalEntry').setAttribute('aria-busy', String(busy));
         el('rehearsalRefresh').disabled = uploading;
         const download=el('rehearsalOfflineDownload');
-        if(download) download.hidden = !song || !cloudEnabled();
-        el('rehearsalPlay').disabled = !status?.ready || loading;
-        el('rehearsalPlay').textContent = engine?.playing ? 'Pausar' : engine ? 'Reproducir' : 'Cargar y reproducir';
+        if(download){
+            download.hidden=!song||!cloudEnabled();
+            if(download.dataset.saved==='true'){
+                download.textContent='✓ Pistas descargadas';
+                download.setAttribute('aria-label','Pistas guardadas sin conexión');
+            }else if(!download.disabled){
+                download.textContent='Descargar pistas';
+            }
+        }
+        const transport=el('rehearsalPlay');
+        transport.disabled=!status?.ready;
+        transport.setAttribute('aria-label',engine?.playing?'Pausar':loading?'Preparando pistas':'Reproducir');
+        transport.title=engine?.playing?'Pausar':loading?'Preparando pistas':'Reproducir';
+        transport.innerHTML=engine?.playing
+            ? '<i class="fas fa-pause" aria-hidden="true"></i>'
+            : '<i class="fas fa-play" aria-hidden="true"></i>';
+        transport.setAttribute('aria-busy',String(loading));
         el('rehearsalChannels').disabled = !engine || loading;
         el('rehearsalTimeline').disabled = !engine || loading;
         el('rehearsalBack').disabled = !engine || loading;
@@ -134,6 +148,10 @@
             if (current !== generation || uploading) return;
             if (status?.version && next.version !== status.version) releaseAudio();
             status = next;
+            const downloaded=await window.AlabanzaAudioOffline?.getSong(firebase.auth().currentUser?.uid,song.id);
+            if(current!==generation)return;
+            const download=el('rehearsalOfflineDownload');
+            if(download)download.dataset.saved=String(Boolean(downloaded));
             if (next.error) message(next.error, true);
             else if (next.state === 'procesando' || next.state === 'pendiente') message('Puedes seguir leyendo. El audio se guarda cuando finalice la separación.');
             else if (!loading) message(next.ready
@@ -141,6 +159,7 @@
                 : admin() ? 'Sube el audio original. Separaremos voz, guitarra, bajo, teclado y batería.'
                     : 'Un administrador puede añadir el audio de esta canción.');
             paint();
+            if (next.localOffline && !engine && !loading && !preparePromise)void prepareAudio().catch(()=>{});
             if (['pendiente', 'procesando'].includes(next.state) || ['pendiente','subiendo'].includes(next.cloudState)) timer = setTimeout(refresh, 2500);
         } catch (error) {
             if (current !== generation || uploading) return;
@@ -181,17 +200,18 @@
         if (engine.playing && engine.position >= engine.duration) { engine.pause(); paint(); }
         frame = requestAnimationFrame(tick);
     }
-    async function play() {
-        const current = generation;
-        try {
-            if (engine?.playing) { engine.pause(); paint(); return; }
-            if (!engine) {
+    let preparePromise=null;
+    async function prepareAudio(){
+        if(engine)return;
+        if(preparePromise)return preparePromise;
+        if(!status?.ready||!song)return;
+        const current=generation;
+        preparePromise=(async()=>{
                 if (!status?.ready || loading) return;
                 loading = true;
                 controller = new AbortController();
-                // Create/resume in the user gesture; buffers are loaded only on demand.
+                // Prepare decoded buffers without starting playback.
                 engine = new window.RehearsalEngine();
-                await engine.context.resume();
                 if (current !== generation) return;
                 if (status.cloud && status.expiresAt < Date.now()+120000) {
                     const renewed = await cloudStatus(song.id);
@@ -258,15 +278,31 @@
                 el('rehearsalDuration').textContent = format(engine.duration);
                 mix();
                 tick();
+
+        })().catch(error=>{
+            if(current===generation){
+                releaseAudio();
+                message(error.name==='AbortError'?'Preparación cancelada.':error.message||'No se pudieron preparar las pistas.',true);
+                paint();
             }
+            throw error;
+        }).finally(()=>{preparePromise=null;});
+        return preparePromise;
+    }
+    async function play(){
+        try{
+            if(engine?.playing){engine.pause();paint();return;}
+            if(!engine){
+                if(!status?.ready)return;
+                if(!preparePromise)void prepareAudio();
+                if(preparePromise)await preparePromise;
+            }
+            if(!engine)return;
             await engine.play();
-            if (current !== generation) return;
             message('Las pistas se reproducen juntas. Ajusta tu mezcla.');
             paint();
-        } catch (error) {
-            if (current !== generation) return;
-            releaseAudio();
-            message(error.name === 'AbortError' ? 'Carga cancelada.' : error.message || 'No hay memoria suficiente para cargar las pistas.', true);
+        }catch(error){
+            message(error.message||'No se pudo reproducir.',true);
             paint();
         }
     }
@@ -334,9 +370,19 @@
             await window.AlabanzaAudioOffline.downloadSong(song,fresh,cloudConfig(),text=>{
                 if(current===generation)message(text);
             });
-            if(current===generation)message('Pistas guardadas. Puedes utilizarlas sin conexión.');
+            if(current===generation){
+                downloadButton.dataset.saved='true';
+                downloadButton.textContent='✓ Pistas descargadas';
+                message('Pistas guardadas. Preparando audio para reproducción rápida…');
+                const localEntry=await window.AlabanzaAudioOffline.getSong(firebase.auth().currentUser?.uid,id);
+                if(localEntry&&current===generation){
+                    if(!engine)status={ready:true,state:'listo',cloud:false,localOffline:true,version:localEntry.version,stems:localEntry.stems,frames:localEntry.frames,sampleRate:localEntry.sampleRate};
+                    paint();
+                    if(!engine)void prepareAudio().catch(()=>{});
+                }
+            }
         }catch(error){if(current===generation)message(error.message||'Error al descargar pistas.',true);}
-        finally{downloadButton.disabled=false;}
+        finally{downloadButton.disabled=false;paint();}
     });
     const reference=el('rehearsalRefresh');
     reference?.parentElement?.append(downloadButton);
@@ -365,6 +411,7 @@
             this.cerrar(); song = nextSong; user = nextUser;
             el('rehearsalEntry').hidden = false;
             reset(); el('rehearsalPreset').value = 'full';
+            el('rehearsalOfflineDownload').dataset.saved='false';
             el('rehearsalDuration').textContent = '0:00';
             paint(); refresh();
         },
