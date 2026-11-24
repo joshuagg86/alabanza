@@ -379,6 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
             solicitarAjusteBateria();
         }
         async function alternarModoEnsayo() {
+            // Android phones use the compact reader; fullscreen rehearsal is tablet/PC only.
+            if (window.matchMedia('(max-width: 767px)').matches) return;
             const activo = !modoEnsayo;
             establecerModoEnsayo(activo);
             if (activo && !document.fullscreenElement && document.getElementById('viewSong').requestFullscreen) {
