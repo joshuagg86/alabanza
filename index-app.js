@@ -1593,7 +1593,8 @@ function togglePad() {
 }
 
 function manualPadChange(k) { 
-    currentPadKey = k; 
+    currentPadKey = k;
+    void primePadLocal(k).catch(()=>{});
     const btn = document.getElementById('padTriggerBtn');
     const select = document.getElementById('padKeySelect');
 
@@ -1606,8 +1607,31 @@ function manualPadChange(k) {
    MOTOR DE AUDIO OPTIMIZADO (CACHE & QUICK CROSSFADE)
    =========================================================== */
    
-// Nueva variable para guardar los audios ya descargados
-const padBufferCache = {}; 
+// Decodifica anticipadamente el pad local; la siguiente pulsación puede iniciar sin I/O.
+const padBufferCache = {};
+const padBufferPending = new Map();
+async function primePadLocal(key) {
+    if(padBufferCache[key])return padBufferCache[key];
+    if(padBufferPending.has(key))return padBufferPending.get(key);
+    const job=(async()=>{
+        const stored=await window.AlabanzaAudioOffline?.getPad(key);
+        if(!stored?.blob)return null;
+        if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+        const decoded=await audioCtx.decodeAudioData(await stored.blob.arrayBuffer());
+        padBufferCache[key]=decoded;
+        // Bound memory: only current / recent tones are kept decoded.
+        const keys=Object.keys(padBufferCache);
+        while(keys.length>2)delete padBufferCache[keys.shift()];
+        return decoded;
+    })();
+    padBufferPending.set(key,job);
+    try{return await job;}finally{padBufferPending.delete(key);}
+}
+window.addEventListener('alabanza:song-opened',event=>{
+    const tone=event.detail?.song?.tonoOriginal;
+    if(typeof tone==='string')void primePadLocal(tone).catch(()=>{});
+});
+
 
 async function playPadFile(key) {
     initAudio(); // Aseguramos que el motor esté activo
@@ -1620,6 +1644,10 @@ async function playPadFile(key) {
         if (padBufferCache[key]) {
             audioBuffer = padBufferCache[key];
         } else {
+            await primePadLocal(key);
+            if(padBufferCache[key]){
+                audioBuffer=padBufferCache[key];
+            }else{
             const offline = await window.AlabanzaAudioOffline?.getPad(key);
             let arrayBuffer;
             if (offline?.blob) {
@@ -1633,6 +1661,7 @@ async function playPadFile(key) {
             }
             audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
             padBufferCache[key] = audioBuffer;
+            }
         }
 
         // --- MEJORA PRO: Si la nueva canción tiene el MISMO tono, no cortamos el audio ---
