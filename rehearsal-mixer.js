@@ -89,10 +89,23 @@
     }
     function openPanel(value) {
         opened = value;
-        el('rehearsalPanel').hidden = !value;
+        const sheet=el('rehearsalPanel');
+        let backdrop=el('rehearsalBackdrop');
+        if(!backdrop){
+            backdrop=document.createElement('div');
+            backdrop.id='rehearsalBackdrop';
+            backdrop.className='rehearsal-backdrop';
+            backdrop.hidden=true;
+            backdrop.addEventListener('click',()=>openPanel(false));
+            document.body.appendChild(backdrop);
+        }
+        sheet.hidden=!value;
+        backdrop.hidden=!value;
         el('rehearsalToggle').setAttribute('aria-expanded', String(value));
         el('viewSong').classList.toggle('mixer-open', value);
-        if (value) { paint(); if (!status?.ready) refresh(); }
+        document.body.classList.toggle('rehearsal-modal-open',value);
+        // Closing the sheet never pauses or disposes the music.
+        if(value){paint();if(!status?.ready)refresh();}
         window.dispatchEvent(new Event('resize'));
     }
     function paint() {
