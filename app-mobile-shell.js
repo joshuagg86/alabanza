@@ -159,6 +159,7 @@ function init(){
   new MutationObserver(sync).observe($('viewSong'),{attributes:true,attributeFilter:['style','hidden']});
   new MutationObserver(sync).observe($('loginModal'),{attributes:true,attributeFilter:['style','hidden']});
   sync();
+  window.addEventListener('alabanza:audio-library-changed',()=>{if($('mobilePadsScreen'))void updatePad();});
   window.AlabanzaMobile={selectTab,stopPad};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
