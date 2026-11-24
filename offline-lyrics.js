@@ -1,130 +1,82 @@
-/* Preview-only offline lyrics library. No Firebase credentials, no audio URLs or auth tokens stored. */
+/* Automatic lyrics sync. No manual downloads, no UI in the Downloads screen.
+ * Android: one JSON file per authenticated user in Capacitor Directory.Data.
+ * Web preview: IndexedDB fallback. No auth tokens or signed audio URLs stored.
+ */
 (function(){
- 'use strict';
- const DB='alabanza-offline-v1', STORE='lyrics';
- let current=null, dbPromise;
- function openDb(){
-   if(dbPromise)return dbPromise;
-   dbPromise=new Promise((resolve,reject)=>{
-     const request=indexedDB.open(DB,1);
-     request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains(STORE))request.result.createObjectStore(STORE,{keyPath:'id'});};
-     request.onsuccess=()=>resolve(request.result);
-     request.onerror=()=>reject(request.error);
-   });
-   return dbPromise;
- }
- async function query(mode,fn){
-   const db=await openDb();
-   return new Promise((resolve,reject)=>{
-     const tx=db.transaction(STORE,mode),store=tx.objectStore(STORE);
-     const req=fn(store);
-     req.onsuccess=()=>resolve(req.result);
-     req.onerror=()=>reject(req.error);
-   });
- }
- const saved=id=>query('readonly',s=>s.get(id));
- const all=()=>query('readonly',s=>s.getAll());
- async function listSavedIds(uid){if(!uid)return [];return (await all()).filter(x=>x.uid===uid).map(x=>String(x.id));}
- const remove=id=>query('readwrite',s=>s.delete(id));
- function notice(msg){
-   const el=document.getElementById('offlineLyricsStatus');
-   if(el)el.textContent=msg;
- }
- async function save(){
-   if(!current)return;
-   const user=window.firebase?.auth?.().currentUser;
-   if(!user){notice('Inicia sesión para guardar canciones.');return;}
-   const entry={
-     id:String(current.id), uid:user.uid,
-     titulo:String(current.titulo||'Sin título'),
-     artista:String(current.artista||''),
-     tonoOriginal:String(current.tonoOriginal||''),
-     bpm:String(current.bpm||''),
-     letraChordPro:String(current.letraChordPro||''),
-     updatedAt:Date.now()
-   };
-   if(!entry.letraChordPro.trim()){notice('Esta canción no tiene letra para descargar.');return;}
-   try{
-     await query('readwrite',s=>s.put(entry));
-     notice('Letra guardada en este dispositivo.');
-     refreshBtn();renderList();window.dispatchEvent(new Event('alabanza:offline-lyrics-changed'));
-   }catch(e){notice('No se pudo guardar. Revisa el espacio disponible.');}
- }
- async function refreshBtn(){
-   const btn=document.getElementById('saveOfflineLyrics');
-   if(!btn||!current)return;
-   try{
-     const user=window.firebase?.auth?.().currentUser;
-     const entry=await saved(String(current.id));
-     const exists=Boolean(entry&&entry.uid===user?.uid);
-     btn.innerHTML=exists?'<i class="fas fa-check-circle" aria-hidden="true"></i> Letra guardada':'<i class="fas fa-download" aria-hidden="true"></i> Guardar letra';
-   }catch(_){btn.textContent='Guardar letra';}
- }
- function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
- function getPanel(){
-   let p=document.getElementById('offlineLyricsPanel');
-   if(p)return p;
-   p=document.createElement('section');
-   p.id='offlineLyricsPanel';p.className='offline-lyrics-panel';
-   p.hidden=true;
-   p.setAttribute('aria-label','Letras descargadas');
-   p.innerHTML='<div class="offline-lyrics-head"><div><small>DISPONIBLE SIN CONEXIÓN</small><h2>Mis descargas</h2><p>Guarda las letras individualmente para leerlas sin internet.</p></div><button type="button" id="offlineLyricsClose" aria-label="Cerrar descargas">✕</button></div><div id="offlineLyricsStatus" role="status"></div><div id="offlineLyricsList"></div>';
-   document.body.appendChild(p);
-   document.getElementById('offlineLyricsClose').addEventListener('click',()=>p.hidden=true);
-   p.addEventListener('click',async e=>{
-     const button=e.target.closest('button[data-action]');
-     if(!button)return;
-     const id=button.dataset.id;
-     if(button.dataset.action==='delete'){
-       await remove(id);await renderList();notice('Descarga eliminada.');window.dispatchEvent(new Event('alabanza:offline-lyrics-changed'));
-     }
-     if(button.dataset.action==='read'){
-       const entry=await saved(id);
-       if(entry){
-         p.hidden=true;
-         window.dispatchEvent(new CustomEvent('alabanza:open-saved-song',{detail:{song:entry}}));
-       }
-     }
-   });
-   return p;
- }
- async function renderList(){
-   const list=document.getElementById('offlineLyricsList');if(!list)return;
-   try{
-     const user=window.firebase?.auth?.().currentUser;
-     const rows=(await all()).filter(x=>x.uid===user?.uid).sort((a,b)=>b.updatedAt-a.updatedAt);
-     if(!rows.length){list.innerHTML='<p class="offline-empty">Todavía no has guardado letras. Abre una canción y selecciona «Guardar letra».</p>';return;}
-     list.replaceChildren();
-     for(const x of rows){
-       const item=document.createElement('div');item.className='offline-lyrics-item';
-       const meta=document.createElement('div');
-       const title=document.createElement('strong');title.textContent=x.titulo;
-       const subtitle=document.createElement('small');subtitle.textContent=[x.artista,x.tonoOriginal].filter(Boolean).join(' · ');
-       meta.append(title,subtitle);
-       const read=document.createElement('button');read.type='button';read.dataset.action='read';read.dataset.id=x.id;read.textContent='Ver';
-       const del=document.createElement('button');del.type='button';del.dataset.action='delete';del.dataset.id=x.id;del.textContent='Eliminar';del.setAttribute('aria-label','Eliminar '+x.titulo);
-       item.append(meta,read,del);list.appendChild(item);
-     }
-   }catch(_){list.textContent='No se pudo abrir el almacenamiento local.';}
- }
- async function show(){
-   const panel=getPanel();panel.hidden=false;
-   document.getElementById('offlineLyricsList').hidden=false;
-   document.getElementById('offlineLyricsReader')?.setAttribute('hidden','');
-   await renderList();
-   await window.AlabanzaAudioOfflineUI?.render();
- }
- function init(){
-   const reader=document.getElementById('viewSong');
-   const head=reader?.querySelector('.reader-heading');
-   if(head && !document.getElementById('saveOfflineLyrics')){
-     const btn=document.createElement('button');btn.type='button';btn.id='saveOfflineLyrics';btn.className='offline-save-button';
-     btn.textContent='Guardar letra';btn.addEventListener('click',save);
-     head.appendChild(btn);
-   }
-   window.addEventListener('alabanza:song-opened',e=>{current=e.detail?.song||null;refreshBtn();});
-   window.AlabanzaOffline={showDownloads:show,listSavedIds};
-   getPanel();
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  'use strict';
+  const DB='alabanza-song-library-v1',STORE='catalogs';
+  const pending=new Map();
+  function nativeFilesystem(){
+    if(!window.Capacitor?.isNativePlatform?.())return null;
+    const fs=window.Capacitor?.Plugins?.Filesystem;
+    if(!fs)throw new Error('Almacenamiento nativo no disponible. Instala la APK actualizada.');
+    return fs;
+  }
+  function filename(uid){return 'lyrics/catalog-'+encodeURIComponent(uid)+'.json';}
+  function openDatabase(){
+    return new Promise((resolve,reject)=>{
+      const req=indexedDB.open(DB,1);
+      req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE))req.result.createObjectStore(STORE,{keyPath:'uid'});};
+      req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+    });
+  }
+  async function browserGet(uid){
+    const db=await openDatabase();
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction(STORE,'readonly'),req=tx.objectStore(STORE).get(uid);
+      req.onsuccess=()=>{resolve(req.result?.songs||[]);db.close();};
+      req.onerror=()=>{reject(req.error);db.close();};
+    });
+  }
+  async function browserSave(uid,songs){
+    const db=await openDatabase();
+    return new Promise((resolve,reject)=>{
+      const tx=db.transaction(STORE,'readwrite');
+      tx.objectStore(STORE).put({uid,songs,updatedAt:Date.now()});
+      tx.oncomplete=()=>{resolve();db.close();};
+      tx.onerror=()=>{reject(tx.error);db.close();};
+    });
+  }
+  async function restore(uid){
+    if(!uid)return [];
+    const fs=nativeFilesystem();
+    if(!fs)return browserGet(uid);
+    try{
+      const result=await fs.readFile({path:filename(uid),directory:'DATA',encoding:'utf8'});
+      const content=typeof result.data==='string'?result.data:'';
+      const data=JSON.parse(content);
+      return data.uid===uid&&Array.isArray(data.songs)?data.songs:[];
+    }catch(err){
+      if(/not found|does not exist|ENOENT/i.test(String(err.message||err)))return [];
+      console.warn('Error al recuperar letras almacenadas:',err);
+      return [];
+    }
+  }
+  function serialize(songs){
+    // Remove Firestore class instances and avoid persisting credentials or media URLs.
+    return songs.filter(s=>s?.id).map(s=>({
+      id:String(s.id),titulo:String(s.titulo||''),artista:String(s.artista||''),
+      letraChordPro:String(s.letraChordPro||''),
+      tonoOriginal:String(s.tonoOriginal||''),bpm:s.bpm??null,
+      compas:s.compas??null,estructura:s.estructura??null,
+      tono:s.tono??null, notas:s.notas??null
+    }));
+  }
+  async function save(uid,songs){
+    if(!uid||!Array.isArray(songs)||!songs.length)return;
+    const previous=pending.get(uid)||Promise.resolve();
+    const task=previous.catch(()=>{}).then(async()=>{
+      const clean=serialize(songs);
+      const fs=nativeFilesystem();
+      if(fs){
+        await fs.mkdir({path:'lyrics',directory:'DATA',recursive:true});
+        await fs.writeFile({path:filename(uid),directory:'DATA',encoding:'utf8',
+          data:JSON.stringify({version:1,uid,updatedAt:Date.now(),songs:clean}),recursive:true});
+      }else await browserSave(uid,clean);
+      window.dispatchEvent(new CustomEvent('alabanza:lyrics-synced',{detail:{count:clean.length}}));
+    });
+    pending.set(uid,task);
+    try{await task;}finally{if(pending.get(uid)===task)pending.delete(uid);}
+  }
+  window.AlabanzaLyricsStore={restore,save};
 })();
