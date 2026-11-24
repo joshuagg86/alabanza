@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alabanza-v37';
+const CACHE_NAME = 'alabanza-v38';
 
 // Generamos la lista de pads automáticamente
 const PADS = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'].map(t => `./pads/${t}.mp3`);
