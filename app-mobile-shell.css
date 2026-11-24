@@ -551,3 +551,40 @@ html[data-app-theme="light"] #viewSong #rehearsalMessage{
   html[data-app-theme] #viewList.mobile-show-pads > #mobilePadsScreen{display:block!important}
   html[data-app-theme] #viewList.mobile-show-pads > #mobilePadsScreen[hidden]{display:none!important}
 }
+
+/* Dark-only UI and responsive audio transport. */
+html[data-app-theme] .app-theme-toggle,
+html[data-app-theme] #appThemeToggle {display:none!important}
+html[data-app-theme] #viewSong [data-connection-status]{display:none!important}
+html[data-app-theme] #viewList > .connection-status,
+html[data-app-theme] #viewList > [data-connection-status]{display:none!important}
+html[data-app-theme="dark"] #rehearsalPlay{
+  min-height:64px!important;
+  min-width:88px!important;
+  width:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:0!important;
+  background:linear-gradient(125deg,#1e8ffd,#0861de)!important;
+  color:white!important;
+  border-radius:18px!important;
+  box-shadow:0 8px 20px rgba(0,94,222,.24)!important;
+  cursor:pointer;
+}
+html[data-app-theme="dark"] #rehearsalPlay i{
+  font-size:25px!important;
+  color:white!important;
+}
+html[data-app-theme="dark"] #rehearsalPlay[aria-busy="true"]{opacity:.7}
+html[data-app-theme="dark"] #rehearsalOfflineDownload[data-saved="true"]{
+  background:rgba(34,197,94,.10)!important;
+  border:1px solid rgba(52,211,153,.40)!important;
+  color:#83efbc!important;
+  cursor:default;
+}
+@media(max-width:767px){
+  html[data-app-theme] #viewList > header{padding-top:3px!important}
+  html[data-app-theme] #viewList > header .logo-container{min-width:44px!important}
+  html[data-app-theme] #rehearsalPlay{min-width:75px!important}
+}
