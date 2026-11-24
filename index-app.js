@@ -1657,10 +1657,12 @@ async function playPadFile(key) {
             if (offline?.blob) {
                 arrayBuffer = await offline.blob.arrayBuffer();
             } else {
-                const preview = location.pathname.startsWith('/alabanza-preview/');
-                const source = preview ? 'https://joshuagg86.github.io/alabanza/' + fileName : fileName;
+                if (!navigator.onLine) throw new Error('Sin conexión. Descarga este pad para reproducirlo sin internet.');
+                // Capacitor's https://localhost does not include the GitHub Pages pad files.
+                const remote = Boolean(window.Capacitor?.isNativePlatform?.()) || location.pathname.startsWith('/alabanza-preview/');
+                const source = remote ? 'https://joshuagg86.github.io/alabanza/' + fileName : fileName;
                 const response = await fetch(source);
-                if (!response.ok) throw new Error("No pad: " + fileName);
+                if (!response.ok) throw new Error('No se pudo cargar el pad. Verifica tu conexión.');
                 arrayBuffer = await response.arrayBuffer();
             }
             audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
@@ -1696,7 +1698,7 @@ async function playPadFile(key) {
     } catch (error) {
         console.error("Error en Pad:", error);
         const textBtn = document.getElementById('padTriggerBtn');
-        if(textBtn) textBtn.innerText = "Err";
+        if(textBtn) textBtn.innerText = navigator.onLine ? "Reintentar" : "Sin conexión";
         isPadOn = false;
         document.getElementById('padCapsule').classList.remove('active');
     }
