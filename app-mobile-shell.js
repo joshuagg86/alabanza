@@ -114,7 +114,7 @@ function init(){
     button.innerHTML='<i class="fas '+icon+'" aria-hidden="true"></i><span>'+label+'</span>';
     nav.appendChild(button);buttons.set(key,button);
     button.addEventListener('click',()=>{
-      if(key==='downloads'){window.AlabanzaOffline?.showDownloads();return;}
+      if(key==='downloads'){window.AlabanzaAudioOfflineUI?.showDownloads();return;}
       if(key==='pads'){selectTab('pads');return;}
       if(key==='services'){selectTab(['playlist','wednesday','rol'].includes(currentTab)?currentTab:'playlist');return;}
       selectTab(key);
