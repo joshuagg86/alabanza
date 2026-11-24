@@ -1,0 +1,97 @@
+/* Phone-only fixed musical toolbar and separate panels.
+   App audio remains active when the sheet closes. */
+@media(max-width:767px){
+  #viewSong.reader-phone-compact .reader-body{
+    padding-bottom:calc(71px + env(safe-area-inset-bottom,0px))!important;
+  }
+  #viewSong.reader-phone-compact #songContent{
+    padding-bottom:calc(102px + env(safe-area-inset-bottom,0px))!important;
+  }
+  #viewSong.reader-phone-compact #btnToggleAudio,
+  #viewSong.reader-phone-compact #rehearsalEntry{display:none!important}
+  #phoneMusicBar[hidden],#phoneMusicSheet[hidden]{display:none!important}
+  #phoneMusicBar{
+    position:fixed!important;left:0;right:0;bottom:0;
+    z-index:2147481000;
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;
+    padding:9px 12px calc(9px + env(safe-area-inset-bottom,0px));
+    background:#0b2136;border-top:1px solid #294562;
+    box-shadow:0 -10px 22px rgba(0,0,0,.22);
+    box-sizing:border-box;
+  }
+  #phoneMusicBar button{
+    min-width:0;min-height:49px;padding:7px 4px;
+    border:1px solid #325676;border-radius:13px;
+    color:#e5f3ff;background:#173752;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+    font:600 12px Outfit,system-ui;cursor:pointer;
+  }
+  #phoneMusicBar button i{color:#61baff;font-size:17px}
+  #phoneMusicBar button[aria-expanded=true]{background:#1664bf;border-color:#52a9ff;color:white}
+  #phoneMusicBar button[aria-expanded=true] i{color:white}
+  #phoneMusicSheet{
+    position:fixed!important;
+    left:10px!important;right:10px!important;
+    bottom:calc(75px + env(safe-area-inset-bottom,0px))!important;
+    top:auto!important;
+    width:auto!important;max-width:none!important;
+    max-height:min(64dvh,490px)!important;
+    z-index:2147481001!important;
+    border:1px solid #41688b!important;
+    border-radius:23px!important;
+    padding:15px!important;
+    box-sizing:border-box!important;
+    overflow-y:auto!important;overflow-x:visible!important;
+    background:#102941!important;
+    color:#f3faff!important;
+    box-shadow:0 15px 50px rgba(0,0,0,.55)!important;
+  }
+  .phone-music-sheet-head{
+    position:sticky;top:-15px;z-index:5;display:flex;
+    justify-content:space-between;align-items:center;
+    padding:1px 0 12px;margin-bottom:14px;
+    border-bottom:1px solid #32506c;background:#102941;
+  }
+  .phone-music-sheet-head h3{
+    color:#f6fbff;font:700 21px Outfit,system-ui;margin:0;
+  }
+  .phone-music-sheet-head button{
+    min-width:39px;min-height:39px;
+    border:1px solid #355b7b;background:#1b3c58;color:#fff;border-radius:12px;
+  }
+  .phone-music-controls[hidden]{display:none!important}
+  .phone-music-controls{display:flex;flex-direction:column;gap:13px!important;min-width:0}
+  .phone-music-controls .bar-section,
+  .phone-music-controls .bar-section.right{
+    position:static!important;display:flex!important;flex-wrap:wrap!important;
+    width:100%!important;min-width:0!important;min-height:54px!important;
+    flex:0 0 auto!important;align-items:center!important;
+    justify-content:space-around!important;gap:8px!important;
+    padding:8px 0!important;background:transparent!important;
+    border:0!important;
+  }
+  .phone-music-controls .bar-inputs{
+    min-width:0!important;flex:1 1 auto!important;
+    display:flex!important;justify-content:space-between!important;gap:7px!important;
+  }
+  .phone-music-controls #bpmInput{min-width:42px!important}
+  .phone-music-controls #timeSigInput{max-width:78px!important}
+  .phone-music-controls .vol-toggle-container{display:none!important}
+  .phone-music-controls .phone-music-volume{
+    display:flex;flex-direction:column;gap:12px;min-height:76px;
+    padding:10px 12px;border-radius:14px;background:#173650;
+  }
+  .phone-music-volume label{font:600 13px Outfit,system-ui;color:#d3e9fc}
+  .phone-music-volume input[type=range]{
+    display:block!important;position:static!important;visibility:visible!important;
+    opacity:1!important;pointer-events:auto!important;
+    transform:none!important;-webkit-transform:none!important;
+    appearance:auto!important;-webkit-appearance:auto!important;
+    width:100%!important;height:22px!important;margin:0!important;
+    padding:0!important;max-width:100%!important;flex:1!important;accent-color:#38a5ff;
+  }
+  .phone-music-controls #downloadSelectedPad{
+    max-width:100%!important;white-space:normal!important;
+  }
+  .phone-music-controls .rhythm-help{font-size:12px;line-height:1.5;color:#c1d8ec}
+}
