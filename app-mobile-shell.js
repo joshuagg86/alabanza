@@ -15,12 +15,12 @@ function showPads(){
   for(const key of TONES){
     const button=document.createElement('button');
     button.type='button';button.dataset.tone=key;button.textContent=key;
-    button.addEventListener('click',()=>{padKey=key;updatePad();void warmPad(key).catch(()=>{});if(padPlaying)startPad().catch(e=>message(e.message));});
+    button.addEventListener('click',()=>{padKey=key;updatePad();void warmPad(key).catch(()=>{});if(padPlaying)startPad().catch(e=>message(padError(e)));});
     $('mobilePadGrid').appendChild(button);
   }
   $('mobilePadPlay').addEventListener('click',async()=>{
     if(padPlaying){stopPad();return;}
-    try{await startPad();}catch(e){message(e.message);}
+    try{await startPad();}catch(e){message(padError(e));}
   });
   $('mobilePadDownload').addEventListener('click',async()=>{
     const button=$('mobilePadDownload');
@@ -30,12 +30,13 @@ function showPads(){
       message('Pad '+padKey+' guardado en este dispositivo.');
       await updatePad();
       void warmPad(padKey,true).catch(()=>{});
-    }catch(e){message(e.message||'No se pudo descargar.');}
+    }catch(e){message(padError(e));}
     finally{button.disabled=false;}
   });
   updatePad();return panel;
 }
 function message(text){const p=$('mobilePadState');if(p)p.textContent=text;}
+function padError(error){return !navigator.onLine||/Failed to fetch|NetworkError|fetch failed/i.test(String(error?.message||error))?'Sin conexión':String(error?.message||'No se pudo reproducir el pad.');}
 function stopPad(cancel=true){
   if(cancel)padSequence++;
   if(padSource){try{padSource.stop();}catch(_){}padSource.disconnect();padSource=null;}
@@ -51,7 +52,7 @@ async function warmPad(key,refresh=false){
     let bytes;
     if(saved?.blob)bytes=await saved.blob.arrayBuffer();
     else {
-      if(!navigator.onLine)throw new Error('Descarga este pad para usarlo sin internet.');
+      if(!navigator.onLine)throw new Error('Sin conexión');
       const response=await fetch('https://joshuagg86.github.io/alabanza/pads/'+encodeURIComponent(key)+'.mp3');
       if(!response.ok)throw new Error('No se pudo abrir el pad.');
       bytes=await response.arrayBuffer();
